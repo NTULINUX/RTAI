@@ -51,12 +51,6 @@
 #include <asm/rtai_vectors.h>
 #include <rtai_types.h>
 
-#ifdef CONFIG_SMP
-#define RTAI_NR_CPUS  CONFIG_RTAI_CPUS
-#else /* !CONFIG_SMP */
-#define RTAI_NR_CPUS  1
-#endif /* CONFIG_SMP */
-
 static __inline__ unsigned long ffnz (unsigned long word) {
     /* Derived from bitops.h's ffs() */
     __asm__("bsfq %1, %0"
@@ -762,19 +756,25 @@ static inline unsigned long save_and_set_taskpri(unsigned long taskpri)
 	do { apic_write_around(APIC_TASKPRI, taskpri); } while (0)
 #endif
 
-static inline void rt_set_timer_delay (int delay) {
-
-    if (delay) {
-	unsigned long flags;
-	rtai_hw_save_flags_and_cli(flags);
+static inline void rt_set_timer_delay(int delay)
+{
+	if (delay) {
+		unsigned long flags;
+		rtai_hw_save_flags_and_cli(flags);
 #ifdef CONFIG_X86_LOCAL_APIC
-	apic_write_around(APIC_TMICT, delay);
+		if (this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
+			wrmsrl(MSR_IA32_TSC_DEADLINE, rtai_rdtsc() + delay);
+		} else {
+			delay = rtai_imuldiv(delay, rtai_tunables.apic_freq, rtai_tunables.cpu_freq);
+			apic_write_around(APIC_TMICT, delay);
+		}
 #else /* !CONFIG_X86_LOCAL_APIC */
-	outb(delay & 0xff,0x40);
-	outb(delay >> 8,0x40);
+		delay = rtai_imuldiv(delay, RTAI_FREQ_8254, rtai_tunables.cpu_freq);
+		outb(delay & 0xff,0x40);
+		outb(delay >> 8,0x40);
 #endif /* CONFIG_X86_LOCAL_APIC */
-	rtai_hw_restore_flags(flags);
-    }
+		rtai_hw_restore_flags(flags);
+	}
 }
 
     /* Private interface -- Internal use only */

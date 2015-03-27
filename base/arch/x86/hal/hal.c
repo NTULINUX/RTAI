@@ -252,14 +252,12 @@ EXPORT_SYMBOL(rtai_calibrate_hard_timer);
 
 #ifdef CONFIG_SMP
 
-extern int rtai_sched_affinity;  // in Linux "kernel/sched/core.c"
 // should we hold a lock for p->cpus_allowed, risky ?
 void free_isolcpus_from_linux(void *IsolCpusMask)
 {
 	struct task_struct *p;
 	struct cpumask mask;
 
-	rtai_sched_affinity = 1;
 	for_each_process(p) {
 		if (p->rtai_tskext(TSKEXT0)) {
 			continue;

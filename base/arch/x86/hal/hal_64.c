@@ -95,18 +95,22 @@ static void rtai_release_tickdev(void);
 
 static inline void rtai_setup_periodic_apic (unsigned count, unsigned vector)
 {
+if (!this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
 	apic_read(APIC_LVTT);
-	apic_write(APIC_LVTT, APIC_INTEGRATED(GET_APIC_VERSION(apic_read(APIC_LVR))) ? SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV) | APIC_LVT_TIMER_PERIODIC | vector : APIC_LVT_TIMER_PERIODIC | vector);
+	apic_write(APIC_LVTT, APIC_LVT_TIMER_PERIODIC | vector);
 	apic_read(APIC_TMICT);
 	apic_write(APIC_TMICT, count);
+}
 }
 
 static inline void rtai_setup_oneshot_apic (unsigned count, unsigned vector)
 {
+if (!this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
 	apic_read(APIC_LVTT);
-	apic_write(APIC_LVTT, APIC_INTEGRATED(GET_APIC_VERSION(apic_read(APIC_LVR))) ? SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV) | vector : vector);
+	apic_write(APIC_LVTT, vector);
 	apic_read(APIC_TMICT);
 	apic_write(APIC_TMICT, count);
+}
 }
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,11)
@@ -1590,6 +1594,7 @@ void ack_bad_irq(unsigned int irq)
 
 extern struct ipipe_domain ipipe_root;
 void free_isolcpus_from_linux(void *);
+extern unsigned long cpu_isolated_map;
 
 int __rtai_hal_init (void)
 {
@@ -1651,11 +1656,16 @@ int __rtai_hal_init (void)
 	rtai_init_taskpri_irqs();
 
 #ifdef CONFIG_SMP
+	if (IsolCpusMask && (IsolCpusMask != cpu_isolated_map)) {
+		printk("\nWARNING: IsolCpusMask (%lu) does not match cpu_isolated_map (%lu) set at boot time.\n", IsolCpusMask, cpu_isolated_map);
+	}
+	if (!IsolCpusMask) {
+		IsolCpusMask = cpu_isolated_map;
+	}
 	if (IsolCpusMask) {
 		for (trapnr = 0; trapnr < IPIPE_NR_XIRQS; trapnr++) {
 			rtai_orig_irq_affinity[trapnr] = rt_assign_irq_to_cpu(trapnr, ~IsolCpusMask);
 		}
-		free_isolcpus_from_linux(&IsolCpusMask);
 	}
 #else
 	IsolCpusMask = 0;

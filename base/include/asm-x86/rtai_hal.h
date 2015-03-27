@@ -26,28 +26,13 @@
 #define RTAI_KERN_BUSY_ALIGN_RET_DELAY  CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY
 #define RTAI_USER_BUSY_ALIGN_RET_DELAY  CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY
 
-#ifdef __i386__
-#include "rtai_hal_32.h"
-#else
-#include "rtai_hal_64.h"
-#endif
+#include <rtai_types.h>
 
-#ifdef CONFIG_RTAI_TSC
-static inline RTIME rt_get_tscnt(void)
-{
-#ifdef __i386__
-	unsigned long long t;
-	__asm__ __volatile__ ("rdtsc" : "=A" (t));
-       return t;
-#else
-	union { unsigned int __ad[2]; RTIME t; } t;
-	__asm__ __volatile__ ("rdtsc" : "=a" (t.__ad[0]), "=d" (t.__ad[1]));
-	return t.t;
-#endif
-}
-#else
-#define rt_get_tscnt  rt_get_time
-#endif
+#ifdef CONFIG_SMP
+#define RTAI_NR_CPUS  CONFIG_RTAI_CPUS
+#else /* !CONFIG_SMP */
+#define RTAI_NR_CPUS  1
+#endif /* CONFIG_SMP */
 
 struct calibration_data {
 	unsigned long cpu_freq;
@@ -61,5 +46,28 @@ struct calibration_data {
 };
 
 int rtai_calibrate_hard_timer(void);
+
+#ifdef __i386__
+#include "rtai_hal_32.h"
+#else
+#include "rtai_hal_64.h"
+#endif
+
+#ifdef CONFIG_RTAI_TSC
+static inline RTIME rt_get_tscnt(void)
+{
+#ifdef __i386__
+        unsigned long long t;
+        __asm__ __volatile__ ("rdtsc" : "=A" (t));
+       return t;
+#else
+        union { unsigned int __ad[2]; RTIME t; } t;
+        __asm__ __volatile__ ("rdtsc" : "=a" (t.__ad[0]), "=d" (t.__ad[1]));
+        return t.t;
+#endif
+}
+#else
+#define rt_get_tscnt  rt_get_time
+#endif
 
 #endif /* !_RTAI_ASM_X86_HAL_H */
