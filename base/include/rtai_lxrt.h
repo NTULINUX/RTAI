@@ -218,19 +218,6 @@
 #define RT_NAME_DETACH		 131
 #define RT_NAME_LOCATE		 132
 
-// bits
-#define BITS_INIT	  	       133
-#define BITS_DELETE		       134
-#define NAMED_BITS_INIT    	       135
-#define NAMED_BITS_DELETE  	       136
-#define BITS_GET	   	       137
-#define BITS_RESET	 	       138
-#define BITS_SIGNAL		       139
-#define BITS_WAIT	  	       140
-#define BITS_WAIT_IF       	       141
-#define BITS_WAIT_UNTIL    	       142
-#define BITS_WAIT_TIMED   	       143
-
 // pqueue
 #define MQ_OPEN	 	       164
 #define MQ_RECEIVE      	       165

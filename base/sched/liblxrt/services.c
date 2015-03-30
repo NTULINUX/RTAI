@@ -22,8 +22,6 @@
 #define write_cr4(x)
 /* end of dummy defines to avoid annoying warning about here unused stuff */
 
-#define CONFIG_RTAI_LXRT_INLINE 0
-
 #include <rtai_lxrt.h>
 #include <rtai_signal.h>
 #include <rtai_version.h>

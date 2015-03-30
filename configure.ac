@@ -924,9 +924,6 @@ dnl Now we can close the conditional section, right after all
 dnl Autoconf-generated symbols have been listed.
 AH_BOTTOM([#endif /* __IN_RTAI__ */])
 
-dnl No longer used after 2.6.17
-dnl AH_BOTTOM([#include <linux/config.h>])
-
 dnl
 dnl Produce automake conditionals.
 dnl
@@ -964,9 +961,6 @@ AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
 AM_CONDITIONAL(CONFIG_RTAI_TASKLETS_BUILTIN,[test x$CONFIG_RTAI_TASKLETS = xy])
 
-dnl Misc compilation conditionals
-AM_CONDITIONAL(CONFIG_RTAI_ADEOS,[test "$CONFIG_RTAI_ADEOS" = y])
-
 dnl Maintenance symbols and profiles
 AM_CONDITIONAL(CONFIG_RTAI_OLD_FASHIONED_BUILD,[test "$CONFIG_RTAI_OLD_FASHIONED_BUILD" = y])
 
@@ -991,7 +985,7 @@ AC_MSG_RESULT([$RTAI_MODULE_EXT])
 
 dnl extra arch-dependent opts to be passed to the compiler
 RTAI_KMOD_CXXFLAGS="-fno-rtti -fno-exceptions -fno-strength-reduce"
-RTAI_USER_CFLAGS="-Wall -Wstrict-prototypes"
+RTAI_USER_CFLAGS="-O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
 RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 if [[ $ac_cv_accepts_cxa_atexit = yes ]]; then
