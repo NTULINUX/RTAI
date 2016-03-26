@@ -12,20 +12,22 @@ $ sudo cp -v base/arch/x86/patches/hal-linux-3.14.17-x86-1.patch /usr/src/
 # cd /usr/src
 # rm -rf linux
 # wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.14.17.tar.xz
-# cd linux-3.14.17
+# tar xf linux-3.14.17.tar.xz
+# ln -sv linux-3.14.17 linux
+# cd linux
 # patch -p1 < ../hal-linux-3.14.17-x86-1.patch
 # make menuconfig
 
 Configure to your needs
 
 # make
-# make modules_install
+# make install && make modules_install
 
 3.) Update grub
 
-Refer to your distribution documentation to do this
+Refer to your distribution documentation to do this. Generally, grub2-mkconfig -o /boot/grub/grub.cfg for newer distros.
 
-4.) Compile, configure and install RTAI (MUST BE BOOTED INTO YOUR NEW KERNEL)
+4.) Compile, configure and install RTAI (MUST BE BOOTED INTO YOUR NEW RTAI KERNEL)
 
 $ cd ~/RTAI
 $ ./autogen.sh
