@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1999-2013 Paolo Mantegazza <mantegazza@aero.polimi.it>
  * Copyright (C) 2000      Stuart Hughes    <shughes@zentropix.com>
+ * Copyright (C) 2014-2016 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as

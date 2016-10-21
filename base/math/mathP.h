@@ -14,6 +14,8 @@
  * $Id: mathP.h,v 1.6 2013/10/22 14:54:15 ando Exp $
  */
 
+/* Modified by Alec Ari and Jeff Epler */
+
 #ifndef _MATH_PRIVATE_H_
 #define _MATH_PRIVATE_H_
 

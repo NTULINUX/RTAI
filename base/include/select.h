@@ -3,6 +3,7 @@
  * \author Gilles Chanteperdrix
  *
  * Copyright (C) 2008 Efixo <gilles.chanteperdrix@laposte.net>
+ * Copyright (C) 2014-2016 Alec Ari <neotheuser@ymail.com>
  *
  * Rtai is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published

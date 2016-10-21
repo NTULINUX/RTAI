@@ -1,5 +1,6 @@
 /*
  * Copyright (C) Pierre Cloutier <pcloutier@PoseidonControls.com>
+ * Copyright (C) Alec Ari <neotheuser@ymail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the version 2 of the GNU Lesser

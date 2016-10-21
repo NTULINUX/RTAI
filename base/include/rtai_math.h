@@ -19,6 +19,8 @@
  * 02111-1307 USA.
  */
 
+/* Modifications by Alec Ari and Jeff Epler */
+
 /*
  * ISO C99 Standard: 7.12 Mathematics <math.h>
  */

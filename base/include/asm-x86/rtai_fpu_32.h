@@ -23,6 +23,8 @@
  * Copyright (C) 2000 Pierre Cloutier <pcloutier@PoseidonControls.com>,
  * this final rewrite and cleanup:
  * Copyright (C) 2005 Paolo Mantegazza <mantegazza@aero.polimi.it>.
+ * The real final cleanup:
+ * Copyright (C) 2014-2016 Alec Ari <neotheuser@ymail.com>.
  */
 
 #ifndef _RTAI_ASM_I386_FPU_H

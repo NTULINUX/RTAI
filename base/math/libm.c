@@ -2,6 +2,8 @@
 rtai/libm/libm.c - module wrapper for SunSoft/FreeBSD/MacOX/uclibc libm
 RTAI - Real-Time Application Interface
 Copyright (C) 2001   David A. Schleef <ds@schleef.org>
+Copyright (C) 2014-2016 Alec Ari <neotheuser@ymail.com>
+Special thanks to Jeff Epler for many fixes
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as

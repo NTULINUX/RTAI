@@ -7,6 +7,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2003 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2014-2016 Alec Ari <neotheuser@ymail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

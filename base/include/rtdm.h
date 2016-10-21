@@ -5,6 +5,7 @@
  * @note Copyright (C) 2005, 2006 Jan Kiszka <jan.kiszka@web.de>
  * @note Copyright (C) 2005 Joerg Langenberg <joerg.langenberg@gmx.net>
  * @note Copyright (C) 2005-2010 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright (C) 2014-2016 Alec Ari <neotheuser@ymail.com>
  *
  * RTAI is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by

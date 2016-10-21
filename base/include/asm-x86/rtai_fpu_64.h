@@ -11,6 +11,9 @@
  *   Copyright &copy; 2005-2008 Paolo Mantegazza, \n
  *   Copyright &copy; 2005 Daniele Gasperini \n
  *
+ *   Unification of x86 architecture:
+ *   Copyright &copy; 2014-2016 Alec Ari
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
