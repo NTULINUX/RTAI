@@ -1,0 +1,25 @@
+Latency Testing and Calibration
+===============================
+
+This directory contains a test module to verify architectural latency and 
+jitter, up to the scheduling of a task. When used with the hard timer in
+oneshot mode it can serve as a fine tuning of the average real-time 
+scheduling latency.
+In oneshot mode the idea is to measure the difference in time between the 
+expected switch time and the time when a task is actually called by the 
+scheduler. In periodic mode instead the variations of the task period are
+used as measures of the scheduling latency/jitter. The reason for such a
+choice are:
+- there will be always a drift because the timer interrupt is based on a time 
+baseline that is different from the one used to carry out measures calculations;
+in case of a very good calibration such a drift can be made very small but 
+users will rarely do so and thus they'll tend to be misled by the results;
+- as far as there is no loss of timer interrupts there will be no drift in
+periodic mode, unless the hardware goes ashtray, so period variations are 
+valid measures.
+The execution is fully parametrisable at insmod as it is possible to set up:
+- timer mode
+- timer period
+- averaging time
+- per average time or overall worst cases
+- use of the FPU (with some calculations)

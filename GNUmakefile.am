@@ -1,6 +1,8 @@
 SUBDIRS = base
 
-DIST_SUBDIRS = base
+if CONFIG_RTAI_TESTSUITE
+SUBDIRS += testsuite
+endif
 
 EXTRA_DIST = \
 README.INSTALL \
