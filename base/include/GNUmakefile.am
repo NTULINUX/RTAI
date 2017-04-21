@@ -12,7 +12,6 @@ nobase_include_HEADERS = \
 		rtai_msg.h \
 		rtai_nam2num.h \
 		rtai_names.h \
-		rtai_netrpc.h \
 		rtai_pmq.h \
 		rtai_posix.h \
 		rtai_prinher.h \
@@ -20,7 +19,6 @@ nobase_include_HEADERS = \
 		rtai_proxies.h \
 		rtai_registry.h \
 		rtai_rwl.h \
-		rtai_sanity.h \
 		rtai_scb.h \
 		rtai_sched.h \
 		rtai_schedcore.h \

@@ -24,8 +24,4 @@ if CONFIG_RTAI_MQ
 OPTDIRS += mq
 endif
 
-if CONFIG_RTAI_NETRPC
-OPTDIRS += netrpc
-endif
-
 SUBDIRS = $(OPTDIRS)

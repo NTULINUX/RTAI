@@ -38,7 +38,6 @@
 #include <rtai_mq.h>
 #include <rtai_tasklets.h>
 #include <rtai_fifos.h>
-#include <rtai_netrpc.h>
 #include <rtai_shm.h>
 #include <rtai_posix.h>
 #ifdef CONFIG_RTAI_TASKLETS

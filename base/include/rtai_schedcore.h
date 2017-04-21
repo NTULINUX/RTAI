@@ -51,7 +51,6 @@
 #include <rtai_mq.h>
 #include <rtai_tasklets.h>
 #include <rtai_fifos.h>
-#include <rtai_netrpc.h>
 #include <rtai_shm.h>
 
 
@@ -157,10 +156,8 @@ void rtai_handle_isched_lock(int nesting);
 struct fun_args { unsigned long a[RTAI_MAX_FUN_ARGS]; RTAI_SYSCALL_MODE long long (*fun)(unsigned long, ...); };
 //used in sys.c
 #define RTAI_FUN_ARGS  arg[0],arg[1],arg[2],arg[3],arg[4],arg[5],arg[6],arg[7],arg[RTAI_MAX_FUN_ARGS - 1]
-//used in sched.c and netrpc.c (generalised calls from soft threads)
+//used in sched.c (generalised calls from soft threads)
 #define RTAI_FUNARGS   funarg->a[0],funarg->a[1],funarg->a[2],funarg->a[3],funarg->a[4],funarg->a[5],funarg->a[6],funarg->a[7],funarg->a[RTAI_MAX_FUN_ARGS - 1]
-//used in netrpc.c
-#define RTAI_FUN_A     a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[RTAI_MAX_FUN_ARGS - 1]
 
 #ifdef CONFIG_SMP
 
@@ -560,9 +557,6 @@ static inline int rtai_init_features (void)
 #ifdef CONFIG_RTAI_FIFOS_BUILTIN
     __rtai_fifos_init();
 #endif /* CONFIG_RTAI_FIFOS_BUILTIN */
-#ifdef CONFIG_RTAI_NETRPC_BUILTIN
-    __rtai_netrpc_init();
-#endif /* CONFIG_RTAI_NETRPC_BUILTIN */
 #ifdef CONFIG_RTAI_SHM_BUILTIN
     __rtai_shm_init();
 #endif /* CONFIG_RTAI_SHM_BUILTIN */
@@ -581,9 +575,6 @@ static inline void rtai_cleanup_features (void) {
 #ifdef CONFIG_RTAI_SHM_BUILTIN
     __rtai_shm_exit();
 #endif /* CONFIG_RTAI_SHM_BUILTIN */
-#ifdef CONFIG_RTAI_NETRPC_BUILTIN
-    __rtai_netrpc_exit();
-#endif /* CONFIG_RTAI_NETRPC_BUILTIN */
 #ifdef CONFIG_RTAI_FIFOS_BUILTIN
     __rtai_fifos_exit();
 #endif /* CONFIG_RTAI_FIFOS_BUILTIN */

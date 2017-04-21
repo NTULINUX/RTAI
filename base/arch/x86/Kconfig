@@ -321,43 +321,6 @@ config RTAI_FIFOS
 	since they do not require any scheduler to be installed.
 	The module will be called rtai_fifos.o.
 
-config RTAI_NETRPC
-	tristate "Net RPC"
-	depends on RTAI_MSG
-	default y if RTAI_MSG=y
-	default m if RTAI_MSG=m
-	help
-	RPC means Remote Procedure Call. The NetRPC implementation
-	corresponds to a synchronous intertask message passing which
-	is the old concept and the basis of microkernels, either
-	distributed or not.  Using NetRPC makes from RTAI a
-	distributed system, both for kernel and user space
-	applications.
-	NetRPC depends on a messaging support, if none is provided it relies
-	on Linux network services, thus loosing strict real time. See the
-	RTNet emulation option.
-	The NetRPC module will be called rtai_netrpc.o.
-
-config RTAI_NETRPC_RTNET
-	bool "Use RTNet"
-	depends on RTAI_NETRPC
-	default n
-	help
-	This enable support of RTNet in NETRPC. By setting this parameters hard 
-	real time will use RTNet automatically, while soft real time task will 
-	use Linux networking. With this parameter set the making of RTAI will 
-	work even if RTNet is not installed but you'll need RTNet to run it.
-	Notice that the initial linking and set up of remote port stubs is 
-	done in soft mode always.
-
-config RTAI_RTNET_DIR
-	depends on RTAI_NETRPC_RTNET
-	string "RTNET installation directory"
-	default "/usr/rtnet"
-	help
-	You Rhave chosen to use RTAI netrpc services with RTNet, so you have
-	to tell where it is located.
-
 config RTAI_SHM
 	tristate "Shared memory"
 	default m

@@ -240,70 +240,58 @@
 #define GET_ADR	 	       177
 #define GET_NAME	 	       178
 
-// netrpc
-#define NETRPC			       179
-#define SEND_REQ_REL_PORT	       180
-#define DDN2NL			       181
-#define SET_THIS_NODE		       182
-#define FIND_ASGN_STUB		       183
-#define REL_STUB		       184
-#define WAITING_RETURN		       185
-
 // a semaphore extension
-#define COND_SIGNAL		       186
+#define COND_SIGNAL		       179
 
 // new shm
-#define SHM_ALLOC		      187
-#define SHM_FREE		       188
-#define SHM_SIZE		       189
-#define HEAP_SET		       190
-#define HEAP_ALLOC		     191
-#define HEAP_FREE		      192
-#define HEAP_NAMED_ALLOC	       193
-#define HEAP_NAMED_FREE		194
-#define MALLOC			 195
-#define FREE			   196
-#define NAMED_MALLOC		   197
-#define NAMED_FREE		     198
+#define SHM_ALLOC		      180
+#define SHM_FREE		       181
+#define SHM_SIZE		       182
+#define HEAP_SET		       183
+#define HEAP_ALLOC		     184
+#define HEAP_FREE		      185
+#define HEAP_NAMED_ALLOC	       186
+#define HEAP_NAMED_FREE		187
+#define MALLOC			 188
+#define FREE			   189
+#define NAMED_MALLOC		   190
+#define NAMED_FREE		     191
 
-#define SUSPEND_IF		       199
-#define SUSPEND_UNTIL	 	       200
-#define SUSPEND_TIMED		       201
-#define IRQ_WAIT		       202
-#define IRQ_WAIT_IF		       203
-#define IRQ_WAIT_UNTIL		       204
-#define IRQ_WAIT_TIMED		       205
-#define IRQ_SIGNAL		       206
-#define REQUEST_IRQ_TASK	       207
-#define RELEASE_IRQ_TASK	       208
-#define SCHED_LOCK		       209
-#define SCHED_UNLOCK		       210
-#define PEND_LINUX_IRQ		       211
-#define SET_LINUX_SYSCALL_MODE	       212
+#define SUSPEND_IF		       192
+#define SUSPEND_UNTIL	 	       193
+#define SUSPEND_TIMED		       194
+#define IRQ_WAIT		       195
+#define IRQ_WAIT_IF		       196
+#define IRQ_WAIT_UNTIL		       197
+#define IRQ_WAIT_TIMED		       198
+#define IRQ_SIGNAL		       199
+#define REQUEST_IRQ_TASK	       200
+#define RELEASE_IRQ_TASK	       201
+#define SCHED_LOCK		       202
+#define SCHED_UNLOCK		       203
+#define PEND_LINUX_IRQ		       204
+#define SET_LINUX_SYSCALL_MODE	       205
 /*#define RETURN_LINUX_SYSCALL	 213 available */
-#define REQUEST_RTC		    214
-#define RELEASE_RTC		    215
-#define RT_GETTID		      216
-#define SET_NETRPC_TIMEOUT	     217
-#define GET_REAL_TIME		       218
-#define GET_REAL_TIME_NS	       219
+#define REQUEST_RTC		    206
+#define RELEASE_RTC		    207
+#define RT_GETTID		      208
+#define GET_REAL_TIME		       209
+#define GET_REAL_TIME_NS	       210
 
-#define MQ_REG_USP_NOTIFIER	       220
+#define MQ_REG_USP_NOTIFIER	       211
 
-#define RT_SIGNAL_HELPER   	       221
-#define RT_SIGNAL_WAITSIG  	       222
-#define RT_SIGNAL_REQUEST  	       223
-#define RT_SIGNAL_RELEASE  	       224
-#define RT_SIGNAL_ENABLE	       225
-#define RT_SIGNAL_DISABLE	       226
-#define RT_SIGNAL_TRIGGER	       227
+#define RT_SIGNAL_HELPER   	       212
+#define RT_SIGNAL_WAITSIG  	       213
+#define RT_SIGNAL_REQUEST  	       214
+#define RT_SIGNAL_RELEASE  	       215
+#define RT_SIGNAL_ENABLE	       216
+#define RT_SIGNAL_DISABLE	       217
+#define RT_SIGNAL_TRIGGER	       218
 
-#define SEM_RT_POLL 		       228
-#define RT_POLL_NETRPC		       229
+#define SEM_RT_POLL 		       219
+#define RT_POLL_NETRPC		       220
 
-#define RT_USRQ_DISPATCHER	       230
-
-#define MAX_LXRT_FUN		       231
+#define MAX_LXRT_FUN		       221
 
 // not recovered yet
 // Qblk's

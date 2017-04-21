@@ -856,7 +856,7 @@ RTAI_SYSCALL_MODE int _rt_mbx_ovrwr_send(MBX *mbx, void *msg, int msg_size, int 
  * _rt_typed_named_mbx_init initializes a mailbox of type @e qtype
  * and size @e size identified by @e name. Named mailboxed
  * are useful for use among different processes, kernel/user space and
- * in distributed applications, see netrpc.
+ * in distributed applications.
  *
  * @param mbx_name is the mailbox name; since it can be a clumsy identifier,
  * services are provided to convert 6 characters identifiers to unsigned long
