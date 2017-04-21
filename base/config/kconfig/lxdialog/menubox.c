@@ -27,27 +27,27 @@
  *    *)  A bugfix for the Page-Down problem
  *
  *    *)  Formerly when I used Page Down and Page Up, the cursor would be set
- *	to the first position in the menu box.  Now lxdialog is a bit
- *	smarter and works more like other menu systems (just have a look at
- *	it).
+ *        to the first position in the menu box.  Now lxdialog is a bit
+ *        smarter and works more like other menu systems (just have a look at
+ *        it).
  *
  *    *)  Formerly if I selected something my scrolling would be broken because
- *	lxdialog is re-invoked by the Menuconfig shell script, can't
- *	remember the last scrolling position, and just sets it so that the
- *	cursor is at the bottom of the box.  Now it writes the temporary file
- *	lxdialog.scrltmp which contains this information. The file is
- *	deleted by lxdialog if the user leaves a submenu or enters a new
- *	one, but it would be nice if Menuconfig could make another "rm -f"
- *	just to be sure.  Just try it out - you will recognise a difference!
+ *        lxdialog is re-invoked by the Menuconfig shell script, can't
+ *        remember the last scrolling position, and just sets it so that the
+ *        cursor is at the bottom of the box.  Now it writes the temporary file
+ *        lxdialog.scrltmp which contains this information. The file is
+ *        deleted by lxdialog if the user leaves a submenu or enters a new
+ *        one, but it would be nice if Menuconfig could make another "rm -f"
+ *        just to be sure.  Just try it out - you will recognise a difference!
  *
  *  [ 1998-06-14 ]
  *
  *    *)  Now lxdialog is crash-safe against broken "lxdialog.scrltmp" files
- *	and menus change their size on the fly.
+ *        and menus change their size on the fly.
  *
  *    *)  If for some reason the last scrolling position is not saved by
- *	lxdialog, it sets the scrolling so that the selected item is in the
- *	middle of the menu box, not at the bottom.
+ *        lxdialog, it sets the scrolling so that the selected item is in the
+ *        middle of the menu box, not at the bottom.
  *
  * 02 January 1999, Michael Elizabeth Chastain (mec@shout.net)
  * Reset 'scroll' to 0 if the value from lxdialog.scrltmp is bogus.
@@ -193,7 +193,7 @@ int dialog_menu(const char *title, const char *prompt,
 do_resize:
 	height = getmaxy(stdscr);
 	width = getmaxx(stdscr);
-	if (height < 15 || width < 65)
+	if (height < MENUBOX_HEIGTH_MIN || width < MENUBOX_WIDTH_MIN)
 		return -ERRDISPLAYTOOSMALL;
 
 	height -= 4;
@@ -203,8 +203,8 @@ do_resize:
 	max_choice = MIN(menu_height, item_count());
 
 	/* center dialog box on screen */
-	x = (COLS - width) / 2;
-	y = (LINES - height) / 2;
+	x = (getmaxx(stdscr) - width) / 2;
+	y = (getmaxy(stdscr) - height) / 2;
 
 	draw_shadow(stdscr, y, x, height, width);
 
@@ -303,10 +303,11 @@ do_resize:
 				}
 		}
 
-		if (i < max_choice ||
-		    key == KEY_UP || key == KEY_DOWN ||
-		    key == '-' || key == '+' ||
-		    key == KEY_PPAGE || key == KEY_NPAGE) {
+		if (item_count() != 0 &&
+		    (i < max_choice ||
+		     key == KEY_UP || key == KEY_DOWN ||
+		     key == '-' || key == '+' ||
+		     key == KEY_PPAGE || key == KEY_NPAGE)) {
 			/* Remove highligt of current item */
 			print_item(scroll + choice, choice, FALSE);
 

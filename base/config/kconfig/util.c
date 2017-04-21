@@ -76,6 +76,7 @@ int file_write_dep(const char *name)
 	return 0;
 }
 
+
 /* Allocate initial growable string */
 struct gstr str_new(void)
 {

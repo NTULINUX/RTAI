@@ -52,15 +52,15 @@ static void set_normal_colors(void)
 }
 
 /* available attributes:
-   A_NORMAL	Normal display (no highlight)
+   A_NORMAL        Normal display (no highlight)
    A_STANDOUT      Best highlighting mode of the terminal.
    A_UNDERLINE     Underlining
    A_REVERSE       Reverse video
-   A_BLINK	 Blinking
-   A_DIM	   Half bright
-   A_BOLD	  Extra bright or bold
+   A_BLINK         Blinking
+   A_DIM           Half bright
+   A_BOLD          Extra bright or bold
    A_PROTECT       Protected mode
-   A_INVIS	 Invisible or blank mode
+   A_INVIS         Invisible or blank mode
    A_ALTCHARSET    Alternate character set
    A_CHARTEXT      Bit-mask to extract a character
    COLOR_PAIR(n)   Color-pair number n
@@ -142,6 +142,7 @@ void set_colors()
 	}
 }
 
+
 /* this changes the windows attributes !!! */
 void print_in_middle(WINDOW *win,
 		int starty,
@@ -151,6 +152,7 @@ void print_in_middle(WINDOW *win,
 		chtype color)
 {      int length, x, y;
 	float temp;
+
 
 	if (win == NULL)
 		win = stdscr;
@@ -253,6 +255,7 @@ int btn_dialog(WINDOW *main_window, const char *msg, int btn_num, ...)
 	int i, x, y;
 	int res = -1;
 
+
 	va_start(ap, btn_num);
 	for (i = 0; i < btn_num; i++) {
 		btn = va_arg(ap, char *);
@@ -273,8 +276,9 @@ int btn_dialog(WINDOW *main_window, const char *msg, int btn_num, ...)
 
 	total_width = max(msg_width, btns_width);
 	/* place dialog in middle of screen */
-	y = (LINES-(msg_lines+4))/2;
-	x = (COLS-(total_width+4))/2;
+	y = (getmaxy(stdscr)-(msg_lines+4))/2;
+	x = (getmaxx(stdscr)-(total_width+4))/2;
+
 
 	/* create the windows */
 	if (btn_num > 0)
@@ -309,6 +313,7 @@ int btn_dialog(WINDOW *main_window, const char *msg, int btn_num, ...)
 	menu_opts_on(menu, O_NONCYCLIC);
 	set_menu_mark(menu, "");
 	post_menu(menu);
+
 
 	touchwin(win);
 	refresh_all_windows(main_window);
@@ -359,11 +364,13 @@ int dialog_inputbox(WINDOW *main_window,
 	WINDOW *prompt_win;
 	WINDOW *form_win;
 	PANEL *panel;
-	int i, x, y;
+	int i, x, y, lines, columns, win_lines, win_cols;
 	int res = -1;
 	int cursor_position = strlen(init);
 	int cursor_form_win;
 	char *result = *resultp;
+
+	getmaxyx(stdscr, lines, columns);
 
 	if (strlen(init)+1 > *result_len) {
 		*result_len = strlen(init)+1;
@@ -381,14 +388,19 @@ int dialog_inputbox(WINDOW *main_window,
 	if (title)
 		prompt_width = max(prompt_width, strlen(title));
 
+	win_lines = min(prompt_lines+6, lines-2);
+	win_cols = min(prompt_width+7, columns-2);
+	prompt_lines = max(win_lines-6, 0);
+	prompt_width = max(win_cols-7, 0);
+
 	/* place dialog in middle of screen */
-	y = (LINES-(prompt_lines+4))/2;
-	x = (COLS-(prompt_width+4))/2;
+	y = (lines-win_lines)/2;
+	x = (columns-win_cols)/2;
 
 	strncpy(result, init, *result_len);
 
 	/* create the windows */
-	win = newwin(prompt_lines+6, prompt_width+7, y, x);
+	win = newwin(win_lines, win_cols, y, x);
 	prompt_win = derwin(win, prompt_lines+1, prompt_width, 2, 2);
 	form_win = derwin(win, 1, prompt_width, prompt_lines+3, 2);
 	keypad(form_win, TRUE);
@@ -540,7 +552,7 @@ void show_scroll_win(WINDOW *main_window,
 {
 	int res;
 	int total_lines = get_line_no(text);
-	int x, y;
+	int x, y, lines, columns;
 	int start_x = 0, start_y = 0;
 	int text_lines = 0, text_cols = 0;
 	int total_cols = 0;
@@ -550,6 +562,8 @@ void show_scroll_win(WINDOW *main_window,
 	WINDOW *win;
 	WINDOW *pad;
 	PANEL *panel;
+
+	getmaxyx(stdscr, lines, columns);
 
 	/* find the widest line of msg: */
 	total_lines = get_line_no(text);
@@ -564,14 +578,14 @@ void show_scroll_win(WINDOW *main_window,
 	(void) wattrset(pad, attributes[SCROLLWIN_TEXT]);
 	fill_window(pad, text);
 
-	win_lines = min(total_lines+4, LINES-2);
-	win_cols = min(total_cols+2, COLS-2);
+	win_lines = min(total_lines+4, lines-2);
+	win_cols = min(total_cols+2, columns-2);
 	text_lines = max(win_lines-4, 0);
 	text_cols = max(win_cols-2, 0);
 
 	/* place window in middle of screen */
-	y = (LINES-win_lines)/2;
-	x = (COLS-win_cols)/2;
+	y = (lines-win_lines)/2;
+	x = (columns-win_cols)/2;
 
 	win = newwin(win_lines, win_cols, y, x);
 	keypad(win, TRUE);

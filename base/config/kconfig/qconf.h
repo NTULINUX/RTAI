@@ -11,17 +11,17 @@
 #include <qsettings.h>
 
 #if QT_VERSION < 0x040000
-#define Q3ValueList	     QValueList
-#define Q3PopupMenu	     QPopupMenu
-#define Q3ListView	      QListView
-#define Q3ListViewItem	  QListViewItem
-#define Q3VBox		  QVBox
-#define Q3TextBrowser	   QTextBrowser
-#define Q3MainWindow	    QMainWindow
-#define Q3Action		QAction
-#define Q3ToolBar	       QToolBar
+#define Q3ValueList             QValueList
+#define Q3PopupMenu             QPopupMenu
+#define Q3ListView              QListView
+#define Q3ListViewItem          QListViewItem
+#define Q3VBox                  QVBox
+#define Q3TextBrowser           QTextBrowser
+#define Q3MainWindow            QMainWindow
+#define Q3Action                QAction
+#define Q3ToolBar               QToolBar
 #define Q3ListViewItemIterator  QListViewItemIterator
-#define Q3FileDialog	    QFileDialog
+#define Q3FileDialog            QFileDialog
 #endif
 
 class ConfigView;
@@ -32,6 +32,7 @@ class ConfigMainWindow;
 
 class ConfigSettings : public QSettings {
 public:
+	ConfigSettings();
 	Q3ValueList<int> readSizes(const QString& key, bool *ok);
 	bool writeSizes(const QString& key, const Q3ValueList<int>& value);
 };
