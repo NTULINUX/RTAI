@@ -30,15 +30,6 @@ config RTAI_LINUXDIR
 	value of the Linux source tree which is fixed by default to
 	/usr/src/linux.
 
-config RTAI_TESTSUITE
-	bool "Build RTAI testsuite"
-	default y
-	help
-	Once you are done with the building process of RTAI, it may be
-	safe to run the testsuite to make sure your RTAI system is
-	functional. However if it does not it is possible that RTAI is not
-	the only one to blame, check your kernel config also.
-
 endmenu
 
 menu "Machine (x86 / x86_64)"

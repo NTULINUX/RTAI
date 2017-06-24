@@ -567,15 +567,6 @@ AC_LANG_RESTORE)
 AC_MSG_RESULT($ac_cv_accepts_cxa_atexit)
 CXXFLAGS="$save_CXXFLAGS"
 
-AC_MSG_CHECKING(for testsuite)
-AC_ARG_ENABLE(testsuite,
-	[ --enable-testsuite	Build RTAI testsuite],
-	[case "$enableval" in
-	y | yes) CONFIG_RTAI_TESTSUITE=y ;;
-	*) unset CONFIG_RTAI_TESTSUITE ;;
-	esac])
-AC_MSG_RESULT(${CONFIG_RTAI_TESTSUITE:-no})
-
 AC_MSG_CHECKING(for tlsf use in real-time malloc support)
 AC_ARG_ENABLE(malloc-tlsf,
 	[ --enable-malloc-tlsf	Enable tlsf support in malloc],
@@ -930,10 +921,8 @@ AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
 AM_CONDITIONAL(CONFIG_RTAI_TASKLETS_BUILTIN,[test x$CONFIG_RTAI_TASKLETS = xy])
 
-dnl Testsuite
 # OLD_FASHIONED_BUILD will be removed
 AM_CONDITIONAL(CONFIG_RTAI_OLD_FASHIONED_BUILD,[test "$CONFIG_RTAI_OLD_FASHIONED_BUILD" = y])
-AM_CONDITIONAL(CONFIG_RTAI_TESTSUITE,[test x$CONFIG_RTAI_TESTSUITE = xy])
 
 dnl
 dnl Define arch-specific CFLAGS and links
@@ -998,7 +987,6 @@ AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
 AC_CONFIG_LINKS(base/tasklets/Makefile:base/tasklets/Makefile.kbuild)
 AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
 AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
-AC_CONFIG_LINKS(testsuite/latency/Makefile:testsuite/latency/Makefile.kbuild)
 
 dnl
 dnl POSIX wraps
@@ -1062,9 +1050,7 @@ AC_CONFIG_FILES([ \
 	base/malloc/GNUmakefile \
 	base/tasklets/GNUmakefile \
 	base/trace/GNUmakefile \
-	base/posix/GNUmakefile \
-	testsuite/GNUmakefile \
-	testsuite/latency/GNUmakefile
+	base/posix/GNUmakefile
 	])
 
 AC_OUTPUT

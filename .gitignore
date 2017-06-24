@@ -26,8 +26,6 @@ aclocal.m4
 ltversion.m4
 bin/
 m4/*
-doc/guide/*.html
-addons/drivers/16550A/FORCE
 
 # Generated Makefiles
 GNUmakefile.in
@@ -39,7 +37,6 @@ Makefile
 .cfok
 .cfchanged
 .rtai_config*
-addons/rtdm/FORCE
 autom4te.cache/
 config.log
 config.status
@@ -55,10 +52,6 @@ stamp-h1
 base/arch/*/calibration/calibrate
 base/arch/*/calibration/calibration_helper
 base/arch/*/calibration/setsmi
-testsuite/*/*/display
-testsuite/*/*/latency
-testsuite/*/*/preempt
-testsuite/*/*/switches
 
 # KConfig Generated files
 base/config/kconfig/.config*
@@ -68,9 +61,3 @@ base/config/kconfig/libkconfig.so
 base/config/kconfig/lxdialog/lxdialog
 base/config/kconfig/mconf
 base/config/kconfig/zconf.tab.c
-
-# Documentation Files
-doc/doxygen/api
-doc/docbook/catalog
-doc/docbook/custom-stylesheets/xsl/html/chunk.xsl
-doc/doxygen/Doxyfile
