@@ -30,7 +30,7 @@ CONFIG_METHODS := config nconfig menuconfig xconfig gconfig oldconfig silentoldc
 	randconfig listnewconfig olddefconfig
 .PHONY: $(CONFIG_METHODS)
 $(CONFIG_METHODS):
-	@$(MAKE) -C base/config/kconfig \
+	@$(MAKE) -C base/scripts/kconfig \
 	-f Makefile.kconfig $@ \
 	srctree=$(PWD) ARCH=`uname -m`
 	@$(MAKE) --no-print-directory config-status
@@ -66,7 +66,7 @@ clean-local:
 	rm -fr modules .cfchanged
 
 distclean-local:
-	$(MAKE) -C $(srcdir)/base/config/kconfig \
+	$(MAKE) -C $(srcdir)/base/scripts/kconfig \
 	-f Makefile.kconfig distclean srctree=$(srcdir)
 	find . -name GNUmakefile.in | xargs rm -fr
 	rm -rf rtai_config* autom4te.cache
@@ -75,9 +75,9 @@ clean-local:
 	rm -f .cfchanged
 
 distclean-local:
-	test -d $(top_builddir)/base/config && \
-	$(MAKE) -C $(top_builddir)/base/config/kconfig \
-	-f @abs_srcdir@/base/config/kconfig/Makefile.kconfig distclean srctree=@abs_srcdir@
+	test -d $(top_builddir)/base/scripts && \
+	$(MAKE) -C $(top_builddir)/base/scripts/kconfig \
+	-f @abs_srcdir@/base/scripts/kconfig/Makefile.kconfig distclean srctree=@abs_srcdir@
 endif
 
 install-data-local: .rtai_config
@@ -90,7 +90,7 @@ install-data-local: .rtai_config
 install-exec-local: devices
 
 dist-hook:
-	$(MAKE) -C $(distdir)/base/config/kconfig \
+	$(MAKE) -C $(distdir)/base/scripts/kconfig \
 	-f Makefile.kconfig distclean srctree=$(srcdir)
 
 dev devices:

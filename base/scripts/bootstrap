@@ -14,7 +14,7 @@ if [ "$?" != "0" ]; then die "running libtoolize"; fi
 echo "done"
 
 echo -n "running aclocal..."
-aclocal --force -I base/config/autoconf
+aclocal --force -I base/scripts/autoconf
 if [ "$?" != "0" ] ; then die "running aclocal"; fi
 echo "done"
 

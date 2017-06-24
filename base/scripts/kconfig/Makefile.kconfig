@@ -20,7 +20,7 @@ ifeq ($(MAKECMDGOALS),gbuild)
 endif
 
 include ../Makefile.include
-this_dir := base/config/kconfig
+this_dir := base/scripts/kconfig
 
 CFLAGS := -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 
@@ -57,7 +57,7 @@ update-po-config: kxgettext gconf.glade.h
 	@xgettext --default-domain=linux                         \
 	    --add-comments --keyword=_ --keyword=N_                 \
 	    --from-code=UTF-8                                       \
-	    --files-from=$(srctree)/base/config/kconfig/POTFILES.in     \
+	    --files-from=$(srctree)/base/scripts/kconfig/POTFILES.in     \
 	    --directory=$(srctree) --directory=$(objtree)           \
 	    --output config.pot
 	@sed -i s/CHARSET/UTF-8/ config.pot
@@ -118,7 +118,7 @@ help:
 	@echo  '  olddefconfig	  - Same as silentoldconfig but sets new symbols to their default value'
 
 # lxdialog stuff
-check-lxdialog  := $(srctree)/base/config/kconfig/lxdialog/check-lxdialog.sh
+check-lxdialog  := $(srctree)/base/scripts/kconfig/lxdialog/check-lxdialog.sh
 
 # Use recursively expanded variables so we do not call gcc unless
 # we really need to do so. (Do not call gcc as part of make mrproper)
@@ -202,11 +202,11 @@ dochecklxdialog:
 always := dochecklxdialog
 
 # Add environment specific flags
-EXTRACFLAGS += $(shell $(SHELL) $(srctree)/base/config/kconfig/check.sh $(CC) $(CFLAGS))
+EXTRACFLAGS += $(shell $(SHELL) $(srctree)/base/scripts/kconfig/check.sh $(CC) $(CFLAGS))
 
 # generated files seem to need this to find local include files
-CFLAGS_zconf.lex.o	:= -I$(srctree)/base/config/kconfig
-CFLAGS_zconf.tab.o	:= -I$(srctree)/base/config/kconfig
+CFLAGS_zconf.lex.o	:= -I$(srctree)/base/scripts/kconfig
+CFLAGS_zconf.tab.o	:= -I$(srctree)/base/scripts/kconfig
 
 LEX_PREFIX	:= zconf
 YACC_PREFIX	:= zconf

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
 AC_INIT([4.1.0], [4.1.0], [neotheuser@ymail.com])
-AC_CONFIG_AUX_DIR(base/config/autoconf)
+AC_CONFIG_AUX_DIR(base/scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])

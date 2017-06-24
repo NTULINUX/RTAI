@@ -54,10 +54,10 @@ base/arch/*/calibration/calibration_helper
 base/arch/*/calibration/setsmi
 
 # KConfig Generated files
-base/config/kconfig/.config*
-base/config/kconfig/.ncurses
-base/config/kconfig/lex.zconf.c
-base/config/kconfig/libkconfig.so
-base/config/kconfig/lxdialog/lxdialog
-base/config/kconfig/mconf
-base/config/kconfig/zconf.tab.c
+base/scripts/kconfig/.config*
+base/scripts/kconfig/.ncurses
+base/scripts/kconfig/lex.zconf.c
+base/scripts/kconfig/libkconfig.so
+base/scripts/kconfig/lxdialog/lxdialog
+base/scripts/kconfig/mconf
+base/scripts/kconfig/zconf.tab.c
