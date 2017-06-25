@@ -10,7 +10,6 @@ CONFIG_RTAI_VERSION="4.1"
 #
 CONFIG_RTAI_INSTALLDIR="/usr/realtime"
 CONFIG_RTAI_LINUXDIR="/usr/src/linux"
-CONFIG_RTAI_TESTSUITE=y
 
 #
 # Machine (x86 / x86_64)

@@ -25,7 +25,7 @@ static void conf_message(const char *fmt, ...)
 static const char *conf_filename;
 static int conf_lineno, conf_warnings, conf_unsaved;
 
-const char conf_defname[] = "base/arch/$ARCH/defconfig";
+const char conf_defname[] = "base/arch/x86/defconfig";
 
 static void conf_warning(const char *fmt, ...)
 {
@@ -140,9 +140,7 @@ static int conf_set_sym_val(struct symbol *sym, int def, int def_flags, char *p)
 			sym->flags |= def_flags;
 			break;
 		}
-		if (def != S_DEF_AUTO)
-			conf_warning("symbol value '%s' invalid for %s",
-				     p, sym->name);
+		conf_warning("symbol value '%s' invalid for %s", p, sym->name);
 		return 1;
 	case S_OTHER:
 		if (*p != '"') {
@@ -163,8 +161,7 @@ static int conf_set_sym_val(struct symbol *sym, int def, int def_flags, char *p)
 			memmove(p2, p2 + 1, strlen(p2));
 		}
 		if (!p2) {
-			if (def != S_DEF_AUTO)
-				conf_warning("invalid string found");
+			conf_warning("invalid string found");
 			return 1;
 		}
 		/* fall through */
@@ -175,9 +172,7 @@ static int conf_set_sym_val(struct symbol *sym, int def, int def_flags, char *p)
 			sym->def[def].val = strdup(p);
 			sym->flags |= def_flags;
 		} else {
-			if (def != S_DEF_AUTO)
-				conf_warning("symbol value '%s' invalid for %s",
-					     p, sym->name);
+			conf_warning("symbol value '%s' invalid for %s", p, sym->name);
 			return 1;
 		}
 		break;
@@ -261,8 +256,11 @@ int conf_read_simple(const char *name, int def)
 		if (in)
 			goto load;
 		sym_add_change_count(1);
-		if (!sym_defconfig_list)
+		if (!sym_defconfig_list) {
+			if (modules_sym)
+				sym_calc_value(modules_sym);
 			return 1;
+		}
 
 		for_all_defaults(sym_defconfig_list, prop) {
 			if (expr_calc_value(prop->visible.expr) == no ||
@@ -396,6 +394,8 @@ setsym:
 	free(line);
 	fclose(in);
 
+	if (modules_sym)
+		sym_calc_value(modules_sym);
 	return 0;
 }
 
@@ -406,12 +406,8 @@ int conf_read(const char *name)
 
 	sym_set_change_count(0);
 
-	if (conf_read_simple(name, S_DEF_USER)) {
-		sym_calc_value(modules_sym);
+	if (conf_read_simple(name, S_DEF_USER))
 		return 1;
-	}
-
-	sym_calc_value(modules_sym);
 
 	for_all_symbols(i, sym) {
 		sym_calc_value(sym);
@@ -842,7 +838,6 @@ static int conf_split_config(void)
 
 	name = conf_get_autoconfig_name();
 	conf_read_simple(name, S_DEF_AUTO);
-	sym_calc_value(modules_sym);
 
 	if (chdir("include/config"))
 		return 1;
@@ -1045,7 +1040,7 @@ void conf_set_changed_callback(void (*fn)(void))
 	conf_changed_callback = fn;
 }
 
-static bool randomize_choice_values(struct symbol *csym)
+static void randomize_choice_values(struct symbol *csym)
 {
 	struct property *prop;
 	struct symbol *sym;
@@ -1058,7 +1053,7 @@ static bool randomize_choice_values(struct symbol *csym)
 	 * In both cases stop.
 	 */
 	if (csym->curr.tri != yes)
-		return false;
+		return;
 
 	prop = sym_get_choice_prop(csym);
 
@@ -1082,18 +1077,13 @@ static bool randomize_choice_values(struct symbol *csym)
 		else {
 			sym->def[S_DEF_USER].tri = no;
 		}
-		sym->flags |= SYMBOL_DEF_USER;
-		/* clear VALID to get value calculated */
-		sym->flags &= ~SYMBOL_VALID;
 	}
 	csym->flags |= SYMBOL_DEF_USER;
 	/* clear VALID to get value calculated */
 	csym->flags &= ~(SYMBOL_VALID);
-
-	return true;
 }
 
-void set_all_choice_values(struct symbol *csym)
+static void set_all_choice_values(struct symbol *csym)
 {
 	struct property *prop;
 	struct symbol *sym;
@@ -1110,10 +1100,10 @@ void set_all_choice_values(struct symbol *csym)
 	}
 	csym->flags |= SYMBOL_DEF_USER;
 	/* clear VALID to get value calculated */
-	csym->flags &= ~(SYMBOL_VALID | SYMBOL_NEED_SET_CHOICE_VALUES);
+	csym->flags &= ~(SYMBOL_VALID);
 }
 
-bool conf_set_all_new_symbols(enum conf_def_mode mode)
+void conf_set_all_new_symbols(enum conf_def_mode mode)
 {
 	struct symbol *sym, *csym;
 	int i, cnt, pby, pty, ptm;	/* pby: probability of boolean  = y
@@ -1161,7 +1151,6 @@ bool conf_set_all_new_symbols(enum conf_def_mode mode)
 			exit( 1 );
 		}
 	}
-	bool has_changed = false;
 
 	for_all_symbols(i, sym) {
 		if (sym_has_value(sym) || (sym->flags & SYMBOL_VALID))
@@ -1169,7 +1158,6 @@ bool conf_set_all_new_symbols(enum conf_def_mode mode)
 		switch (sym_get_type(sym)) {
 		case S_BOOLEAN:
 		case S_TRISTATE:
-			has_changed = true;
 			switch (mode) {
 			case def_yes:
 				sym->def[S_DEF_USER].tri = yes;
@@ -1178,10 +1166,7 @@ bool conf_set_all_new_symbols(enum conf_def_mode mode)
 				sym->def[S_DEF_USER].tri = mod;
 				break;
 			case def_no:
-				if (sym->flags & SYMBOL_ALLNOCONFIG_Y)
-					sym->def[S_DEF_USER].tri = yes;
-				else
-					sym->def[S_DEF_USER].tri = no;
+				sym->def[S_DEF_USER].tri = no;
 				break;
 			case def_random:
 				sym->def[S_DEF_USER].tri = no;
@@ -1217,26 +1202,14 @@ bool conf_set_all_new_symbols(enum conf_def_mode mode)
 	 * selected in a choice block and we set it to yes,
 	 * and the rest to no.
 	 */
-	if (mode != def_random) {
-		for_all_symbols(i, csym) {
-			if ((sym_is_choice(csym) && !sym_has_value(csym)) ||
-			    sym_is_choice_value(csym))
-				csym->flags |= SYMBOL_NEED_SET_CHOICE_VALUES;
-		}
-	}
-
 	for_all_symbols(i, csym) {
 		if (sym_has_value(csym) || !sym_is_choice(csym))
 			continue;
 
 		sym_calc_value(csym);
 		if (mode == def_random)
-			has_changed = randomize_choice_values(csym);
-		else {
+			randomize_choice_values(csym);
+		else
 			set_all_choice_values(csym);
-			has_changed = true;
-		}
 	}
-
-	return has_changed;
 }

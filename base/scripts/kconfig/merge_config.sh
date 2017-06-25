@@ -8,7 +8,7 @@
 #  http://git.yoctoproject.org/cgit/cgit.cgi/yocto-kernel-tools/tree/tools/kconf_check
 #  http://git.yoctoproject.org/cgit/cgit.cgi/yocto-kernel-tools/tree/tools/generate_cfg
 #
-#  Copyright (C) 2009-2010 Wind River Systems, Inc.
+#  Copyright (c) 2009-2010 Wind River Systems, Inc.
 #  Copyright 2011 Linaro
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ usage() {
 MAKE=true
 ALLTARGET=alldefconfig
 WARNREDUN=false
-OUTPUT=../../..
+OUTPUT=.
 
 while true; do
 	case $1 in
@@ -120,10 +120,18 @@ if [ "$MAKE" = "false" ]; then
 	exit
 fi
 
+# If we have an output dir, setup the O= argument, otherwise leave
+# it blank, since O=. will create an unnecessary ./source softlink
+OUTPUT_ARG=""
+if [ "$OUTPUT" != "." ] ; then
+	OUTPUT_ARG="O=$OUTPUT"
+fi
+
+
 # Use the merged file as the starting point for:
 # alldefconfig: Fills in any missing symbols with Kconfig default
 # allnoconfig: Fills in any missing symbols with # CONFIG_* is not set
-make KCONFIG_ALLCONFIG=$TMP_FILE O=$OUTPUT $ALLTARGET
+make KCONFIG_ALLCONFIG=$TMP_FILE $OUTPUT_ARG $ALLTARGET
 
 
 # Check all specified config values took (might have missed-dependency issues)

@@ -119,10 +119,9 @@ void menu_set_type(int type)
 		sym->type = type;
 		return;
 	}
-	menu_warn(current_entry,
-		"ignoring type redefinition of '%s' from '%s' to '%s'",
-		sym->name ? sym->name : "<choice>",
-		sym_type_name(sym->type), sym_type_name(type));
+	menu_warn(current_entry, "type of '%s' redefined from '%s' to '%s'",
+	    sym->name ? sym->name : "<choice>",
+	    sym_type_name(sym->type), sym_type_name(type));
 }
 
 struct property *menu_add_prop(enum prop_type type, char *prompt, struct expr *expr, struct expr *dep)
@@ -198,15 +197,12 @@ void menu_add_symbol(enum prop_type type, struct symbol *sym, struct expr *dep)
 
 void menu_add_option(int token, char *arg)
 {
+	struct property *prop;
+
 	switch (token) {
 	case T_OPT_MODULES:
-		if (modules_sym)
-			zconf_error("symbol '%s' redefines option 'modules'"
-				    " already defined by symbol '%s'",
-				    current_entry->sym->name,
-				    modules_sym->name
-				    );
-		modules_sym = current_entry->sym;
+		prop = prop_alloc(P_DEFAULT, modules_sym);
+		prop->expr = expr_alloc_symbol(current_entry->sym);
 		break;
 	case T_OPT_DEFCONFIG_LIST:
 		if (!sym_defconfig_list)
@@ -216,9 +212,6 @@ void menu_add_option(int token, char *arg)
 		break;
 	case T_OPT_ENV:
 		prop_add_env(arg);
-		break;
-	case T_OPT_ALLNOCONFIG_Y:
-		current_entry->sym->flags |= SYMBOL_ALLNOCONFIG_Y;
 		break;
 	}
 }
@@ -258,8 +251,8 @@ static void sym_check_prop(struct symbol *sym)
 				    "config symbol '%s' uses select, but is "
 				    "not boolean or tristate", sym->name);
 			else if (sym2->type != S_UNKNOWN &&
-				 sym2->type != S_BOOLEAN &&
-				 sym2->type != S_TRISTATE)
+			         sym2->type != S_BOOLEAN &&
+			         sym2->type != S_TRISTATE)
 				prop_warn(prop,
 				    "'%s' has wrong type. 'select' only "
 				    "accept arguments of boolean and "
@@ -268,7 +261,7 @@ static void sym_check_prop(struct symbol *sym)
 		case P_RANGE:
 			if (sym->type != S_INT && sym->type != S_HEX)
 				prop_warn(prop, "range is only allowed "
-						"for int or hex symbols");
+				                "for int or hex symbols");
 			if (!menu_validate_number(sym, prop->expr->left.sym) ||
 			    !menu_validate_number(sym, prop->expr->right.sym))
 				prop_warn(prop, "range is invalid");
@@ -450,22 +443,6 @@ bool menu_has_prompt(struct menu *menu)
 	return true;
 }
 
-/*
- * Determine if a menu is empty.
- * A menu is considered empty if it contains no or only
- * invisible entries.
- */
-bool menu_is_empty(struct menu *menu)
-{
-	struct menu *child;
-
-	for (child = menu->list; child; child = child->next) {
-		if (menu_is_visible(child))
-			return(false);
-	}
-	return(true);
-}
-
 bool menu_is_visible(struct menu *menu)
 {
 	struct menu *child;
@@ -477,7 +454,7 @@ bool menu_is_visible(struct menu *menu)
 
 	if (menu->visibility) {
 		if (expr_calc_value(menu->visibility) == no)
-			return false;
+			return no;
 	}
 
 	sym = menu->sym;
@@ -587,7 +564,7 @@ static void get_prompt_str(struct gstr *r, struct property *prop,
 		for (j = 4; --i >= 0; j += 2) {
 			menu = submenu[i];
 			if (jump && menu == location)
-				jump->offset = strlen(r->s);
+				jump->offset = r->len - 1;
 			str_printf(r, "%*c-> %s", j, ' ',
 				   _(menu_get_prompt(menu)));
 			if (menu->sym) {
@@ -601,7 +578,7 @@ static void get_prompt_str(struct gstr *r, struct property *prop,
 }
 
 /*
- * get property of type P_SYMBOL
+ * get peoperty of type P_SYMBOL
  */
 static struct property *get_symbol_prop(struct symbol *sym)
 {
