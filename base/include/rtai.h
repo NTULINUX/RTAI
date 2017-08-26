@@ -23,7 +23,6 @@
 #include <linux/version.h>
 #endif /* __KERNEL__ */
 
-#include <rtai_sanity.h>
 #include <asm/rtai.h>
 
 // see: Computing Practices, ACM, vol. 31, n. 10, 1988, pgs 1192-1201.
