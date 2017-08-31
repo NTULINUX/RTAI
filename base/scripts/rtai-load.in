@@ -9,7 +9,6 @@ exec_prefix="@exec_prefix@"
 insmod=/sbin/insmod
 modprobe=/sbin/modprobe
 rmmod=/sbin/rmmod
-modext=@RTAI_MODULE_EXT@
 verbose=0
 spc=" 	"
 
@@ -148,24 +147,24 @@ trap cleanup INT
 while test -n "$target_deps" ; do
   mod=`echo $target_deps|cut -d+ -f1`
   target_deps=`echo $target_deps|cut -s -d+ -f2-`
-  if test -h $rtai_moddir/rtai_$mod$modext; then
+  if test -h $rtai_moddir/rtai_$mod.ko; then
      # Substitute the symlink with the target name since
      # new modutils (>= 2.5.48) will use the actual name.
-     mod=`ls -l $rtai_moddir/rtai_$mod$modext|sed -e "s,.* \-> .*rtai_\([a-z0-9A-Z]*\)$modext.*,\1,"`
+     mod=`ls -l $rtai_moddir/rtai_$mod.ko|sed -e "s,.* \-> .*rtai_\([a-z0-9A-Z]*\).ko.*,\1,"`
   fi
   if `echo $loadlist | grep -vq "\\brtai_$mod\\b"`; then
      # If we cannot find the module in our install dir, try Linux's
      # one. If the latter fails too, assume the feature is built into
      # the scheduler or not needed. Obviously, we should _always_ find
      # the scheduler...
-     if test -r $rtai_moddir/rtai_$mod$modext; then
-        test $verbose = 1 && echo "+ $insmod $rtai_moddir/rtai_$mod$modext"
-        $sudo $insmod $rtai_moddir/rtai_$mod$modext
+     if test -r $rtai_moddir/rtai_$mod.ko; then
+        test $verbose = 1 && echo "+ $insmod $rtai_moddir/rtai_$mod.ko"
+        $sudo $insmod $rtai_moddir/rtai_$mod.ko
 	if test $? = 0 ; then
            inslist="rtai_$mod $inslist"
            loadlist="$loadlist $mod"
 	else
-	   echo "ERROR: cannot load $rtai_moddir/rtai_$mod$modext"
+	   echo "ERROR: cannot load $rtai_moddir/rtai_$mod.ko"
 	   break
         fi
      elif `$modprobe -n $mod > /dev/null 2>&1`; then
@@ -186,22 +185,22 @@ while test -n "$target_info" ; do
 
     push)
 
-	mod=`basename $2 $modext`
-        if test -r $rtai_moddir/$mod$modext; then
+	mod=`basename $2 .ko`
+        if test -r $rtai_moddir/$mod.ko; then
            modpath="$rtai_moddir/$mod"
-        elif test -r $user_moddir/$mod$modext; then
+        elif test -r $user_moddir/$mod.ko; then
            modpath="$user_moddir/$mod"
         else
            modpath="$mod"
         fi
 	if `echo $loadlist | grep -vq "\\b$mod\\b"`; then
-	   test $verbose = 1 && echo "+ $insmod $modpath$modext"
-	   $sudo $insmod $modpath$modext
+	   test $verbose = 1 && echo "+ $insmod $modpath.ko"
+	   $sudo $insmod $modpath.ko
 	   if test $? = 0; then
               loadlist="$loadlist $mod"
 	      inslist="$mod $inslist"
 	   else
-	      echo "ERROR: cannot load $modpath$modext"
+	      echo "ERROR: cannot load $modpath.ko"
 	   fi
 	fi
 	;;

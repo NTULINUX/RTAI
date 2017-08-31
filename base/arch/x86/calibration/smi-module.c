@@ -87,11 +87,6 @@ pci.ids database, ICH5-M ?)
 
 #define DEVFN	0xf8 /* device 31, function 0 */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-#define pci_get_device(a, b, c)  pci_find_device(a, b, c)
-#define pci_dev_put(a)	   do { /*nothing*/ } while(0)
-#endif
-
 #define PMBASE_B0    0x40
 #define PMBASE_B1    0x41
 

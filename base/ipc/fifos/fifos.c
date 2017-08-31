@@ -1679,9 +1679,6 @@ static struct file_operations rtf_fops =
 
 #ifdef CONFIG_DEVFS_FS
 #include <linux/devfs_fs_kernel.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-static devfs_handle_t devfs_handle;
-#endif
 #endif
 
 static int MaxFifos = MAX_FIFOS;
@@ -1732,11 +1729,7 @@ static int register_lxrt_fifos_support(void) { return 0; }
 
 #endif
 
-#define USE_UDEV_CLASS 1
-
-#if USE_UDEV_CLASS
 static class_t *fifo_class = NULL;
-#endif
 
 int __rtai_fifos_init(void)
 {
@@ -1748,7 +1741,6 @@ int __rtai_fifos_init(void)
 	}
 	memset(fifo, 0, MaxFifos*sizeof(FIFO));
 
-#if USE_UDEV_CLASS
 	if ((fifo_class = class_create(THIS_MODULE, "rtai_fifos")) == NULL) {
 		printk("RTAI-FIFO: cannot create class.\n");
 		return -EBUSY;
@@ -1760,7 +1752,6 @@ int __rtai_fifos_init(void)
 			return -EBUSY;
 		}
 	}
-#endif
 
 	if (register_chrdev(RTAI_FIFOS_MAJOR, "rtai_fifo", &rtf_fops)) {
 		printk("RTAI-FIFO: cannot register major %d.\n", RTAI_FIFOS_MAJOR);
@@ -1791,7 +1782,6 @@ void __rtai_fifos_exit(void)
 	unregister_lxrt_fifos_support();
 	unregister_chrdev(RTAI_FIFOS_MAJOR, "rtai_fifo");
 
-#if USE_UDEV_CLASS
 {
 	int minor;
 	for (minor = 0; minor < MAX_FIFOS; minor++) {
@@ -1799,7 +1789,6 @@ void __rtai_fifos_exit(void)
 	}
 	class_destroy(fifo_class);
 }
-#endif
 
 	if (rtf_free_srq(fifo_srq) < 0) {
 		printk("RTAI-FIFO: rtai srq %d illegal or already free.\n", fifo_srq);

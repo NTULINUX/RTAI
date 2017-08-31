@@ -125,7 +125,7 @@ typedef struct rt_task_info {
 #include <linux/time.h>
 #include <linux/errno.h>
 
-#if defined(CONFIG_RTAI_LONG_TIMED_LIST) && LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+#if defined(CONFIG_RTAI_LONG_TIMED_LIST)
 #include <linux/rbtree.h>
 typedef struct rb_node rb_node_t;
 typedef struct rb_root rb_root_t;

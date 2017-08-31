@@ -18,6 +18,9 @@
  *   Copyright &copy; 2005-2013 Paolo Mantegazza, \n
  *   Copyright &copy; 2005      Daniele Gasperini \n
  *
+ *   Clean-up:
+ *   Copyright &copy; 2017      Alec Ari \n
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
@@ -65,33 +68,6 @@ static inline unsigned long long rtai_ulldiv(unsigned long long ull, unsigned lo
 		*r = ull%uld;
 	}
 	return ull/uld;
-#if 0
-    /*
-     * Fixed by Marco Morandini <morandini@aero.polimi.it> to work
-     * with the -fnostrict-aliasing and -O2 combination using GCC
-     * 3.x.
-     */
-
-    unsigned long long qf, rf;
-    unsigned long tq, rh;
-    union { unsigned long long ull; unsigned long ul[2]; } p, q;
-
-    p.ull = ull;
-    q.ull = 0;
-    rf = 0x100000000ULL - (qf = 0xFFFFFFFFUL / uld) * uld;
-
-    while (p.ull >= uld) {
-    	q.ul[1] += (tq = p.ul[1] / uld);
-	rh = p.ul[1] - tq * uld;
-	q.ull  += rh * qf + (tq = p.ul[0] / uld);
-	p.ull   = rh * rf + (p.ul[0] - tq * uld);
-    }
-
-    if (r)
-	*r = p.ull;
-
-    return q.ull;
-#endif
 }
 
 static inline long rtai_imuldiv (long i, long mult, long div) {
@@ -144,14 +120,11 @@ static inline unsigned long long rtai_u64div32c(unsigned long long a,
 #include <linux/sched.h>
 #include <linux/interrupt.h>
 #include <asm/desc.h>
-//#include <asm/system.h>
 #include <asm/io.h>
 #include <asm/rtai_atomic.h>
 #include <asm/rtai_fpu.h>
-#ifdef CONFIG_X86_LOCAL_APIC
 #include <asm/fixmap.h>
 #include <asm/apic.h>
-#endif /* CONFIG_X86_LOCAL_APIC */
 #include <rtai_trace.h>
 
 #ifndef IPIPE_IRQ_DOALL
@@ -168,11 +141,8 @@ static inline unsigned long long rtai_u64div32c(unsigned long long a,
 #endif
 
 struct rtai_realtime_irq_s {
-//      int (*handler)(unsigned irq, void *cookie);
-//      void *cookie;
 	int retmode;
 	unsigned long cpumask;
-//      int (*irq_ack)(unsigned int, void *);
 };
 
 /*
@@ -181,7 +151,6 @@ struct rtai_realtime_irq_s {
  * to avoid putting something else in our patch.
  */
 
-#ifdef CONFIG_X86_IO_APIC
 #ifndef FIRST_DEVICE_VECTOR
 #define FIRST_DEVICE_VECTOR (FIRST_EXTERNAL_VECTOR + VECTOR_OFFSET_START)
 #endif
@@ -192,15 +161,6 @@ static inline int ext_irq_vector(int irq)
 	}
 	return -EINVAL;
 }
-#else
-static inline int ext_irq_vector(int irq)
-{
-	if (irq != 2) {
-		return (FIRST_EXTERNAL_VECTOR + irq);
-	}
-	return -EINVAL;
-}
-#endif
 
 #define RTAI_DOMAIN_ID  0x9ac15d93  // nam2num("rtai_d")
 #define RTAI_NR_TRAPS   HAL_NR_FAULTS
@@ -244,49 +204,6 @@ static inline int ext_irq_vector(int irq)
 #define rtai_restore_flags(x)       hal_hw_local_irq_restore(x)
 #define rtai_save_flags(x)	  hal_hw_local_irq_flags(x)
 
-/*
-static inline struct hal_domain_struct *get_domain_pointer(int n)
-{
-	struct list_head *p = hal_pipeline.next;
-	struct hal_domain_struct *d;
-	unsigned long i = 0;
-	while (p != &hal_pipeline) {
-		d = list_entry(p, struct hal_domain_struct, p_link);
-		if (++i == n) {
-			return d;
-		}
-		p = d->p_link.next;
-	}
-	return (struct hal_domain_struct *)i;
-}
-*/
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
-
-#define ROOT_STATUS_ADR(cpuid)  (ipipe_root_status[cpuid])
-#define ROOT_STATUS_VAL(cpuid)  (*ipipe_root_status[cpuid])
-
-#define hal_pend_domain_uncond(irq, domain, cpuid) \
-do { \
-	hal_irq_hits_pp(irq, domain, cpuid); \
-	if (likely(!test_bit(IPIPE_LOCK_FLAG, &(domain)->irqs[irq].control))) { \
-		__set_bit((irq) & IPIPE_IRQ_IMASK, &(domain)->cpudata[cpuid].irq_pending_lo[(irq) >> IPIPE_IRQ_ISHIFT]); \
-		__set_bit((irq) >> IPIPE_IRQ_ISHIFT, &(domain)->cpudata[cpuid].irq_pending_hi); \
-	} \
-} while (0)
-
-#define hal_fast_flush_pipeline(cpuid) \
-do { \
-	if (__ipipe_ipending_p(ipipe_this_cpu_root_context())) { \
-		rtai_cli(); \
-		__ipipe_sync_stage(); \
-	} \
-} while (0)
-
-#else
-
-//#define ROOT_STATUS_ADR(cpuid)  (&ipipe_cpudom_var(hal_root_domain, status))
-//#define ROOT_STATUS_VAL(cpuid)  (ipipe_cpudom_var(hal_root_domain, status))
 #define ROOT_STATUS_ADR(cpuid)  (&(__ipipe_root_status))
 #define ROOT_STATUS_VAL(cpuid)  (*(&__ipipe_root_status))
 
@@ -321,7 +238,6 @@ do { \
 		hal_sync_stage(IPIPE_IRQMASK_ANY); \
 	} \
 } while (0)
-#endif
 
 #endif
 
@@ -372,9 +288,7 @@ extern struct calibration_data rtai_tunables;
 
 extern volatile unsigned long rtai_cpu_lock[];
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,18) && LINUX_VERSION_CODE < KERNEL_VERSION(2,6,25)) || LINUX_VERSION_CODE > KERNEL_VERSION(2,6,26)
 #define apic_write_around apic_write
-#endif
 
 //#define RTAI_TASKPRI 0xf0  // simplest usage without changing Linux code base
 #if defined(CONFIG_X86_LOCAL_APIC) && defined(RTAI_TASKPRI)
@@ -431,11 +345,7 @@ do { \
 	apic_write_around(APIC_ICR, APIC_DEST_LOGICAL | SCHED_VECTOR); \
 } while (0)
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33)
-#define RTAI_SPIN_LOCK_TYPE(lock) lock
-#else
 #define RTAI_SPIN_LOCK_TYPE(lock) ((raw_spinlock_t *)lock)
-#endif
 #define rt_spin_lock(lock)    do { barrier(); _raw_spin_lock(RTAI_SPIN_LOCK_TYPE(lock)); barrier(); } while (0)
 #define rt_spin_unlock(lock)  do { barrier(); _raw_spin_unlock(RTAI_SPIN_LOCK_TYPE(lock)); barrier(); } while (0)
 
@@ -744,7 +654,6 @@ do { \
 
 #define in_hrt_mode(cpuid)  (rtai_linux_context[cpuid].sflags)
 
-#if defined(CONFIG_X86_LOCAL_APIC)
 static inline unsigned long save_and_set_taskpri(unsigned long taskpri)
 {
 	unsigned long saved_taskpri = apic_read(APIC_TASKPRI);
@@ -754,25 +663,18 @@ static inline unsigned long save_and_set_taskpri(unsigned long taskpri)
 
 #define restore_taskpri(taskpri) \
 	do { apic_write_around(APIC_TASKPRI, taskpri); } while (0)
-#endif
 
 static inline void rt_set_timer_delay(int delay)
 {
 	if (delay) {
 		unsigned long flags;
 		rtai_hw_save_flags_and_cli(flags);
-#ifdef CONFIG_X86_LOCAL_APIC
 		if (this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
 			wrmsrl(MSR_IA32_TSC_DEADLINE, rtai_rdtsc() + delay);
 		} else {
 			delay = rtai_imuldiv(delay, rtai_tunables.apic_freq, rtai_tunables.cpu_freq);
 			apic_write_around(APIC_TMICT, delay);
 		}
-#else /* !CONFIG_X86_LOCAL_APIC */
-		delay = rtai_imuldiv(delay, RTAI_FREQ_8254, rtai_tunables.cpu_freq);
-		outb(delay & 0xff,0x40);
-		outb(delay >> 8,0x40);
-#endif /* CONFIG_X86_LOCAL_APIC */
 		rtai_hw_restore_flags(flags);
 	}
 }
@@ -846,8 +748,6 @@ void rt_mask_and_ack_irq(unsigned irq);
 void rt_unmask_irq(unsigned irq);
 
 void rt_ack_irq(unsigned irq);
-
-/*@}*/
 
 int rt_request_linux_irq(unsigned irq,
 			 void *handler,
@@ -931,7 +831,6 @@ static inline int rt_free_global_irq(unsigned irq)
 #endif /* __KERNEL__ */
 
 #include <asm/rtai_oldnames.h>
-#include <asm/rtai_emulate_tsc.h>
 
 #define RTAI_DEFAULT_TICK    100000
 #ifdef CONFIG_RTAI_TRACE
@@ -939,8 +838,6 @@ static inline int rt_free_global_irq(unsigned irq)
 #else /* !CONFIG_RTAI_TRACE */
 #define RTAI_DEFAULT_STACKSZ 1024
 #endif /* CONFIG_RTAI_TRACE */
-
-/*@}*/
 
 #endif /* !_RTAI_ASM_X86_64_HAL_H */
 

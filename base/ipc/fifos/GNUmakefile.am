@@ -1,17 +1,10 @@
 moduledir = @RTAI_MODULE_DIR@
 
-modext = @RTAI_MODULE_EXT@
-
-
-
-libfifos_a_SOURCES = fifos.c
-
-if CONFIG_KBUILD
 if CONFIG_RTAI_FIFOS_BUILTIN
 rtai_fifos.ko:
 else
 rtai_fifos.ko: @RTAI_KBUILD_ENV@
-rtai_fifos.ko: $(libfifos_a_SOURCES)
+rtai_fifos.ko: fifos.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ \
 	@RTAI_KBUILD_BOTTOM@
@@ -19,28 +12,13 @@ rtai_fifos.ko: $(libfifos_a_SOURCES)
 clean-local:
 	@RTAI_KBUILD_CLEAN@
 endif
-else
-noinst_LIBRARIES = libfifos.a
 
-libfifos_a_AR = ar cru
-
-AM_CPPFLAGS = \
-	@RTAI_KMOD_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../../include
-
-rtai_fifos.o: libfifos.a
-	$(LD) --whole-archive $< -r -o $@
-endif
-
-all-local: rtai_fifos$(modext)
+all-local: rtai_fifos.ko
 if !CONFIG_RTAI_FIFOS_BUILTIN
-if CONFIG_RTAI_OLD_FASHIONED_BUILD
 	$(mkinstalldirs) $(top_srcdir)/modules
 	$(INSTALL_DATA) $^ $(top_srcdir)/modules
-endif
 
-install-exec-local: rtai_fifos$(modext)
+install-exec-local: rtai_fifos.ko
 	$(mkinstalldirs) $(DESTDIR)$(moduledir)
 	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
 endif

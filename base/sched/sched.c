@@ -39,9 +39,6 @@ ACKNOWLEDGMENTS:
 #include <linux/sys.h>
 
 #include <asm/param.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,4,0)
-#include <asm/system.h>
-#endif
 #include <asm/io.h>
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
@@ -219,17 +216,9 @@ void put_current_on_cpu(int cpuid)
 {
 #ifdef CONFIG_SMP
 	struct task_struct *task = current;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-	task->cpus_allowed = 1 << cpuid;
-	while (cpuid != rtai_cpuid()) {
-		task->state = TASK_INTERRUPTIBLE;
-		schedule_timeout(2);
-	}
-#else /* KERNEL_VERSION >= 2.6.0 */
 	if (set_cpus_allowed_ptr(task, cpumask_of(cpuid))) {
 		set_cpus_allowed_ptr(current, cpumask_of(((RT_TASK *)(task->rtai_tskext(TSKEXT0)))->runnable_on_cpus = rtai_cpuid()));
 	}
-#endif  /* KERNEL_VERSION < 2.6.0 */
 #endif /* CONFIG_SMP */
 }
 
@@ -1304,30 +1293,9 @@ sched_exit:
 }
 
 
-#if defined(USE_LINUX_TIMER) && !defined(CONFIG_GENERIC_CLOCKEVENTS)
-
-static irqreturn_t recover_jiffies(int irq, void *dev_id, struct pt_regs *regs)
-{
-	rt_global_cli();
-	if (linux_times->tick_time >= linux_times->linux_time) {
-		linux_times->linux_time += linux_times->linux_tick;
-		update_linux_timer(rtai_cpuid());
-	}
-	rt_global_sti();
-	return RTAI_LINUX_IRQ_HANDLED;
-}
-
-#define REQUEST_RECOVER_JIFFIES()  rt_request_linux_irq(TIMER_8254_IRQ, recover_jiffies, "rtai_jif_chk", recover_jiffies)
-
-#define RELEASE_RECOVER_JIFFIES(timer)  rt_free_linux_irq(TIMER_8254_IRQ, recover_jiffies)
-
-#else
-
 #define REQUEST_RECOVER_JIFFIES()
 
 #define RELEASE_RECOVER_JIFFIES()
-
-#endif
 
 
 int rt_is_hard_timer_running(void)
@@ -1354,9 +1322,6 @@ void rt_set_oneshot_mode(void)
 		oneshot_timer = 1;
 	}
 }
-
-
-#ifdef CONFIG_GENERIC_CLOCKEVENTS
 
 #include <linux/clockchips.h>
 #include <linux/ipipe_tickdev.h>
@@ -1401,8 +1366,6 @@ static int _rt_linux_hrt_next_shot(unsigned long deltat, void *hrt_dev) // ??? s
 	rtai_sti();
 	return 0;
 }
-
-#endif /* CONFIG_GENERIC_CLOCKEVENTS */
 
 #ifdef CONFIG_SMP
 
@@ -1926,55 +1889,8 @@ static inline void fast_schedule(RT_TASK *new_task, struct task_struct *lnxtsk, 
 /* detach the kernel thread from user space; not fully, only:
    session, process-group, tty. */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
-
-void rt_daemonize(void)
-{
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-	current->session = 1;
-	current->pgrp    = 1;
-	current->tty     = NULL;
-	spin_lock_irq(&current->sigmask_lock);
-	sigfillset(&current->blocked);
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
-#else
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,19)
-	(current->signal)->__session = 1;
-#else
-	(current->signal)->session   = 1;
-#endif
-	(current->signal)->pgrp    = 1;
-	(current->signal)->tty     = NULL;
-#endif
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-	spin_lock_irq(&current->sigmask_lock);
-	sigfillset(&current->blocked);
-	recalc_sigpending(current);
-	spin_unlock_irq(&current->sigmask_lock);
-#else
-	spin_lock_irq(&(current->sighand)->siglock);
-	sigfillset(&current->blocked);
-	recalc_sigpending();
-	spin_unlock_irq(&(current->sighand)->siglock);
-#endif
-}
-EXPORT_SYMBOL(rt_daemonize);
-
-#else
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(3,0,0)
-
 void rt_daemonize(void) { }
 EXPORT_SYMBOL(rt_daemonize);
-
-#else
-
-extern void rt_daemonize(void);
-
-#endif
-
-#endif
 
 void steal_from_linux(RT_TASK *rt_task)
 {
@@ -2128,11 +2044,6 @@ static inline void rt_signal_wake_up(RT_TASK *task)
 static int lxrt_intercept_schedule_tail (unsigned event, void *nothing)
 {
 	int cpuid = rtai_cpuid();
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,11)
-	if (in_hrt_mode(cpuid)) {
-		return 1;
-	} else
-#endif
 	{
 		struct klist_t *klistp = &wake_up_sth[cpuid];
 		while (klistp->out != klistp->in) {
@@ -2486,17 +2397,6 @@ static void lxrt_exit(void)
 	reset_rt_fun_entries(rt_sched_entries);
 }
 
-#ifdef DECLR_8254_TSC_EMULATION
-DECLR_8254_TSC_EMULATION;
-
-static void timer_fun(unsigned long none)
-{
-	TICK_8254_TSC_EMULATION();
-	timer.expires = jiffies + (HZ + TSC_EMULATION_GUARD_FREQ/2 - 1)/TSC_EMULATION_GUARD_FREQ;
-	add_timer(&timer);
-}
-#endif
-
 extern int rt_registry_alloc(void);
 extern void rt_registry_free(void);
 
@@ -2620,10 +2520,6 @@ static int __rtai_lxrt_init(void)
 	printk(KERN_INFO "RTAI[sched]: Linux timer freq = %d (Hz), TimeBase freq = %lu hz.\n", HZ, (unsigned long)tuned.cpu_freq);
 	printk(KERN_INFO "RTAI[sched]: timer setup = %d ns, resched latency = %d ns.\n", (int)imuldiv(tuned.setup_time_TIMER_CPUNIT, 1000000000, tuned.cpu_freq), (int)imuldiv(tuned.latency - tuned.setup_time_TIMER_CPUNIT, 1000000000, tuned.cpu_freq));
 
-#ifdef DECLR_8254_TSC_EMULATION
-	SETUP_8254_TSC_EMULATION;
-#endif
-
 	retval = rtai_init_features(); /* see rtai_schedcore.h */
 
 exit:
@@ -2685,10 +2581,6 @@ static void __rtai_lxrt_exit(void)
 	rtai_isr_sched = NULL;
 #endif /* CONFIG_RTAI_SCHED_ISR_LOCK */
 
-#ifdef DECLR_8254_TSC_EMULATION
-	CLEAR_8254_TSC_EMULATION;
-#endif
-
 #ifdef IPIPE_NOSTACK_FLAG
 	ipipe_clear_foreign_stack(&rtai_domain);
 #endif
@@ -2698,12 +2590,6 @@ static void __rtai_lxrt_exit(void)
 
 module_init(__rtai_lxrt_init);
 module_exit(__rtai_lxrt_exit);
-
-#ifndef CONFIG_KBUILD
-#define CONFIG_KBUILD
-#endif
-
-#ifdef CONFIG_KBUILD
 
 MODULE_ALIAS("rtai_up");
 MODULE_ALIAS("rtai_mup");
@@ -2724,6 +2610,3 @@ EXPORT_SYMBOL(rt_sched_timed);
 EXPORT_SYMBOL(switch_time);
 #endif
 EXPORT_SYMBOL(lxrt_prev_task);
-
-#endif /* CONFIG_KBUILD */
-

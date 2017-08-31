@@ -61,7 +61,6 @@ config-status: .rtai_config
 	   rm -f .cfok ; false; \
 	fi
 
-if CONFIG_RTAI_OLD_FASHIONED_BUILD
 clean-local:
 	rm -fr modules .cfchanged
 
@@ -70,15 +69,6 @@ distclean-local:
 	-f Makefile.kconfig distclean srctree=$(srcdir)
 	find . -name GNUmakefile.in | xargs rm -fr
 	rm -rf rtai_config* autom4te.cache
-else
-clean-local:
-	rm -f .cfchanged
-
-distclean-local:
-	test -d $(top_builddir)/base/scripts && \
-	$(MAKE) -C $(top_builddir)/base/scripts/kconfig \
-	-f @abs_srcdir@/base/scripts/kconfig/Makefile.kconfig distclean srctree=@abs_srcdir@
-endif
 
 install-data-local: .rtai_config
 	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)

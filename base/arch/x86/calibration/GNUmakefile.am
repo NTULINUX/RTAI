@@ -1,20 +1,14 @@
 calibrationdir = $(prefix)/calibration
 moduledir = @RTAI_MODULE_DIR@
 
-modext = @RTAI_MODULE_EXT@
-
-libcalibrate_rt_a_SOURCES = calibrate-module.c calibrate.h
-libsmi_rt_a_SOURCES = smi-module.c
-
-if CONFIG_KBUILD
 rtai_calibrate.ko: @RTAI_KBUILD_ENV@
-rtai_calibrate.ko: $(libcalibrate_rt_a_SOURCES)
+rtai_calibrate.ko: calibrate-module.c calibrate.h
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ \
 	@RTAI_KBUILD_BOTTOM@
 
 rtai_smi.ko: @RTAI_KBUILD_ENV@
-rtai_smi.ko: $(libsmi_rt_a_SOURCES)
+rtai_smi.ko: smi-module.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ \
 	@RTAI_KBUILD_BOTTOM@
@@ -24,29 +18,6 @@ clean-local:
 
 distclean-local:
 	@RTAI_KBUILD_DISTCLEAN@
-else
-noinst_LIBRARIES = libcalibrate_rt.a libsmi_rt.a
-
-libcalibrate_rt_a_AR = ar cru
-
-libcalibrate_rt_a_CPPFLAGS = \
-	@RTAI_KMOD_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../../../include
-
-rtai_calibrate.o: libcalibrate_rt.a
-	$(LD) --whole-archive $< -r -o $@
-
-libsmi_rt_a_AR = ar cru
-
-libsmi_rt_a_CPPFLAGS = \
-	@RTAI_KMOD_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../../../include
-
-rtai_smi.o: libsmi_rt.a
-	$(LD) --whole-archive $< -r -o $@
-endif
 
 calibration_PROGRAMS = calibrate
 
@@ -56,7 +27,7 @@ calibrate_SOURCES = calibrate.c calibrate.h
 
 calibrate_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
-	-DKERNEL_HELPER_PATH="\"$(calibrationdir)/rtai_calibrate$(modext)\"" \
+	-DKERNEL_HELPER_PATH="\"$(calibrationdir)/rtai_calibrate.ko\"" \
 	-DUSER_HELPER_PATH="\"$(calibrationdir)/calibration_helper\"" \
 	-I$(top_srcdir)/base/include \
 	-I../../../include
@@ -66,7 +37,6 @@ calibration_helper_SOURCES = calibration_helper.c
 calibration_helper_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
 	-DHAL_SCHED_PATH="\"$(DESTDIR)$(moduledir)\"" \
-	-DHAL_SCHED_MODEXT="\"$(modext)\"" \
 	-I$(top_srcdir)/base/include \
 	-I../../../include
 
@@ -74,22 +44,15 @@ calibration_helper_LDADD = \
 	../../../sched/liblxrt/liblxrt.la \
 	-lpthread
 
-all-local: rtai_calibrate$(modext) rtai_smi$(modext)
-
-RT_MODULES = rtai_calibrate$(modext) rtai_smi$(modext)
-
 calibrate_DEPENDENCIES = liblxrt.la
 liblxrt.la:
 	@(cd ../../../sched/liblxrt && make liblxrt.la)
 
 .PHONY: liblxrt.la
 
-install-exec-local: $(RT_MODULES)
-	$(mkinstalldirs) $(DESTDIR)$(moduledir)
-	@for m in $(RT_MODULES) ; do \
-		echo "installing module $$m in $(DESTDIR)$(moduledir)" ; \
-		$(INSTALL_DATA) $$m $(DESTDIR)$(moduledir)/$$m ; \
-	done
+all-local: rtai_calibrate.ko rtai_smi.ko
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)

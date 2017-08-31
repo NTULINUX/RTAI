@@ -53,7 +53,6 @@ int rtai_calibrate_hard_timer(void);
 #include "rtai_hal_64.h"
 #endif
 
-#ifdef CONFIG_RTAI_TSC
 static inline RTIME rt_get_tscnt(void)
 {
 #ifdef __i386__
@@ -66,8 +65,5 @@ static inline RTIME rt_get_tscnt(void)
         return t.t;
 #endif
 }
-#else
-#define rt_get_tscnt  rt_get_time
-#endif
 
 #endif /* !_RTAI_ASM_X86_HAL_H */

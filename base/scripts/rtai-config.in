@@ -25,7 +25,6 @@ RTAI_LXRT_LDFLAGS="-L${staging}${libdir} @RTAI_LXRT_LDADD@ -lpthread"
 RTAI_LIBRARY_DIR="${staging}${libdir}"
 COMEDI_DIR="@COMEDI_DIR@"
 EFLTK_DIR="@EFLTK_DIR@"
-RTAI_MODULE_EXT="@RTAI_MODULE_EXT@"
 RTAI_POSIX_WRAP="@RTAI_POSIX_WRAP@"
 
 unset prefix exec_prefix libdir datadir pkgdatadir includedir
@@ -91,9 +90,6 @@ while test $# -gt 0; do
             ;;
         --mod*-cflags|--kernel-cflags)
             echo $RTAI_KERNEL_CFLAGS
-            ;;
-        --mod*-ext)
-            echo $RTAI_MODULE_EXT
             ;;
         --mod*-cxxflags|--kernel-cxxflags)
             echo $RTAI_KERNEL_CXXFLAGS

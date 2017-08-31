@@ -17,10 +17,8 @@ rtai_trace.o: libtrace.a
 	$(LD) --whole-archive $< -r -o $@
 
 all-local: rtai_trace.o
-if CONFIG_RTAI_OLD_FASHIONED_BUILD
 	$(mkinstalldirs) $(top_srcdir)/modules
 	$(INSTALL_DATA) $^ $(top_srcdir)/modules
-endif
 
 install-exec-local: rtai_trace.o
 	$(mkinstalldirs) $(DESTDIR)$(moduledir)

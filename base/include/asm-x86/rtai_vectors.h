@@ -35,25 +35,14 @@
 #include <rtai_hal_names.h>
 #include <rtai_config.h>
 
-#ifdef CONFIG_X86_LOCAL_APIC
 #define RTAI_APIC_HIGH_VECTOR  HAL_APIC_HIGH_VECTOR
 #define RTAI_APIC_LOW_VECTOR   HAL_APIC_LOW_VECTOR
-#else
-#define RTAI_APIC_HIGH_VECTOR  0xff
-#define RTAI_APIC_LOW_VECTOR   0xff
-#endif
 
-#ifdef ipipe_apic_vector_irq /* LINUX_VERSION_CODE > KERNEL_VERSION(2,6,19) */
 #define RTAI_APIC_HIGH_IPI     ipipe_apic_vector_irq(RTAI_APIC_HIGH_VECTOR)
 #define RTAI_APIC_LOW_IPI      ipipe_apic_vector_irq(RTAI_APIC_LOW_VECTOR)
 #define LOCAL_TIMER_IPI	ipipe_apic_vector_irq(LOCAL_TIMER_VECTOR)
-#else
-#define RTAI_APIC_HIGH_IPI     (RTAI_APIC_HIGH_VECTOR - FIRST_EXTERNAL_VECTOR)
-#define RTAI_APIC_LOW_IPI      (RTAI_APIC_LOW_VECTOR - FIRST_EXTERNAL_VECTOR)
-#define LOCAL_TIMER_IPI	(LOCAL_TIMER_VECTOR - FIRST_EXTERNAL_VECTOR)
-#endif
 
-#endif
+#endif /* !__KERNEL_ */
 
 #define __rtai_stringize0(_s_) #_s_
 #define __rtai_stringize(_s_)  __rtai_stringize0(_s_)

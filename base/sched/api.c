@@ -2127,12 +2127,6 @@ void rtai_proc_lxrt_unregister(void)
 /* ------------------< end of proc filesystem section >------------------*/
 #endif /* CONFIG_PROC_FS */
 
-#ifndef CONFIG_KBUILD
-#define CONFIG_KBUILD
-#endif
-
-#ifdef CONFIG_KBUILD
-
 EXPORT_SYMBOL(rt_set_sched_policy);
 EXPORT_SYMBOL(rt_get_prio);
 EXPORT_SYMBOL(rt_get_inher_prio);
@@ -2235,8 +2229,3 @@ EXPORT_SYMBOL(reset_rt_fun_entries);
 EXPORT_SYMBOL(set_rt_fun_ext_index);
 EXPORT_SYMBOL(reset_rt_fun_ext_index);
 EXPORT_SYMBOL(max_slots);
-
-#ifdef CONFIG_SMP
-#endif /* CONFIG_SMP */
-
-#endif /* CONFIG_KBUILD */

@@ -2,7 +2,5 @@ ARCHDIR = x86
 
 SUBDIRS = $(ARCHDIR)
 
-modext = @RTAI_MODULE_EXT@
-
-rtai_hal$(modext):
-	@(cd $(ARCHDIR)/hal && make rtai_hal$(modext))
+rtai_hal.ko:
+	@(cd $(ARCHDIR)/hal && make rtai_hal.ko)

@@ -43,7 +43,7 @@
 
 #include <linux/version.h>
 
-#if defined(CONFIG_REGPARM) || LINUX_VERSION_CODE > KERNEL_VERSION(2,6,19)
+#if defined(CONFIG_REGPARM)
 #define RTAI_SYSCALL_MODE __attribute__((regparm(0)))
 #else
 #define RTAI_SYSCALL_MODE
@@ -63,94 +63,6 @@ static __inline__ unsigned long ffnz (unsigned long word) {
 	    : "r"  (word));
     return word;
 }
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-
-/*** 2.4.xx missing bitops, lifted from Linux ***/
-
-static inline unsigned long __ffs(unsigned long word)
-{
-	__asm__("bsfl %1,%0"
-		:"=r" (word)
-		:"rm" (word));
-	return word;
-}
-
-static inline unsigned __find_first_bit(const unsigned long *addr, unsigned size)
-{
-	unsigned x = 0;
-
-	while (x < size) {
-		unsigned long val = *addr++;
-		if (val)
-			return __ffs(val) + x;
-		x += (sizeof(*addr)<<3);
-	}
-	return x;
-}
-
-static inline int find_next_bit(const unsigned long *addr, int size, int offset)
-{
-	const unsigned long *p = addr + (offset >> 5);
-	int set = 0, bit = offset & 31, res;
-
-	if (bit) {
-		/*
-		 * Look for nonzero in the first 32 bits:
-		 */
-		__asm__("bsfl %1,%0\n\t"
-			"jne 1f\n\t"
-			"movl $32, %0\n"
-			"1:"
-			: "=r" (set)
-			: "r" (*p >> bit));
-		if (set < (32 - bit))
-			return set + offset;
-		set = 32 - bit;
-		p++;
-	}
-	/*
-	 * No set bit yet, search remaining full words for a bit
-	 */
-	res = __find_first_bit (p, size - 32 * (p - addr));
-	return (offset + set + res);
-}
-
-#define find_first_bit(addr, size) __find_first_bit((addr), (size))
-
-#endif
-
-#if 0
-static inline unsigned long long rtai_ulldiv (unsigned long long ull,
-					      unsigned long uld,
-					      unsigned long *r) {
-    /*
-     * Fixed by Marco Morandini <morandini@aero.polimi.it> to work
-     * with the -fnostrict-aliasing and -O2 combination using GCC
-     * 3.x.
-     */
-
-    unsigned long long qf, rf;
-    unsigned long tq, rh;
-    union { unsigned long long ull; unsigned long ul[2]; } p, q;
-
-    p.ull = ull;
-    q.ull = 0;
-    rf = 0x100000000ULL - (qf = 0xFFFFFFFFUL / uld) * uld;
-
-    while (p.ull >= uld) {
-    	q.ul[1] += (tq = p.ul[1] / uld);
-	rh = p.ul[1] - tq * uld;
-	q.ull  += rh * qf + (tq = p.ul[0] / uld);
-	p.ull   = rh * rf + (p.ul[0] - tq * uld);
-    }
-
-    if (r)
-	*r = p.ull;
-
-    return q.ull;
-}
-#else
 
 /* do_div below taken from Linux-2.6.20 */
 #ifndef do_div
@@ -178,7 +90,6 @@ static inline unsigned long long rtai_ulldiv (unsigned long long ull, unsigned l
 	do_div(ull, uld);
 	return ull;
 }
-#endif
 
 static inline int rtai_imuldiv (int i, int mult, int div) {
 
@@ -257,14 +168,11 @@ static inline unsigned long long rtai_u64div32c(unsigned long long a,
 #include <linux/sched.h>
 #include <linux/interrupt.h>
 #include <asm/desc.h>
-//#include <asm/system.h>
 #include <asm/io.h>
 #include <asm/rtai_atomic.h>
 #include <asm/rtai_fpu.h>
-#ifdef CONFIG_X86_LOCAL_APIC
 #include <asm/fixmap.h>
 #include <asm/apic.h>
-#endif /* CONFIG_X86_LOCAL_APIC */
 #include <rtai_trace.h>
 
 #ifndef IPIPE_IRQ_DOALL
@@ -318,34 +226,6 @@ struct rtai_realtime_irq_s {
 #define rtai_restore_flags(x)       hal_hw_local_irq_restore(x)
 #define rtai_save_flags(x)	  hal_hw_local_irq_flags(x)
 
-#define RTAI_LT_KERNEL_VERSION_FOR_NONPERCPU  KERNEL_VERSION(2,6,20)
-
-#if LINUX_VERSION_CODE < RTAI_LT_KERNEL_VERSION_FOR_NONPERCPU
-
-#define ROOT_STATUS_ADR(cpuid)  (ipipe_root_status[cpuid])
-#define ROOT_STATUS_VAL(cpuid)  (*ipipe_root_status[cpuid])
-
-#define hal_pend_domain_uncond(irq, domain, cpuid) \
-do { \
-	hal_irq_hits_pp(irq, domain, cpuid); \
-	if (likely(!test_bit(IPIPE_LOCK_FLAG, &(domain)->irqs[irq].control))) { \
-		__set_bit((irq) & IPIPE_IRQ_IMASK, &(domain)->cpudata[cpuid].irq_pending_lo[(irq) >> IPIPE_IRQ_ISHIFT]); \
-		__set_bit((irq) >> IPIPE_IRQ_ISHIFT, &(domain)->cpudata[cpuid].irq_pending_hi); \
-	} \
-} while (0)
-
-#define hal_fast_flush_pipeline(cpuid) \
-do { \
-	if (hal_root_domain->cpudata[cpuid].irq_pending_hi != 0) { \
-		rtai_cli(); \
-		hal_sync_stage(IPIPE_IRQMASK_ANY); \
-	} \
-} while (0)
-
-#else
-
-//#define ROOT_STATUS_ADR(cpuid)  (&ipipe_cpudom_var(hal_root_domain, status))
-//#define ROOT_STATUS_VAL(cpuid)  (ipipe_cpudom_var(hal_root_domain, status))
 #define ROOT_STATUS_ADR(cpuid)  (&(__ipipe_root_status))
 #define ROOT_STATUS_VAL(cpuid)  (*(&__ipipe_root_status))
 
@@ -389,8 +269,6 @@ do { \
 } while (0)
 #endif
 
-#endif
-
 #define hal_pend_uncond(irq, cpuid)  hal_pend_domain_uncond(irq, hal_root_domain, cpuid)
 
 extern volatile unsigned long *ipipe_root_status[];
@@ -415,40 +293,15 @@ do { \
 
 typedef int (*rt_irq_handler_t)(unsigned irq, void *cookie);
 
-#ifdef CONFIG_X86_TSC
-
 #define RTAI_CALIBRATED_CPU_FREQ   0
 #define RTAI_CPU_FREQ	      (rtai_tunables.cpu_freq)
 
-#if 0
-
-static inline unsigned long long _rtai_hidden_rdtsc (void) {
-    unsigned long long t;
-    __asm__ __volatile__( "rdtsc" : "=A" (t));
-    return t;
-}
-#define rtai_rdtsc() _rtai_hidden_rdtsc()
-
-#else
-
-//#define CONFIG_RTAI_DIAG_TSC_SYNC
 #if defined(CONFIG_SMP) && defined(CONFIG_RTAI_DIAG_TSC_SYNC) && defined(CONFIG_RTAI_TUNE_TSC_SYNC)
 extern volatile long rtai_tsc_ofst[];
 #define rtai_rdtsc() ({ unsigned long long t; __asm__ __volatile__( "rdtsc" : "=A" (t)); t - rtai_tsc_ofst[rtai_cpuid()]; })
 #else
 #define rtai_rdtsc() ({ unsigned long long t; __asm__ __volatile__( "rdtsc" : "=A" (t)); t; })
 #endif
-
-#endif
-
-#else  /* !CONFIG_X86_TSC */
-
-#define RTAI_CPU_FREQ	     RTAI_FREQ_8254
-#define RTAI_CALIBRATED_CPU_FREQ  RTAI_FREQ_8254
-
-#define rtai_rdtsc() rd_8254_ts()
-
-#endif /* CONFIG_X86_TSC */
 
 struct apic_timer_setup_data {
     int mode;
@@ -463,9 +316,7 @@ extern struct calibration_data rtai_tunables;
 
 extern volatile unsigned long rtai_cpu_lock[];
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,26)
 #define apic_write_around apic_write
-#endif
 
 extern struct rtai_switch_data {
 	volatile unsigned long sflags;
@@ -505,18 +356,9 @@ do { \
 	apic_write_around(APIC_ICR, APIC_DEST_LOGICAL | SCHED_VECTOR); \
 } while (0)
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,33)
-#define RTAI_SPIN_LOCK_TYPE(lock) lock
-#else
 #define RTAI_SPIN_LOCK_TYPE(lock) ((raw_spinlock_t *)lock)
-#endif
 #define rt_spin_lock(lock)    do { barrier(); _raw_spin_lock(RTAI_SPIN_LOCK_TYPE(lock)); barrier(); } while (0)
 #define rt_spin_unlock(lock)  do { barrier(); _raw_spin_unlock(RTAI_SPIN_LOCK_TYPE(lock)); barrier(); } while (0)
-#else /* LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0) */
-#define rt_spin_lock(lock)    spin_lock(lock)
-#define rt_spin_unlock(lock)  spin_unlock(lock)
-#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0) */
 
 static inline void rt_spin_lock_hw_irq(spinlock_t *lock)
 {
@@ -830,7 +672,6 @@ do { \
 
 #define in_hrt_mode(cpuid)  (rtai_linux_context[cpuid].sflags)
 
-#if defined(CONFIG_X86_LOCAL_APIC)
 static inline unsigned long save_and_set_taskpri(unsigned long taskpri)
 {
 	unsigned long saved_taskpri = apic_read(APIC_TASKPRI);
@@ -840,25 +681,18 @@ static inline unsigned long save_and_set_taskpri(unsigned long taskpri)
 
 #define restore_taskpri(taskpri) \
 	do { apic_write_around(APIC_TASKPRI, taskpri); } while (0)
-#endif
 
 static inline void rt_set_timer_delay(int delay)
 {
 	if (delay) {
 		unsigned long flags;
 		rtai_hw_save_flags_and_cli(flags);
-#ifdef CONFIG_X86_LOCAL_APIC
 		if (this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
 			wrmsrl(MSR_IA32_TSC_DEADLINE, rtai_rdtsc() + delay);
 		} else {
 			delay = rtai_imuldiv(delay, rtai_tunables.apic_freq, rtai_tunables.cpu_freq);
 			apic_write_around(APIC_TMICT, delay);
 		}
-#else /* !CONFIG_X86_LOCAL_APIC */
-		delay = rtai_imuldiv(delay, RTAI_FREQ_8254, rtai_tunables.cpu_freq);
-		outb(delay & 0xff,0x40);
-		outb(delay >> 8,0x40);
-#endif /* CONFIG_X86_LOCAL_APIC */
 		rtai_hw_restore_flags(flags);
 	}
 }
@@ -1029,7 +863,6 @@ static inline int rt_free_global_irq(unsigned irq)
 #endif /* __KERNEL__ */
 
 #include <asm/rtai_oldnames.h>
-#include <asm/rtai_emulate_tsc.h>
 
 #define RTAI_DEFAULT_TICK    100000
 #ifdef CONFIG_RTAI_TRACE
@@ -1037,7 +870,5 @@ static inline int rt_free_global_irq(unsigned irq)
 #else /* !CONFIG_RTAI_TRACE */
 #define RTAI_DEFAULT_STACKSZ 1024
 #endif /* CONFIG_RTAI_TRACE */
-
-/*@}*/
 
 #endif /* !_RTAI_ASM_I386_HAL_H */

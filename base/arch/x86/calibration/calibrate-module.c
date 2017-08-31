@@ -40,11 +40,9 @@ static void calibrate(void)
 	static unsigned long apic_tbase;
 
 	times.cpu_time = rd_CPU_ts();
-#ifdef CONFIG_X86_LOCAL_APIC
 	if (params.mp) {
 		times.apic_time = apic_read(APIC_TMCCT);
 	}
-#endif /* CONFIG_X86_LOCAL_APIC */
 	if (times.intrs < 0) {
 		cpu_tbase  = times.cpu_time;
 		apic_tbase = times.apic_time;
@@ -57,12 +55,10 @@ static void calibrate(void)
 		rtf_put(0, &times, sizeof(times));
 	}
 	rt_pend_linux_irq(TIMER_8254_IRQ);
-#ifdef CONFIG_X86_LOCAL_APIC
 	if (params.mp) {
 		unsigned temp = (apic_read(APIC_ICR) & (~0xCDFFF)) | (APIC_DM_FIXED | APIC_DEST_ALLINC | LOCAL_TIMER_VECTOR);
 		apic_write(APIC_ICR, temp);
 	}
-#endif /* CONFIG_X86_LOCAL_APIC */
 }
 
 static void just_ret(void)
@@ -202,9 +198,7 @@ static int srq;
 
 int init_module(void)
 {
-#ifdef CONFIG_X86_LOCAL_APIC
 	params.mp	= 1;
-#endif /* CONFIG_X86_LOCAL_APIC */
 	params.freq_apic = RTAI_FREQ_APIC;
 	params.cpu_freq  = RTAI_CPU_FREQ;
 	rtf_create(0, FIFOBUFSIZE);

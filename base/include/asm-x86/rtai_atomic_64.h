@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2007 Paolo Mantegazza <mantegazza@aero.polimi.it>.
  * Copyright (C) 2003 Philippe Gerum <rpm@xenomai.org>.
+ * Copyright (C) 2017 Alec Ari <neotheuser@ymail.com>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -24,14 +25,6 @@
 
 #include <linux/bitops.h>
 #include <asm/atomic.h>
-//#include <asm/system.h>
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,11)
-
-#define atomic_xchg(ptr, v)	xchg(ptr, v)
-#define atomic_cmpxchg(ptr, o, n)  cmpxchg((unsigned long *)(ptr), o, n)
-
-#endif
 
 #else /* !__KERNEL__ */
 

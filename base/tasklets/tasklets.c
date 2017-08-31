@@ -81,9 +81,6 @@
 #include <linux/slab.h>
 #include <linux/interrupt.h>
 #include <asm/uaccess.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,4,0)
-#include <asm/system.h>
-#endif
 #include <asm/rtai_sched.h>
 #include <rtai_tasklets.h>
 #include <rtai_lxrt.h>

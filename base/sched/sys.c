@@ -307,8 +307,6 @@ static int __task_delete(RT_TASK *rt_task)
 #define SYSW_DIAG_MSG(x)
 #endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,28)
-
 #include <linux/cred.h>
 static inline void set_lxrt_perm(int perm)
 {
@@ -318,19 +316,6 @@ static inline void set_lxrt_perm(int perm)
 		commit_creds(cred);
 	}
 }
-
-#else /* LINUX_VERSION_CODE <= 2.6.28 */
-
-static inline void set_lxrt_perm(int perm)
-{
-#ifdef current_cap
-	cap_raise(current_cap(), perm);
-#else
-	cap_raise(current->cap_effective, perm);
-#endif
-}
-
-#endif /* LINUX_VERSION_CODE > 2.6.28 */
 
 void rt_make_hard_real_time(RT_TASK *task)
 {
@@ -551,15 +536,9 @@ static inline long long handle_lxrt_request (unsigned int lxsrq, long *arg, RT_T
 		}
 
 		case NONROOT_HRT: {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
-			current->cap_effective |= ((1 << CAP_IPC_LOCK)  |
-						   (1 << CAP_SYS_RAWIO) |
-						   (1 << CAP_SYS_NICE));
-#else
 			set_lxrt_perm(CAP_IPC_LOCK);
 			set_lxrt_perm(CAP_SYS_RAWIO);
 			set_lxrt_perm(CAP_SYS_NICE);
-#endif
 			return 0;
 		}
 

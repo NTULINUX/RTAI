@@ -50,9 +50,9 @@ if test $? -eq 0; then
 	GCC_VERSION_MAJOR=`echo $GCC_VERSION | cut -d. -f1`
 	GCC_VERSION_MINOR=`echo $GCC_VERSION | cut -d. -f2`
 fi
-if test $GCC_VERSION_MAJOR -lt 3 -o $GCC_VERSION_MAJOR -eq 3 -a $GCC_VERSION_MINOR -lt 3 ; then
+if test $GCC_VERSION_MAJOR -lt 4 -o $GCC_VERSION_MAJOR -eq 4 -a $GCC_VERSION_MINOR -lt 6 ; then
 	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([If using GCC, version 3.3.0 or later is required.])
+	AC_MSG_ERROR([If using GCC, version 4.6.0 or later is required.])
 else
 	AC_MSG_RESULT([yes])
 fi
@@ -73,12 +73,10 @@ arch_has_mmu=y
 case "$host" in
  i*86*-*)
 	RTAI_TARGET_ARCH=x86
-	RTAI_TARGET_SUBARCH=32
 	wanted_kernel_arch=CONFIG_X86_32
 	;;
  x86_64*-*)
 	RTAI_TARGET_ARCH=x86
-	RTAI_TARGET_SUBARCH=64
 	wanted_kernel_arch=CONFIG_X86_64
 	;;
 esac
@@ -125,8 +123,6 @@ AC_ARG_WITH(module-dir,
 	esac
 	RTAI_MODULE_DIR="$withval"
     ])
-
-CONFIG_RTAI_OLD_FASHIONED_BUILD=y
 
 dnl Set a default module dir if unspecified
 if test "x" = "x$RTAI_MODULE_DIR"
@@ -670,17 +666,23 @@ AC_ARG_ENABLE(tune-tsc-sync,
 AC_MSG_RESULT(${CONFIG_RTAI_TUNE_TSC_SYNC:-no})
 
 dnl add arch specific tests
-if test x$CONFIG_X86_TSC = xy ; then
-	AC_DEFINE(CONFIG_RTAI_TSC,1,[Use TSC in user space])
+if test x$CONFIG_X86_TSC = x ; then
+	AC_MSG_ERROR([Missing TSC support.])
+fi
+
+if test x$CONFIG_X86_LOCAL_APIC = x ; then
+	AC_MSG_ERROR([Missing local APIC support.])
+fi
+
+if test x$CONFIG_X86_IO_APIC = x ; then
+	AC_MSG_ERROR([Missing I/O APIC support.])
+fi
+
+if test x$CONFIG_GENERIC_CLOCKEVENTS = x ; then
+	AC_MSG_ERROR([CONFIG_GENERIC_CLOCKEVENTS is disabled.])
 fi
 
 dnl Catch sub-package flags
-
-dnl We need to know this before building the APIC support
-dnl into the SMP scheduler for the x86 platform. Autoconf imposes
-dnl us to define all Automake conditionals...unconditionally. e.g.
-dnl regardless of the current architecture setup.
-AM_CONDITIONAL(CONFIG_X86_LOCAL_APIC,[test -n "$CONFIG_X86_LOCAL_APIC"])
 
 if test -n "$CONFIG_RTAI_TRACE" -a x$CONFIG_TRACE = x; then
    AC_MSG_ERROR([Missing LTT support in kernel to enable trace support.])
@@ -921,14 +923,10 @@ AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
 AM_CONDITIONAL(CONFIG_RTAI_TASKLETS_BUILTIN,[test x$CONFIG_RTAI_TASKLETS = xy])
 
-# OLD_FASHIONED_BUILD will be removed
-AM_CONDITIONAL(CONFIG_RTAI_OLD_FASHIONED_BUILD,[test "$CONFIG_RTAI_OLD_FASHIONED_BUILD" = y])
-
 dnl
 dnl Define arch-specific CFLAGS and links
 dnl
 
-RTAI_MODULE_EXT=.ko
 RTAI_KBUILD_ENV='src2obj = $(patsubst %.$(1),%.o,$(filter %.$(1),$(call notdir,$(2))))'
 RTAI_KBUILD_TOP="@if test \\! -r Module.symvers ; then \$(LN_S) -f \"\`cd \$(top_builddir) && pwd\`/Module.symvers\" . ; fi;"
 RTAI_KBUILD_BOTTOM=
@@ -940,13 +938,18 @@ RTAI_KBUILD_CMD="for src in \$^; do if test \\! -r \`basename \$\$src\`; then \$
 RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers modules.order && rm -Rf .tmp_versions'
 RTAI_KBUILD_DISTCLEAN=""
 
-AC_MSG_CHECKING([for kernel module extension])
-AC_MSG_RESULT([$RTAI_MODULE_EXT])
-
 dnl extra arch-dependent opts to be passed to the compiler
 RTAI_KMOD_CXXFLAGS="-fno-rtti -fno-exceptions -fno-strength-reduce"
-RTAI_USER_CFLAGS="-O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
-RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+case $wanted_kernel_arch in
+   CONFIG_X86_32)
+	RTAI_USER_CFLAGS="-march=i686 -O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
+	RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -march=i686 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+	;;
+   CONFIG_X86_64)
+	RTAI_USER_CFLAGS="-march=x86-64 -O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
+	RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -march=x86-64 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+	;;
+esac
 
 if [[ $ac_cv_accepts_cxa_atexit = yes ]]; then
    RTAI_KMOD_CXXFLAGS="$RTAI_KMOD_CXXFLAGS -fno-use-cxa-atexit"
@@ -962,19 +965,8 @@ RTAI_KMOD_CXXFLAGS="$RTAI_KMOD_CXXFLAGS -D__IN_RTAI__"
 RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
 
 AC_CONFIG_LINKS(base/include/asm:$srcdir/base/include/asm-x86)
-
-if test x$CONFIG_RTAI_OLD_FASHIONED_BUILD = xy; then
-   AC_CONFIG_LINKS(base/include/rtai_config.h:rtai_config.h)
-fi
-
-AC_MSG_CHECKING([for RTAI target architecture])
-if test x$RTAI_TARGET_SUBARCH = x; then
-   AC_MSG_RESULT([x86])
-else
-   AC_MSG_RESULT([x86 ($RTAI_TARGET_SUBARCH)])
-fi
-
 AC_CONFIG_LINKS(base/arch/x86/hal/Makefile:base/arch/x86/hal/Makefile.kbuild)
+AC_CONFIG_LINKS(base/include/rtai_config.h:rtai_config.h)
 AC_CONFIG_LINKS(base/arch/x86/calibration/Makefile:base/arch/x86/calibration/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/fifos/Makefile:base/ipc/fifos/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/mbx/Makefile:base/ipc/mbx/Makefile.kbuild)
@@ -999,7 +991,6 @@ dnl
 
 AC_SUBST(RTAI_BUILD_STRING)
 AC_SUBST(RTAI_HOST_STRING)
-AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
 AC_SUBST(RTAI_KMOD_CFLAGS)
 AC_SUBST(RTAI_KMOD_CXXFLAGS)
@@ -1013,7 +1004,6 @@ AC_SUBST(RTAI_FP_CFLAGS)
 AC_SUBST(RTAI_LINUX_DIR)
 AC_SUBST(RTAI_LINUX_VERSION)
 AC_SUBST(RTAI_MODULE_DIR)
-AC_SUBST(RTAI_MODULE_EXT)
 AC_SUBST(RTAI_KBUILD_ENV)
 AC_SUBST(RTAI_KBUILD_TOP)
 AC_SUBST(RTAI_KBUILD_BOTTOM)

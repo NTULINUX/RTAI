@@ -1,55 +1,65 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# Re-written in GNU Bash by Alec Ari
 
-MODULENAMENOEXT=rtai_smi
-MODULENAME="${MODULENAMENOEXT}@RTAI_MODULE_EXT@"
+while [[ $# -gt 0 ]] ; do
+argument="$1"
+case ${argument} in
+	hal_smi_masked_bits)
+	shift
+	;;
+	*)
+	;;
+esac
+shift
+done
+
+if [[ -n "${argument}" && "${argument}" == hal_smi_masked_bits=* ]] ; then
+	echo "Using ${argument}"
+else
+	echo "Using default value 0x1"
+fi
+
+MODULENAME="rtai_smi.ko"
 
 # Determine if setting or resetting
-CMDNAME=`basename $0`
-case $CMDNAME in
-setsmi)
-	SMIRESET=0
+CMDNAME=$(basename "${0}")
+case "${CMDNAME}" in
+	setsmi)
+	SMIRESET="0"
 	;;
-rstsmi)
-	SMIRESET=1
+	rstsmi)
+	SMIRESET="1"
 	;;
-*)
-	echo "invalid SMI script name \"$0\""
+	*)
+	echo "invalid SMI script name ${0}"
 	exit 1
 	;;
 esac
 
-MODULEDIR=`rtai-config --module-dir`
-if test $? != 0 ; then
-	echo "$CMDNAME: cannot find rtai-config (hint: make sure it's in the path; usual location: \$PREFIX/bin)"
+if [[ "${EUID}" != 0 ]] ; then
+	echo "This script must be run with superuser permissions."
 	exit 1
 fi
 
-if test x"$MODULEDIR" = x ; then
-	echo "$CMDNAME: rtai-config --module-dir: cannot find module dir"
-	exit 1
-fi
+type rtai-config > /dev/null 2>&1 || echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
+
+MODULEDIR=$(rtai-config --module-dir)
 
 # If hal_smi_masked_bits is not set, use default
-if test x"$1" != x ; then
-	SMI_MASKED_BITS="$1"
+if [[ -n "${argument}" ]] ; then
+	SMI_MASKED_BITS="${argument}"
 else
 	SMI_MASKED_BITS="0x1"
 fi
 
-# remove anyway
-CMD="rmmod"
-rmmod -s "$MODULENAMENOEXT"
-RC=$?
-if test $SMIRESET -eq 0 ; then
-	# if setting, insert
-	CMD="rmmod"
-	insmod "$MODULEDIR/$MODULENAME" hal_smi_masked_bits=$SMI_MASKED_BITS
-	RC=$?
-fi
-if test $RC != 0 ; then
-	echo "$CMDNAME: $CMD $MODULEDIR/$MODULENAME failed"
-	exit $RC
+rmmod -s "${MODULENAME}" || echo "${CMDNAME}: rmmod ${MODULENAME} failed" ; exit 1 ;
+
+if [[ "${SMIRESET}" -eq "0" ]] ; then
+	insmod "${MODULEDIR}"/"${MODULENAME}" hal_smi_masked_bits="${SMI_MASKED_BITS}" || \
+	{
+		echo "${CMDNAME}: insmod ${MODULEDIR}/${MODULENAME} failed" ;
+		exit 1 ;
+	}
 fi
 
 exit 0
-

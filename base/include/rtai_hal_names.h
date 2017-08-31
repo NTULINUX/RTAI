@@ -48,12 +48,7 @@
 #define hal_domain_struct   ipipe_domain
 #define hal_root_domain     ipipe_root_domain
 
-// temporary fix for using PPC
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17) || (defined(CONFIG_PPC) && LINUX_VERSION_CODE > KERNEL_VERSION(2,6,13))
 #define hal_current_domain(cpuid)  per_cpu(ipipe_percpu_domain, cpuid)
-#else
-#define hal_current_domain(cpuid)  (ipipe_percpu_domain[cpuid])
-#endif
 
 #define hal_propagate_irq   ipipe_propagate_irq
 #define hal_schedule_irq    ipipe_schedule_irq
@@ -61,11 +56,7 @@
 #define hal_critical_enter  ipipe_critical_enter
 #define hal_critical_exit   ipipe_critical_exit
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
-#define hal_clear_irq   __ipipe_clear_irq
-#else
 #define hal_clear_irq(a, b)
-#endif
 
 #define hal_lock_irq    __ipipe_lock_irq
 #define hal_unlock_irq  __ipipe_unlock_irq
@@ -96,21 +87,10 @@
 #define hal_alloc_irq       ipipe_alloc_virq
 #define hal_free_irq	ipipe_free_virq
 
-#if !defined(CONFIG_PPC) && (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,32) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0) && LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)))
-#define hal_virtualize_irq  ipipe_virtualize_irq
-#define hal_irq_hits_pp(irq, domain, cpuid) \
-do { \
-	domain->cpudata[cpuid].irq_hits[irq]++; \
-} while (0)
-#else
 #define hal_virtualize_irq(d, n, h, a, m) \
 	ipipe_virtualize_irq(d, n, (void *)h, NULL, a, m)
 #define hal_irq_hits_pp(irq, domain, cpuid) \
-do { \
-/*	domain->cpudata[cpuid].irq_counters[irq].total_hits++; REMIND ME TOO */\
-	domain->cpudata[cpuid].irq_counters[irq].pending_hits++; \
-} while (0)
-#endif
+do { domain->cpudata[cpuid].irq_counters[irq].pending_hits++; } while (0)
 
 #define hal_sysinfo_struct	 ipipe_sysinfo
 #define hal_attr_struct	    ipipe_domain_attr
@@ -147,11 +127,7 @@ do { \
 
 #define hal_unstall_pipeline_from  ipipe_unstall_pipeline_from
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
-#define hal_ack_system_irq  __ipipe_ack_system_irq
-#else
 #define hal_ack_system_irq  __ipipe_ack_apic
-#endif
 
 #define hal_irq_handler     rtai_irq_handler
 

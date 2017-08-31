@@ -93,24 +93,12 @@ ACKNOWLEDGMENTS:
 #include <linux/vmalloc.h>
 #include <linux/mm.h>
 
-#if 0
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-#include <linux/wrapper.h>
-#else /* >= 2.6.0 */
-#include <linux/mm.h>
-#define mem_map_reserve(p)   SetPageReserved(p)
-#define mem_map_unreserve(p) ClearPageReserved(p)
-#endif /* < 2.6.0 */
-#endif
-
 #define UVIRT_TO_KVA(adr)  uvirt_to_kva(pgd_offset_k(adr), (adr))
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,10)
 static inline int remap_page_range(struct vm_area_struct *vma, unsigned long uvaddr, unsigned long paddr, unsigned long size, pgprot_t prot)
 {
 	return remap_pfn_range(vma, uvaddr, paddr >> PAGE_SHIFT, size, prot);
 }
-#endif
 
 #include <rtai.h>
 //#include <asm/rtai_shm.h>
@@ -130,18 +118,10 @@ static inline unsigned long uvirt_to_kva(pgd_t *pgd, unsigned long adr)
 {
 	if (!pgd_none(*pgd) && !pgd_bad(*pgd)) {
 		pmd_t *pmd;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,11)
-		pmd = pmd_offset(pgd, adr);
-#else /* >= 2.6.11 */
 		pmd = pmd_offset(pud_offset(pgd, adr), adr);
-#endif /* < 2.6.11 */
 		if (!pmd_none(*pmd)) {
 			pte_t *ptep, pte;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-			ptep = pte_offset(pmd, adr);
-#else /* >= 2.6.0 */
 			ptep = pte_offset_kernel(pmd, adr);
-#endif /* < 2.6.0 */
 			pte = *ptep;
 			if (pte_present(pte)) {
 				return (((unsigned long)page_address(pte_page(pte))) | (adr & (PAGE_SIZE - 1)));
