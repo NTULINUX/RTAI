@@ -2,7 +2,6 @@ moduledir = @RTAI_MODULE_DIR@
 
 scheduler = rtai_sched.ko
 
-main_scheduler = rtai_sched
 legacy_schedulers = up mup smp ksched lxrt
 
 noinst_LIBRARIES =

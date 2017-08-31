@@ -1,13 +1,14 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-srcdir=`dirname "$0"`
-test -z "$srcdir" && srcdir=.
-
-ORIGDIR=`pwd`
-cd "$srcdir"
-
-autoreconf -v --install || exit 1
-cd $ORIGDIR || exit $?
+autoreconf -v --install || \
+	{
+	echo -e "Error running autoreconf.\n" ;
+	exit 1 ;
+	}
 
 # Do a temporary configure to generate initial makefiles
-"$srcdir"/configure --with-linux-dir="/lib/modules/$(uname -r)/build" "$@"
+./configure --with-linux-dir="/lib/modules/$(uname -r)/build" "$@" || \
+	{
+	echo -e "Error running configure.\n" ;
+	exit 1 ;
+	}

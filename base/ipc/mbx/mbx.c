@@ -967,14 +967,11 @@ void __rtai_mbx_exit (void)
 	reset_rt_fun_entries(rt_mbx_entries);
 }
 
-/*@}*/
-
 #ifndef CONFIG_RTAI_MBX_BUILTIN
 module_init(__rtai_mbx_init);
 module_exit(__rtai_mbx_exit);
 #endif /* !CONFIG_RTAI_MBX_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(_rt_mbx_evdrp);
 EXPORT_SYMBOL(rt_typed_mbx_init);
 EXPORT_SYMBOL(rt_mbx_init);
@@ -992,4 +989,3 @@ EXPORT_SYMBOL(_rt_mbx_receive_timed);
 EXPORT_SYMBOL(_rt_mbx_ovrwr_send);
 EXPORT_SYMBOL(_rt_typed_named_mbx_init);
 EXPORT_SYMBOL(rt_named_mbx_delete);
-#endif /* CONFIG_KBUILD */

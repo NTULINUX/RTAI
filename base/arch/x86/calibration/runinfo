@@ -1,4 +1,1 @@
-calibrate:sched:./calibration_helper;popall:control_c
-#calibrate_irq:ksched+fifos+calibrate:./calibrate -i;popall:control_c
-#calibrate_user:ksched+fifos+calibrate:./calibrate -u;popall:control_c
-#user_command:ksched+fifos+calibrate:./calibrate;popall:control_c
+rtai_sched.ko

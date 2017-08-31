@@ -1586,7 +1586,7 @@ static int rtf_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, u
 			return MAX_FIFOS;
 		}
 		case RTF_GET_FIFO_INFO: {
-			struct rt_fifo_get_info_struct req;
+			struct rt_fifo_get_info_struct req = { 0, 0, NULL };
 			int i, n;
 
 			rt_copy_from_user(&req, (void *)arg, sizeof(req));
@@ -1909,7 +1909,6 @@ RTAI_SYSCALL_MODE int rtf_getfifobyname(const char *name)
 	return -ENODEV;
 }
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rtf_create);
 EXPORT_SYMBOL(rtf_create_handler);
 EXPORT_SYMBOL(rtf_create_named);
@@ -1930,4 +1929,3 @@ EXPORT_SYMBOL(rtf_sem_init);
 EXPORT_SYMBOL(rtf_sem_post);
 EXPORT_SYMBOL(rtf_sem_trywait);
 EXPORT_SYMBOL(rtf_named_create);
-#endif /* CONFIG_KBUILD */

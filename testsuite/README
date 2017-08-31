@@ -1,0 +1,20 @@
+Latency Testing and Calibration
+===============================
+
+This test is the counterpart of the latency calibration found in the kernel 
+test suite and can be used just to monitor jitter in both periodic and oneshot
+mode. In the latter case the figures displayed can be used also to calibrate 
+the scheduling latency in oneshot mode.
+Try it under load and see that it is not so bad, compared to its kernel brother.
+For a quick idea of min/max jitters note that you should take away the average 
+from min/max. The difference in averages between the latency calibration run 
+for the kernel module and the one here gives you a fair idea of the overhead 
+of doing it in user space. You'll see that what you get is just a bit more 
+overhead, not really bad taking into account what must be done to run it in 
+user space, but not much more jitter. 
+Various execution mode are possible, please have a look at the related README
+found in kern/latency for an explanation of the related setup parameters,
+though you must note that they are in the form of macros here. So you have to
+recompile before trying a new test configuration.
+The only difference to be be noticed is that in user space the FPU support is 
+always active, so the related parameter doesn not exist.

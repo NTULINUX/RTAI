@@ -57,14 +57,14 @@ all-local: rtai_calibrate.ko rtai_smi.ko
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
 	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
-	@echo '#!/bin/sh' > $(DESTDIR)$(calibrationdir)/run
-	@echo "\$${DESTDIR}$(bindir)/rtai-load \$$*" >> $(DESTDIR)$(calibrationdir)/run
+	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(calibrationdir)/run
+	@echo "$${DESTDIR}$$(bindir)/rtai-load .runinfo" >> $(DESTDIR)$(calibrationdir)/run
 	@chmod +x $(DESTDIR)$(calibrationdir)/run
 	$(INSTALL_SCRIPT) -m 755 setsmi $(DESTDIR)$(bindir)
 	@$(LN_S) -f $(bindir)/setsmi $(DESTDIR)$(bindir)/rstsmi
 
 run: all
-	@$(top_srcdir)/rtai-scripts/rtai-load --verbose
+	@$(top_srcdir)/rtai-scripts/rtai-load $(DESTDIR)$(calibrationdir)/.runinfo
 
 EXTRA_DIST = runinfo README.SMI Makefile.kbuild
 

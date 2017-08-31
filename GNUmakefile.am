@@ -1,4 +1,4 @@
-SUBDIRS = base
+SUBDIRS = base testsuite
 
 EXTRA_DIST = \
 README.INSTALL \
@@ -10,8 +10,6 @@ README.SMI
 DISTCLEANFILES = .rtai_config .rtai_config.old .cfok .cfchanged Module.symvers configure
 
 moduledir = @RTAI_MODULE_DIR@
-
-MAKEFLAGS := $(MAKEFLAGS) --no-print-directory
 
 all-recursive install-recursive: base/GNUmakefile clean-if-reconfigured
 
@@ -25,26 +23,21 @@ clean-if-reconfigured:
 	   $(MAKE) clean ; \
 	fi
 
-CONFIG_METHODS := config nconfig menuconfig xconfig gconfig oldconfig silentoldconfig defconfig \
-	savedefconfig allnoconfig allyesconfig allmodconfig alldefconfig \
-	randconfig listnewconfig olddefconfig
-.PHONY: $(CONFIG_METHODS)
-$(CONFIG_METHODS):
-	@$(MAKE) -C base/scripts/kconfig \
-	-f Makefile.kconfig $@ \
-	srctree=$(PWD) ARCH=`uname -m`
-	@$(MAKE) --no-print-directory config-status
+menuconfig:
+	$(MAKE) srctree=$(PWD) \
+	-C base/scripts/kconfig -f Makefile.kconfig $@
+	$(MAKE) --no-print-directory config-status
 
 config-status: .rtai_config
 	@test -r config.status && recf=yes || recf=no ; \
 	eval `grep ^CONFIG_RTAI_INSTALLDIR $<`; \
-	CC="$(CC)" \
-	CXX="$(CXX)" \
-	LD="$(LD)" \
-	AR="$(AR)" \
-	RANLIB=ranlib \
-	STRIP=strip \
-	NM=nm \
+	CC="gcc" \
+	CXX="g++" \
+	LD="ld" \
+	AR="ar" \
+	RANLIB="ranlib" \
+	STRIP="strip" \
+	NM="nm" \
 	$(srctree)./configure \
 	--build=$(build_alias) \
 	--host=$(host_alias) \
@@ -62,12 +55,12 @@ config-status: .rtai_config
 	fi
 
 clean-local:
-	rm -fr modules .cfchanged
+	rm -rf modules .cfchanged
 
 distclean-local:
-	$(MAKE) -C $(srcdir)/base/scripts/kconfig \
-	-f Makefile.kconfig distclean srctree=$(srcdir)
-	find . -name GNUmakefile.in | xargs rm -fr
+	$(MAKE) srctree=$(srcdir) -C $(srcdir)/base/scripts/kconfig \
+	--no-print-directory -f Makefile.kconfig distclean
+	find . -name GNUmakefile.in | xargs rm -rf
 	rm -rf rtai_config* autom4te.cache
 
 install-data-local: .rtai_config
@@ -80,7 +73,7 @@ install-data-local: .rtai_config
 install-exec-local: devices
 
 dist-hook:
-	$(MAKE) -C $(distdir)/base/scripts/kconfig \
+	$(MAKE) -C --no-print-directory $(distdir)/base/scripts/kconfig \
 	-f Makefile.kconfig distclean srctree=$(srcdir)
 
 dev devices:
@@ -116,4 +109,4 @@ dev devices:
 	    done ; \
 	fi
 
-.PHONY: clean-if-reconfigured dev devices
+.PHONY: menuconfig clean-if-reconfigured dev devices

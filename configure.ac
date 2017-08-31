@@ -14,45 +14,27 @@ CONFIG_RTAI_REVISION_LEVEL=3
 
 AC_PROG_INSTALL
 LT_INIT
-AM_PROG_AS
-
-AC_ARG_WITH(CC,
-    [  --with-cc=compiler      use specific C compiler],
-    [
-	case "$withval" in
-	"" | y | ye | yes | n | no)
-	    AC_MSG_ERROR([You must supply an argument to --with-cc.])
-	  ;;
-	esac
-	CC="$withval"
-    ])
 AC_PROG_CC
-CFLAGS=""
-
-AC_ARG_WITH(CXX,
-    [  --with-cxx=compiler      use specific C++ compiler],
-    [ case "$withval" in
-	"" | y | ye | yes | n | no)
-	    AC_MSG_ERROR([You must supply an argument to --with-cxx.])
-	  ;;
-	esac
-	CXX="$withval" ])
 AC_PROG_CXX
+CC="gcc"
+CXX="g++"
+
+CFLAGS=""
 CXXFLAGS=""
 
-dnl If we're using GCC, make sure that it is at least version 3.3.0.  Older
-dnl versions are explictly not supported.
+dnl Only GCC is supported.
 AC_MSG_CHECKING([whether gcc version is sufficient])
-major=0
-minor=0
-GCC_VERSION=`$CC -dumpversion`
+GCC_VERSION=`gcc -dumpversion`
 if test $? -eq 0; then
 	GCC_VERSION_MAJOR=`echo $GCC_VERSION | cut -d. -f1`
 	GCC_VERSION_MINOR=`echo $GCC_VERSION | cut -d. -f2`
+else
+	AC_MSG_RESULT([no])
+	AC_MSG_ERROR([GCC is required.])
 fi
 if test $GCC_VERSION_MAJOR -lt 4 -o $GCC_VERSION_MAJOR -eq 4 -a $GCC_VERSION_MINOR -lt 6 ; then
 	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([If using GCC, version 4.6.0 or later is required.])
+	AC_MSG_ERROR([GCC version 4.6.0 or later is required.])
 else
 	AC_MSG_RESULT([yes])
 fi
@@ -61,24 +43,22 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_BUILD_STRING,"$build",[Build system alias])
 RTAI_BUILD_STRING="$build"
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_HOST_STRING,"$host",[Host system alias])
 RTAI_HOST_STRING="$host"
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_COMPILER,"`$CC -v 2>&1 | tail -n 1`",[Compiler])
+AC_DEFINE_UNQUOTED(CONFIG_RTAI_COMPILER,"`gcc -v 2>&1 | tail -n 1`",[Compiler])
 
-dnl Find arch-specific requirements and supports. Features which
-dnl are not supported by all archs must be listed here, so that a
-dnl an Autoconf flag can later be defined/undefined in rtai_config.h.
-
-arch_supports_lxrt=y
-arch_has_mmu=y
+dnl Only support X86 and AMD64
 
 case "$host" in
- i*86*-*)
-	RTAI_TARGET_ARCH=x86
-	wanted_kernel_arch=CONFIG_X86_32
-	;;
- x86_64*-*)
-	RTAI_TARGET_ARCH=x86
-	wanted_kernel_arch=CONFIG_X86_64
-	;;
+	i*86*-*)
+		RTAI_TARGET_ARCH=x86
+		wanted_kernel_arch=CONFIG_X86_32
+		;;
+	x86_64*-*)
+		RTAI_TARGET_ARCH=x86
+		wanted_kernel_arch=CONFIG_X86_64
+		;;
+	*)
+		echo "Only x86 and amd64 platforms are supported."
+		exit 1;
 esac
 
 dnl
@@ -89,8 +69,8 @@ RTAI_KCONFIG_FILE=$srcdir/base/arch/x86/defconfig
 kconfig_type=default
 
 AC_ARG_WITH(kconfig-file,
-    [  --with-kconfig-file=<kconfig-file>      KConfig parameter file],
-    [
+	[ --with-kconfig-file=<kconfig-file>      KConfig parameter file],
+	[
 	case "$withval" in
 	"" | y | ye | yes | n | no)
 	    AC_MSG_ERROR([You must supply an argument to --with-kconfig-file.])
@@ -98,11 +78,11 @@ AC_ARG_WITH(kconfig-file,
 	esac
 	RTAI_KCONFIG_FILE="$withval"
 	kconfig_type=supplied
-    ])
+	])
 
 AC_MSG_CHECKING([for RTAI Kconfig file])
-if test \! -f $RTAI_KCONFIG_FILE; then
-    AC_MSG_ERROR([Kconfig-file $RTAI_KCONFIG_FILE not found -- --with-kconfig-file sets Kconfig file])
+if test \! -r $RTAI_KCONFIG_FILE; then
+	AC_MSG_ERROR([Kconfig-file $RTAI_KCONFIG_FILE not found -- --with-kconfig-file sets Kconfig file])
 fi
 . $RTAI_KCONFIG_FILE
 AC_MSG_RESULT([$RTAI_KCONFIG_FILE ($kconfig_type)])
@@ -114,20 +94,20 @@ dnl
 AC_MSG_CHECKING([for module installation directory])
 
 AC_ARG_WITH(module-dir,
-    [  --with-module-dir=<module-dir>      Installation directory for modules],
-    [
+	[ --with-module-dir=<module-dir>	Installation directory for modules],
+	[
 	case "$withval" in
 	"" | y | ye | yes | n | no)
-	    AC_MSG_ERROR([You must supply an argument to --with-module-dir.])
-	  ;;
+		AC_MSG_ERROR([You must supply an argument to --with-module-dir.])
+		;;
 	esac
 	RTAI_MODULE_DIR="$withval"
-    ])
+	])
 
 dnl Set a default module dir if unspecified
 if test "x" = "x$RTAI_MODULE_DIR"
 then
-   RTAI_MODULE_DIR='${exec_prefix}/modules'
+	RTAI_MODULE_DIR='${exec_prefix}/modules'
 fi
 
 AC_MSG_RESULT([$RTAI_MODULE_DIR])
@@ -152,24 +132,24 @@ else
 fi
 
 AC_ARG_WITH(linux-dir,
-    [  --with-linux-dir=<linux-dir>      RTAI-enabled Linux kernel tree],
-    [
+	[ --with-linux-dir=<linux-dir>	RTAI-enabled Linux kernel tree],
+	[
 	case "$withval" in
 	"" | y | ye | yes | n | no)
-	    AC_MSG_ERROR([You must supply an argument to --with-linux-dir.])
-	  ;;
+		AC_MSG_ERROR([You must supply an argument to --with-linux-dir.])
+		;;
 	esac
 	RTAI_LINUX_DIR="$withval"
-    ])
+	])
 
 if test x${RTAI_LINUX_DIR} = x; then
-   echo
-   AC_MSG_ERROR([Linux kernel tree not specified -- use --with-linux-dir])
+	echo
+	AC_MSG_ERROR([Linux kernel tree not specified -- use --with-linux-dir])
 fi
 
 if test \! -r ${RTAI_LINUX_DIR}/Makefile; then
-   echo
-   AC_MSG_ERROR([No Linux kernel tree in ${RTAI_LINUX_DIR}])
+	echo
+	AC_MSG_ERROR([No Linux kernel tree in ${RTAI_LINUX_DIR}])
 fi
 
 if grep KERNELSRC $RTAI_LINUX_DIR/Makefile > /dev/null; then
@@ -190,8 +170,8 @@ eval linux_`grep '^VERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 
 dnl Load Linux kernel configuration now, before config symbols are tested.
 if test \! -r ${LINUX_KERNELOUTPUT}/.config; then
-   AC_MSG_RESULT([invalid])
-   AC_MSG_ERROR([$LINUX_KERNELOUTPUT is not configured -- --with-linux-dir sets linux-dir])
+	AC_MSG_RESULT([invalid])
+	AC_MSG_ERROR([$LINUX_KERNELOUTPUT is not configured -- --with-linux-dir sets linux-dir])
 fi
 
 . $LINUX_KERNELOUTPUT/.config
@@ -199,24 +179,8 @@ fi
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
 AC_MSG_RESULT([$RTAI_LINUX_DIR (kernel ${RTAI_LINUX_VERSION}${CONFIG_SMP:+-SMP})])
 if test x${CONFIG_RTAI_LINUXDIR} = x; then
-   CONFIG_RTAI_LINUXDIR=$RTAI_LINUX_DIR
+	CONFIG_RTAI_LINUXDIR=$RTAI_LINUX_DIR
 fi
-
-dnl
-dnl Identify the base technology used.
-dnl
-
-AC_MSG_CHECKING([for RTAI base technology])
-if test -r $LINUX_KERNELSRC/include/linux/ipipe.h; then
-   AC_DEFINE(CONFIG_RTAI_IPIPE,1,[Use RTAI Adeos-newgen HAL])
-   AC_MSG_RESULT([RTAI Adeos-newgen HAL])
-   CONFIG_RTAI_IPIPE=y
-else
-    echo
-    AC_MSG_ERROR([HAL patch not applied/enabled in $LINUX_KERNELSRC])
-fi
-
-CONFIG_KBUILD=y
 
 dnl
 dnl Perform a few sanity checks.
@@ -227,11 +191,11 @@ KERNEL_ARCH="`uname -m`"
 AC_MSG_RESULT([$KERNEL_ARCH])
 
 if test x${CONFIG_MODULES} = x ; then
-  AC_MSG_ERROR([Please set CONFIG_MODULES for $RTAI_LINUX_DIR and rebuild your kernel])
+	AC_MSG_ERROR([Please set CONFIG_MODULES for $RTAI_LINUX_DIR and rebuild your kernel])
 fi
 
-if test x${CONFIG_RTAI_ADEOS} = xy -a x${CONFIG_ADEOS_CORE} = x; then
-   AC_MSG_ERROR([Please activate the Adeos support in $RTAI_LINUX_DIR and rebuild your kernel])
+if test \! -r $LINUX_KERNELSRC/include/linux/ipipe.h; then
+	AC_MSG_ERROR([HAL patch not applied/enabled in $LINUX_KERNELSRC])
 fi
 
 dnl
@@ -243,7 +207,7 @@ RTAI_BUILTIN_MODLIST=""
 
 AC_MSG_CHECKING(for trace support)
 AC_ARG_ENABLE(trace,
-	[ --enable-trace		Enable trace support],
+	[ --enable-trace			Enable trace support],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_TRACE=y ;;
 	*) unset CONFIG_RTAI_TRACE ;;
@@ -254,7 +218,7 @@ CONFIG_RTAI_MATH=m
 
 AC_MSG_CHECKING(for real-time fifos support)
 AC_ARG_ENABLE(fifos,
-	[ --enable-fifos		Enable fifo IPC support],
+	[ --enable-fifos			Enable fifo IPC support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_FIFOS=y ;;
 	m | mod | module) CONFIG_RTAI_FIFOS=m ;;
@@ -263,12 +227,12 @@ AC_ARG_ENABLE(fifos,
 AC_MSG_RESULT(${CONFIG_RTAI_FIFOS:-no})
 
 if test x$CONFIG_RTAI_FIFOS = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/fifos"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/fifos"
 fi
 
 AC_MSG_CHECKING(for semaphore support)
 AC_ARG_ENABLE(sem,
-	[ --enable-sem		Enable semaphore support],
+	[ --enable-sem			Enable semaphore support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_SEM=y ;;
 	m | mod | module) CONFIG_RTAI_SEM=m ;;
@@ -277,12 +241,12 @@ AC_ARG_ENABLE(sem,
 AC_MSG_RESULT(${CONFIG_RTAI_SEM:-no})
 
 if test x$CONFIG_RTAI_SEM = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/sem"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/sem"
 fi
 
 AC_MSG_CHECKING(for RT POLL support)
 AC_ARG_ENABLE(rt-poll,
-	[ --enable-rt-poll		enable polling support of RTAI IPCs],
+	[ --enable-rt-poll		Enable polling support of RTAI IPCs],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_RT_POLL=y ;;
 	*) unset CONFIG_RTAI_RT_POLL ;;
@@ -300,7 +264,7 @@ AC_MSG_RESULT(${CONFIG_RTAI_RT_POLL_ON_STACK:-no})
 
 AC_MSG_CHECKING(for messaging support)
 AC_ARG_ENABLE(msg,
-	[ --enable-msg		Enable messaging support],
+	[ --enable-msg			Enable messaging support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_MSG=y ;;
 	m | mod | module) CONFIG_RTAI_MSG=m ;;
@@ -309,12 +273,12 @@ AC_ARG_ENABLE(msg,
 AC_MSG_RESULT(${CONFIG_RTAI_MSG:-no})
 
 if test x$CONFIG_RTAI_MSG = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/msg"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/msg"
 fi
 
 AC_MSG_CHECKING(for mailbox support)
 AC_ARG_ENABLE(mbx,
-	[ --enable-mbx		Enable mailbox support],
+	[ --enable-mbx			Enable mailbox support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_MBX=y ;;
 	m | mod | module) CONFIG_RTAI_MBX=m ;;
@@ -323,12 +287,12 @@ AC_ARG_ENABLE(mbx,
 AC_MSG_RESULT(${CONFIG_RTAI_MBX:-no})
 
 if test x$CONFIG_RTAI_MBX = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mbx"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mbx"
 fi
 
 AC_MSG_CHECKING(for POSIX-like message queue support)
 AC_ARG_ENABLE(mq,
-	[ --enable-mq		Enable POSIX-like message queue support],
+	[ --enable-mq			Enable POSIX-like message queue support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_MQ=y ;;
 	m | mod | module) CONFIG_RTAI_MQ=m ;;
@@ -337,12 +301,12 @@ AC_ARG_ENABLE(mq,
 AC_MSG_RESULT(${CONFIG_RTAI_MQ:-no})
 
 if test x$CONFIG_RTAI_MQ = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mq"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mq"
 fi
 
 AC_MSG_CHECKING(for shared memory support)
 AC_ARG_ENABLE(shm,
-	[ --enable-shm		Enable shared memory support],
+	[ --enable-shm			Enable shared memory support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_SHM=y ;;
 	m | mod | module) CONFIG_RTAI_SHM=m ;;
@@ -351,7 +315,7 @@ AC_ARG_ENABLE(shm,
 AC_MSG_RESULT(${CONFIG_RTAI_SHM:-no})
 
 if test x$CONFIG_RTAI_SHM = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/shm"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/shm"
 fi
 
 AC_MSG_CHECKING(for real-time malloc support)
@@ -365,12 +329,12 @@ AC_ARG_ENABLE(malloc,
 AC_MSG_RESULT(${CONFIG_RTAI_MALLOC:-no})
 
 if test x$CONFIG_RTAI_MALLOC = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST malloc"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST malloc"
 fi
 
 AC_MSG_CHECKING(for tasklets support)
 AC_ARG_ENABLE(tasklets,
-	[ --enable-tasklets	Enable tasklets support],
+	[ --enable-tasklets		Enable tasklets support],
 	[case "$enableval" in
 	y | yes | b | builtin | built-in) CONFIG_RTAI_TASKLETS=y ;;
 	m | mod | module) CONFIG_RTAI_TASKLETS=m ;;
@@ -379,12 +343,12 @@ AC_ARG_ENABLE(tasklets,
 AC_MSG_RESULT(${CONFIG_RTAI_TASKLETS:-no})
 
 if test x$CONFIG_RTAI_TASKLETS = xy ; then
-  RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST tasklets"
+	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST tasklets"
 fi
 
 AC_MSG_CHECKING(whether LXRT wraps service calls through Linux syscalls)
 AC_ARG_ENABLE(lxrt-use-linux-syscall,
-	[ --enable-lxrt-use-linux-syscall	Wrap LXRT service calls throug Linux syscall mechanism],
+	[ --enable-lxrt-linux-syscall	Wrap LXRT service calls through Linux syscall mechanism],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL=y ;;
 	*) unset CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL ;;
@@ -409,8 +373,8 @@ AC_ARG_ENABLE(sched-lock-isr,
 AC_MSG_RESULT(${CONFIG_RTAI_SCHED_ISR_LOCK:-no})
 
 AC_MSG_CHECKING(for RTC freq)
-AC_ARG_ENABLE(rtc-freq,
-	[ --enable-rtc-freq	Enable RTC freq],
+AC_ARG_WITH(rtc-freq,
+	[ --with-rtc-freq		Enable RTC freq],
 	[case "$enableval" in
  changequote(,)dnl add a test for 0 or power of 2, <2-8192>
 	[0-9]*) CONFIG_RTAI_RTC_FREQ=$enableval ;;
@@ -418,8 +382,8 @@ AC_ARG_ENABLE(rtc-freq,
 	*) AC_MSG_ERROR([Bad argument to option: --enable-rtc-freq=<power of 2>]) ;;
 	esac])
 if test x$CONFIG_RTAI_RTC_FREQ = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_RTC_FREQ=0
+	# Use a reasonable default if unset
+	CONFIG_RTAI_RTC_FREQ=0
 fi
 AC_MSG_RESULT($CONFIG_RTAI_RTC_FREQ)
 
@@ -433,83 +397,83 @@ AC_ARG_ENABLE(long-timed-lists,
 AC_MSG_RESULT(${CONFIG_RTAI_LONG_TIMED_LIST:-no})
 
 AC_MSG_CHECKING(for 8254 tuning latency)
-AC_ARG_ENABLE(sched-8254-latency,
-	[ --enable-sched-8254-latency	Set 8254 tuning latency],
+AC_ARG_WITH(8254-latency,
+	[ --with-8254-latency		Set 8254 tuning latency],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_8254_LATENCY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-8254-latency=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-8254-latency=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_8254_LATENCY = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_SCHED_8254_LATENCY=4700
+	# Use a reasonable default if unset
+	CONFIG_RTAI_SCHED_8254_LATENCY=4700
 fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_8254_LATENCY)
 
 AC_MSG_CHECKING(for APIC tuning latency)
-AC_ARG_ENABLE(sched-apic-latency,
-	[ --enable-sched-apic-latency	Set APIC tuning latency],
+AC_ARG_ENABLE(apic-latency,
+	[ --with-apic-latency		Set APIC tuning latency],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_APIC_LATENCY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-sched-apic-latency=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-apic-latency=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_APIC_LATENCY = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_SCHED_APIC_LATENCY=3944
+	# Use a reasonable default if unset
+	CONFIG_RTAI_SCHED_APIC_LATENCY=3944
 fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_APIC_LATENCY)
 
 AC_MSG_CHECKING(for user busy align ret delay)
-AC_ARG_ENABLE(user-busy-align-ret-delay,
-	[ --user-busy-align-ret-delay	Set user busy align ret delay],
+AC_ARG_WITH(user-ret-delay,
+	[ --with-user-ret-delay		Set user busy align ret delay],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --user-busy-align-ret-delay=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-user-ret-delay=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY=0
+	# Use a reasonable default if unset
+	CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY=0
 fi
 AC_MSG_RESULT($CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY)
 
 AC_MSG_CHECKING(for kernel busy align ret delay)
-AC_ARG_ENABLE(kernel-busy-align-ret-delay,
-	[ --kernel-busy-align-ret-delay	Set kernel busy align ret delay],
+AC_ARG_WITH(kernel-ret-delay,
+	[ --with-kernel-ret-delay	Set kernel busy align ret delay],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --kernel-busy-align-ret-delay=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-kernel-ret-delay=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY=0
+	# Use a reasonable default if unset
+	CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY=0
 fi
 AC_MSG_RESULT($CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY)
 
 AC_MSG_CHECKING(for maximum number of LXRT slots)
-AC_ARG_ENABLE(sched-lxrt-numslots,
-	[ --enable-sched-lxrt-numslots	Set maximum number of LXRT slots],
+AC_ARG_WITH(lxrt-numslots,
+	[ --with-lxrt-numslots		Set maximum number of LXRT slots],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-sched-lxrt-numslots=<number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-lxrt-numslots=<number>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_LXRT_NUMSLOTS = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=1024
+	# Use a reasonable default if unset
+	CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=1024
 fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_LXRT_NUMSLOTS)
 
 AC_MSG_CHECKING(for task switch signal)
 AC_ARG_ENABLE(task-switch-signal,
-	      [ --enable-task-switch-signal		Enable RTAI task switch signal],
+	[ --enable-task-switch-signal	Enable RTAI task switch signal],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_TASK_SWITCH_SIGNAL=y ;;
 	*) unset CONFIG_RTAI_TASK_SWITCH_SIGNAL ;;
@@ -518,7 +482,7 @@ AC_MSG_RESULT(${CONFIG_RTAI_TASK_SWITCH_SIGNAL:-no})
 
 AC_MSG_CHECKING(for hard-soft toggler)
 AC_ARG_ENABLE(hard-soft-toggler,
-	      [ --enable-hard-soft-toggler		Enable RTAI hard-soft toggler],
+	[ --enable-hard-soft-toggler	Enable RTAI hard-soft toggler],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_HARD_SOFT_TOGGLER=y ;;
 	*) unset CONFIG_RTAI_HARD_SOFT_TOGGLER ;;
@@ -527,7 +491,7 @@ AC_MSG_RESULT(${CONFIG_RTAI_HARD_SOFT_TOGGLER:-no})
 
 AC_MSG_CHECKING(for Linux task priority alignment to RTAI)
 AC_ARG_ENABLE(align-priority,
-	      [ --enable-align-priority		Keep Linux task priority aligned to RTAI],
+		[ --enable-align-priority	Keep Linux task priority aligned to RTAI],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_ALIGN_LINUX_PRIORITY=y ;;
 	*) unset CONFIG_RTAI_ALIGN_LINUX_PRIORITY ;;
@@ -535,17 +499,17 @@ AC_ARG_ENABLE(align-priority,
 AC_MSG_RESULT(${CONFIG_RTAI_ALIGN_LINUX_PRIORITY:-no})
 
 AC_MSG_CHECKING(for calibration frequency factor)
-AC_ARG_ENABLE(cal-freq-fact,
-	[ --enable-cal-freq-fact      	Set calibration frequency factor],
+AC_ARG_WITH(cal-freq-fact,
+	[ --with-cal-freq-fact		Set calibration frequency factor],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_CAL_FREQS_FACT=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-cal-freq-fact=<number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-cal-freq-fact=<number>]) ;;
 	esac])
 if test x$CONFIG_RTAI_CAL_FREQS_FACT = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_CAL_FREQS_FACT=0
+	# Use a reasonable default if unset
+	CONFIG_RTAI_CAL_FREQS_FACT=0
 fi
 AC_MSG_RESULT($CONFIG_RTAI_CAL_FREQS_FACT)
 
@@ -565,7 +529,7 @@ CXXFLAGS="$save_CXXFLAGS"
 
 AC_MSG_CHECKING(for tlsf use in real-time malloc support)
 AC_ARG_ENABLE(malloc-tlsf,
-	[ --enable-malloc-tlsf	Enable tlsf support in malloc],
+	[ --enable-malloc-tlsf		Enable tlsf support in malloc],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_USE_TLSF=y ;;
 	*) unset CONFIG_RTAI_USE_TLSF;;
@@ -582,43 +546,43 @@ AC_ARG_ENABLE(malloc-vmalloc,
 AC_MSG_RESULT(${CONFIG_RTAI_MALLOC_VMALLOC:-no})
 
 AC_MSG_CHECKING(for size of real-time malloc heap)
-AC_ARG_ENABLE(malloc-heap-size,
-	[ --enable-malloc-heap-size	Set size of real-time malloc heap],
+AC_ARG_WITH(malloc-heap-size,
+	[ --with-malloc-heap-size	Set size of real-time malloc heap],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_MALLOC_HEAPSZ=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-malloc-heap-size=<Kbytes>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-malloc-heap-size=<Kbytes>]) ;;
 	esac])
 if test x$CONFIG_RTAI_MALLOC_HEAPSZ = x ; then
-  # Use a reasonable default if unset (in Kbytes)
-  CONFIG_RTAI_MALLOC_HEAPSZ=128
+	# Use a reasonable default if unset (in Kbytes)
+	CONFIG_RTAI_MALLOC_HEAPSZ=128
 fi
 AC_MSG_RESULT($CONFIG_RTAI_MALLOC_HEAPSZ)
 
 AC_MSG_CHECKING(for size of real-time kernel task stack heap)
-AC_ARG_ENABLE(kstack-heap-size,
-	[ --enable-kstack-heap-size	Set size of real-time kernel task stack heap],
+AC_ARG_WITH(kstack-heap-size,
+	[ --with-kstack-heap-size	Set size of real-time kernel task stack heap],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_KSTACK_HEAPSZ=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-kstack-heap-size=<Kbytes>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-kstack-heap-size=<Kbytes>]) ;;
 	esac])
 if test x$CONFIG_RTAI_KSTACK_HEAPSZ = x ; then
-  # Use a reasonable default if unset (in Kbytes)
-  CONFIG_RTAI_KSTACK_HEAPSZ=512
+	# Use a reasonable default if unset (in Kbytes)
+	CONFIG_RTAI_KSTACK_HEAPSZ=512
 fi
 AC_MSG_RESULT($CONFIG_RTAI_KSTACK_HEAPSZ)
 
 AC_MSG_CHECKING(for number of CPUs)
-AC_ARG_ENABLE(cpus,
-	[ --enable-cpus		Enable CPUs],
+AC_ARG_WITH(cpus,
+	[ --with-cpus			Number of physical CPU cores],
 	[case "$enableval" in
  changequote(,)dnl
 	[1-8]) CONFIG_RTAI_CPUS=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-cpus=<number-of-CPUs>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-cpus=<number-of-CPUs>]) ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
 
@@ -628,7 +592,7 @@ dnl
 
 AC_MSG_CHECKING(for diagnose out of sync MP-TSCs)
 AC_ARG_ENABLE(diag-tsc-sync,
-	      [ --enable-diag-tsc-sync		Enable diagnose out of sync MP-TSCs],
+	[ --enable-diag-tsc-sync		Enable diagnose out of sync MP-TSCs],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_DIAG_TSC_SYNC=y ;;
 	*) unset CONFIG_RTAI_DIAG_TSC_SYNC ;;
@@ -639,26 +603,26 @@ dnl FIXME: is 0-7 correct?
 dnl what about larger CPU numbers (if at all possible)?
 dnl should we test for valid CPU number?
 AC_MSG_CHECKING(for master CPU for aligning MP-TSCs)
-AC_ARG_ENABLE(master-tsc-cpu,
-	[ --enable-master-tsc-cpu	Enable master TSC CPU],
+AC_ARG_WITH(master-tsc-cpu,
+	[ --with-master-tsc-cpu		Enable master TSC CPU],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-7])
  changequote([,])dnl
 		if test x$CONFIG_RTAI_CPUS = x ; then
-			AC_MSG_ERROR([Option --enable-cpus must be defined before --enable-master-tsc-cpu])
+			AC_MSG_ERROR([Option --with-cpus must be defined before --with-master-tsc-cpu])
 		fi
 		if test $enableval -lt 0 -o $enableval -ge $CONFIG_RTAI_CPUS ; then
-			AC_MSG_ERROR([Invalid value to option: --enable-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
+			AC_MSG_ERROR([Invalid value to option: --with-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
 		fi
 		CONFIG_RTAI_MASTER_TSC_CPU=$enableval ;;
-	*) AC_MSG_ERROR([Bad argument to option: --enable-master-tsc-cpu=<master-CPU-number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --with-master-tsc-cpu=<master-CPU-number>]) ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_MASTER_TSC_CPU:0})
 
 AC_MSG_CHECKING(for tune out of sync MP-TSCs)
 AC_ARG_ENABLE(tune-tsc-sync,
-	      [ --enable-tune-tsc-sync		Enable tune out of sync MP-TSCs],
+		[ --enable-tune-tsc-sync		Enable tune out of sync MP-TSCs],
 	[case "$enableval" in
 	y | yes) CONFIG_RTAI_TUNE_TSC_SYNC=y ;;
 	*) unset CONFIG_RTAI_TUNE_TSC_SYNC ;;
@@ -685,45 +649,45 @@ fi
 dnl Catch sub-package flags
 
 if test -n "$CONFIG_RTAI_TRACE" -a x$CONFIG_TRACE = x; then
-   AC_MSG_ERROR([Missing LTT support in kernel to enable trace support.])
+	AC_MSG_ERROR([Missing LTT support in kernel to enable trace support.])
 fi
 
 dnl Check for invalid combinations
 
 if test x$CONFIG_RTAI_RT_POLL = xy ; then
-   if test x$CONFIG_RTAI_SEM = x ; then
-      AC_MSG_ERROR([--enable-rt-poll requires --enable-sem])
-   fi
+	if test x$CONFIG_RTAI_SEM = x ; then
+	AC_MSG_ERROR([--enable-rt-poll requires --enable-sem])
+	fi
 fi
 
 if test x$CONFIG_RTAI_RT_POLL_ON_STACK = xy ; then
-   if test x$CONFIG_RTAI_RT_POLL = x ; then
-      AC_MSG_ERROR([--enable-rt-poll-on-stack requires --enable-rt-poll])
-   fi
+	if test x$CONFIG_RTAI_RT_POLL = x ; then
+	AC_MSG_ERROR([--enable-rt-poll-on-stack requires --enable-rt-poll])
+	fi
 fi
 
 if test x$CONFIG_RTAI_MBX = xy -o x$CONFIG_RTAI_MBX = xm ; then
-   if test x$CONFIG_RTAI_SEM = x ; then
-      AC_MSG_ERROR([--enable-mbx requires --enable-sem])
-   fi
+	if test x$CONFIG_RTAI_SEM = x ; then
+	AC_MSG_ERROR([--enable-mbx requires --enable-sem])
+	fi
 fi
 
 if test x$CONFIG_RTAI_MBX = xy ; then
-   if test x$CONFIG_RTAI_SEM = xm ; then
-      AC_MSG_ERROR([--enable-mbx=y requires --enable-sem=y])
-   fi
+	if test x$CONFIG_RTAI_SEM = xm ; then
+	AC_MSG_ERROR([--enable-mbx=y requires --enable-sem=y])
+	fi
 fi
 
 if test x$CONFIG_RTAI_MQ = xy -o x$CONFIG_RTAI_MQ = xm ; then
-   if test x$CONFIG_RTAI_SEM = x ; then
-      AC_MSG_ERROR([--enable-mq requires --enable-sem])
-   fi
+	if test x$CONFIG_RTAI_SEM = x ; then
+	AC_MSG_ERROR([--enable-mq requires --enable-sem])
+	fi
 fi
 
 if test x$CONFIG_RTAI_MQ = xy ; then
-   if test x$CONFIG_RTAI_SEM = xm ; then
-      AC_MSG_ERROR([--enable-mq=y requires --enable-sem=y])
-   fi
+	if test x$CONFIG_RTAI_SEM = xm ; then
+	AC_MSG_ERROR([--enable-mq=y requires --enable-sem=y])
+	fi
 fi
 
 dnl
@@ -732,8 +696,8 @@ dnl if none exists.
 dnl
 
 if test \! -r .rtai_config; then
-   set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' | \
-   sed -e 's,\(.*\)=\(.*\)$,\1=\2,' > .rtai_config
+	set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' | \
+	sed -e 's,\(.*\)=\(.*\)$,\1=\2,' > .rtai_config
 fi
 
 dnl
@@ -744,11 +708,7 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MAJOR,$CONFIG_RTAI_VERSION_MAJOR,[Kconfig
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MINOR,$CONFIG_RTAI_VERSION_MINOR,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_REVISION_LEVEL,$CONFIG_RTAI_REVISION_LEVEL,[Kconfig])
 
-AC_DEFINE(CONFIG_RTAI,1,[Legacy])
-AC_DEFINE(CONFIG_RTAI_MOUNT_ON_LOAD,1,[Legacy])
 AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
-test \! x$CONFIG_KBUILD = x && AC_DEFINE(CONFIG_KBUILD,1,[Kconfig])
-test \! x$CONFIG_RTAI_ADEOS = x && AC_DEFINE(CONFIG_RTAI_ADEOS,1,[Kconfig])
 test \! x$CONFIG_RTAI_HAL_PREEMPT = x && AC_DEFINE(CONFIG_RTAI_HAL_PREEMPT,1,[Kconfig])
 test \! x$CONFIG_RTAI_CPUS = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_CPUS,$CONFIG_RTAI_CPUS,[Kconfig])
 test x$CONFIG_RTAI_DIAG_TSC_SYNC = xy && AC_DEFINE(CONFIG_RTAI_DIAG_TSC_SYNC,1,[Kconfig])
@@ -839,20 +799,11 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_DONT_DISPATCH_CORE_IRQS,$CONFIG_RTAI_DONT_DISPATC
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_MALLOC_HEAPSZ,$CONFIG_RTAI_MALLOC_HEAPSZ,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_KSTACK_HEAPSZ,$CONFIG_RTAI_KSTACK_HEAPSZ,[Kconfig])
 if test x$CONFIG_DEVFS_FS = xy; then
-   fifos_template="/dev/rtf/%d"
+	fifos_template="/dev/rtf/%d"
 else
-   fifos_template="/dev/rtf%d"
+	fifos_template="/dev/rtf%d"
 fi
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_FIFOS_TEMPLATE,"$fifos_template",[Kconfig])
-
-AC_DEFINE(CONFIG_RTAI_INTERNAL_LXRT_SUPPORT,1,[Kconfig])
-
-dnl Set default inline mode for LXRT as specified from
-dnl Kconfig. Defaults to static / eager inlining.
-
-CONFIG_RTAI_LXRT_INLINE=1
-
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_INTERNAL_LXRT_INLINE,1,[Kconfig])
 
 AH_VERBATIM(CONFIG_RTAI_LXRT_INLINE,[
 #ifndef CONFIG_RTAI_LXRT_INLINE
@@ -892,9 +843,6 @@ dnl
 dnl Produce automake conditionals.
 dnl
 
-dnl Whether Linux is using the Kbuild make system.
-AM_CONDITIONAL(CONFIG_KBUILD,[test "$CONFIG_KBUILD" = y])
-
 dnl CPU architecture
 AM_CONDITIONAL(CONFIG_X86_64,[test "$CONFIG_X86_64" = y])
 AM_CONDITIONAL(CONFIG_X86,[test "$CONFIG_X86" = y])
@@ -932,7 +880,7 @@ RTAI_KBUILD_TOP="@if test \\! -r Module.symvers ; then \$(LN_S) -f \"\`cd \$(top
 RTAI_KBUILD_BOTTOM=
 RTAI_KBUILD_CMD="for src in \$^; do if test \\! -r \`basename \$\$src\`; then \$(LN_S) \$\$src; fi; done; \
 			rm -f $RTAI_LINUX_DIR/.tmp_versions/rtai_*.mod $RTAI_LINUX_DIR/.tmp_versions/*_rt.mod; \
-			\$(MAKE) -C $RTAI_LINUX_DIR CC=$CC ARCH=x86 \
+			\$(MAKE) --no-print-directory -C $RTAI_LINUX_DIR CC=gcc ARCH=x86 \
 			SUBDIRS=\$\$PWD M=\$\$PWD rtai_srctree=\`cd \$(top_srcdir) && pwd\` rtai_srcdir=\`cd \$(srcdir) && pwd\` V=\$(V) modules \
 			rtai_objs='\$(call src2obj,c,\$^) \$(call src2obj,S,\$^) \$(call src2obj,cc,\$^) \$(call src2obj,cpp,\$^)' rtai_target=\$(basename \$@)"
 RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers modules.order && rm -Rf .tmp_versions'
@@ -941,25 +889,20 @@ RTAI_KBUILD_DISTCLEAN=""
 dnl extra arch-dependent opts to be passed to the compiler
 RTAI_KMOD_CXXFLAGS="-fno-rtti -fno-exceptions -fno-strength-reduce"
 case $wanted_kernel_arch in
-   CONFIG_X86_32)
+	CONFIG_X86_32)
 	RTAI_USER_CFLAGS="-march=i686 -O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
 	RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -march=i686 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 	;;
-   CONFIG_X86_64)
+	CONFIG_X86_64)
 	RTAI_USER_CFLAGS="-march=x86-64 -O2 -Wall -Wstrict-prototypes -fomit-frame-pointer"
 	RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -march=x86-64 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 	;;
 esac
 
 if [[ $ac_cv_accepts_cxa_atexit = yes ]]; then
-   RTAI_KMOD_CXXFLAGS="$RTAI_KMOD_CXXFLAGS -fno-use-cxa-atexit"
+	RTAI_KMOD_CXXFLAGS="$RTAI_KMOD_CXXFLAGS -fno-use-cxa-atexit"
 fi
 
-RTAI_LXRT_LDADD=
-
-RTAI_KMOD_APP_CFLAGS=$RTAI_KMOD_CFLAGS
-RTAI_KMOD_APP_CXXFLAGS=$RTAI_KMOD_CXXFLAGS
-RTAI_USER_APP_CFLAGS=$RTAI_USER_CFLAGS
 RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
 RTAI_KMOD_CXXFLAGS="$RTAI_KMOD_CXXFLAGS -D__IN_RTAI__"
 RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
@@ -996,10 +939,6 @@ AC_SUBST(RTAI_KMOD_CFLAGS)
 AC_SUBST(RTAI_KMOD_CXXFLAGS)
 AC_SUBST(RTAI_COMPAT_CPPFLAGS)
 AC_SUBST(RTAI_USER_CFLAGS)
-AC_SUBST(RTAI_KMOD_APP_CFLAGS)
-AC_SUBST(RTAI_KMOD_APP_CXXFLAGS)
-AC_SUBST(RTAI_USER_APP_CFLAGS)
-AC_SUBST(RTAI_LXRT_LDADD)
 AC_SUBST(RTAI_FP_CFLAGS)
 AC_SUBST(RTAI_LINUX_DIR)
 AC_SUBST(RTAI_LINUX_VERSION)
@@ -1040,7 +979,8 @@ AC_CONFIG_FILES([ \
 	base/malloc/GNUmakefile \
 	base/tasklets/GNUmakefile \
 	base/trace/GNUmakefile \
-	base/posix/GNUmakefile
+	base/posix/GNUmakefile \
+	testsuite/GNUmakefile
 	])
 
 AC_OUTPUT

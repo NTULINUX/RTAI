@@ -2234,7 +2234,6 @@ module_init(__rtai_msg_init);
 module_exit(__rtai_msg_exit);
 #endif /* !CONFIG_RTAI_MSG_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rt_send);
 EXPORT_SYMBOL(rt_send_if);
 EXPORT_SYMBOL(rt_send_until);
@@ -2280,4 +2279,3 @@ EXPORT_SYMBOL(rt_Trigger);
 EXPORT_SYMBOL(rt_Name_attach);
 EXPORT_SYMBOL(rt_Name_locate);
 EXPORT_SYMBOL(rt_Name_detach);
-#endif /* CONFIG_KBUILD */

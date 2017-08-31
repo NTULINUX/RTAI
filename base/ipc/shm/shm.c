@@ -727,14 +727,11 @@ void __rtai_shm_exit (void)
 	return;
 }
 
-/*@}*/
-
 #ifndef CONFIG_RTAI_SHM_BUILTIN
 module_init(__rtai_shm_init);
 module_exit(__rtai_shm_exit);
 #endif /* !CONFIG_RTAI_SHL_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rt_shm_alloc);
 EXPORT_SYMBOL(rt_shm_free);
 #ifdef CONFIG_RTAI_MALLOC
@@ -746,4 +743,3 @@ EXPORT_SYMBOL(rt_named_halloc);
 EXPORT_SYMBOL(rt_named_hfree);
 EXPORT_SYMBOL(rt_heap_open);
 #endif
-#endif /* CONFIG_KBUILD */

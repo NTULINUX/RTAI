@@ -4,4 +4,4 @@ install-exec-local:
 	$(INSTALL_SCRIPT) rtai-config $(DESTDIR)$(bindir)
 	$(INSTALL_SCRIPT) $(srcdir)/rtai-info $(DESTDIR)$(bindir)
 
-EXTRA_DIST = rtai-info bootstrap mode-control
+EXTRA_DIST = rtai-info bootstrap

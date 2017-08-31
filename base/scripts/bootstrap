@@ -1,36 +1,43 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-die() {
-	echo
-	echo "error: $1";
-	echo
-}
+echo -e "Running libtoolize..."
+libtoolize --force --copy --automake || \
+	{
+	echo -e "Error running libtoolize" ;
+	exit 1 ;
+	}
+echo -e "Done."
 
-echo
+echo -e "Running aclocal..."
+aclocal --force -I base/scripts/autoconf || \
+	{
+	echo -e "Error running aclocal" ;
+	exit 1 ;
+	}
+echo -e "Done."
 
-echo -n "running libtoolize..."
-libtoolize --force --copy --automake
-if [ "$?" != "0" ]; then die "running libtoolize"; fi
-echo "done"
+echo -e "Running autoconf..."
+autoconf --force || \
+	{
+	echo -e "Error running autoconf" ;
+	exit 1 ;
+	}
+echo -e "Done."
 
-echo -n "running aclocal..."
-aclocal --force -I base/scripts/autoconf
-if [ "$?" != "0" ] ; then die "running aclocal"; fi
-echo "done"
+echo -e "Running autoheader..."
+autoheader --force || \
+	{
+	echo -e "Error running autoheader" ;
+	exit 1 ;
+	}
+echo -e "Done."
 
-echo -n "running autoconf..."
-autoconf --force
-if [ "$?" != "0" ]; then die "running autoconf"; fi
-echo "done"
+echo -e "Running automake..."
+automake --force -a -c || \
+	{
+	echo -e "Error running automake" ;
+	exit 1 ;
+	}
+echo -e "Done.\n"
 
-echo -n "running autoheader..."
-autoheader --force
-if [ "$?" != "0" ]; then die "running autoheader"; fi
-echo "done"
-
-echo -n "running automake..."
-automake --force -a -c
-if [ "$?" != "0" ]; then die "running automake"; fi
-echo "done"
-
-echo
+exit 0

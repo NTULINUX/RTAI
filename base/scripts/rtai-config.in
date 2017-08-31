@@ -1,8 +1,8 @@
-#! /bin/sh
+#!/usr/bin/env bash
+# Converted to GNU Bash by Alec Ari
 
 staging=${DESTDIR}
 prefix="@prefix@"
-exec_prefix="@exec_prefix@"
 libdir="@libdir@"
 datadir="@datadir@"
 pkgdatadir="${datadir}/@PACKAGE@"
@@ -17,113 +17,98 @@ RTAI_TARGET_SUBARCH="@RTAI_TARGET_SUBARCH@"
 RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
 RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
 RTAI_LINUX_VERSION="@RTAI_LINUX_VERSION@"
-RTAI_KERNEL_CFLAGS="-I. @RTAI_COMPAT_CPPFLAGS@ -I${staging}${includedir} @RTAI_KMOD_APP_CFLAGS@ @RTAI_FP_CFLAGS@"
-RTAI_KERNEL_CXXFLAGS="-I. @RTAI_COMPAT_CPPFLAGS@ -I${staging}${includedir} @RTAI_KMOD_APP_CXXFLAGS@ @RTAI_FP_CFLAGS@"
+RTAI_KERNEL_CFLAGS="-I. -I${staging}${includedir} @RTAI_KMOD_CFLAGS@ @RTAI_FP_CFLAGS@"
+RTAI_KERNEL_CXXFLAGS="-I. -I${staging}${includedir} @RTAI_KMOD_CXXFLAGS@ @RTAI_FP_CFLAGS@"
 RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
-RTAI_LXRT_CFLAGS="-I. @RTAI_COMPAT_CPPFLAGS@ -I${staging}${includedir} @RTAI_USER_APP_CFLAGS@"
-RTAI_LXRT_LDFLAGS="-L${staging}${libdir} @RTAI_LXRT_LDADD@ -lpthread"
+RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
+RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
 RTAI_LIBRARY_DIR="${staging}${libdir}"
-COMEDI_DIR="@COMEDI_DIR@"
-EFLTK_DIR="@EFLTK_DIR@"
 RTAI_POSIX_WRAP="@RTAI_POSIX_WRAP@"
 
-unset prefix exec_prefix libdir datadir pkgdatadir includedir
+unset prefix libdir datadir pkgdatadir includedir
 
 usage ()
 {
-cat <<EOF
-Usage rtai-config OPTIONS
-Options :
-        --help
-        --version
-        --cc
-        --cxx
-        --arch
-        --subarch
-        --prefix
-        --config
-        --module-cflags
-        --module-cxxflags
-        --module-ext
-        --lxrt-cflags
-        --lxrt-ldflags
-        --linux-dir
-        --linux-version
-        --module-dir
-        --library-dir
-        --comedi-dir
-        --efltk-dir
-        --posix-wrap
-EOF
-    exit $1
+printf "Usage rtai-config OPTIONS
+Options:
+\\t--help
+\\t--version
+\\t--cc
+\\t--cxx
+\\t--arch
+\\t--subarch
+\\t--prefix
+\\t--config
+\\t--module-cflags
+\\t--module-cxxflags
+\\t--module-ext
+\\t--lxrt-cflags
+\\t--lxrt-ldflags
+\\t--linux-dir
+\\t--linux-version
+\\t--module-dir
+\\t--library-dir
+\\t--posix-wrap\\n"
 }
 
-if test $# -eq 0; then
-    usage 1 1>&2
-fi
-
-while test $# -gt 0; do
-    case "$1" in
-        --version)
-            echo $RTAI_VERSION
-            ;;
-        --cc)
-            echo $RTAI_CC
-            ;;
-        --cxx)
-            echo $RTAI_CXX
-            ;;
-        --arch)
-            echo $RTAI_TARGET_ARCH
-            ;;
-        --subarch)
-            echo $RTAI_TARGET_SUBARCH
-            ;;
-        --prefix)
-            echo $RTAI_PREFIX
-            ;;
-        --datarootdir)
-            echo $RTAI_PREFIX
-            ;;
-        --config)
-            echo $RTAI_CONFIG
-            ;;
-        --mod*-cflags|--kernel-cflags)
-            echo $RTAI_KERNEL_CFLAGS
-            ;;
-        --mod*-cxxflags|--kernel-cxxflags)
-            echo $RTAI_KERNEL_CXXFLAGS
-            ;;
-        --lxrt-cflags|--user-cflags)
-            echo $RTAI_LXRT_CFLAGS
-            ;;
-        --lxrt-ldflags)
-            echo $RTAI_LXRT_LDFLAGS
-            ;;
-        --mod*-dir)
-            echo $RTAI_MODULE_DIR
-            ;;
-        --lib*-dir|--libdir|--user-libdir)
-            echo $RTAI_LIBRARY_DIR
-            ;;
-        --linux-dir|--linux)
-            echo $RTAI_LINUX_DIR
-            ;;
-        --linux-ver*)
-            echo $RTAI_LINUX_VERSION
-            ;;
-        --comedi-dir)
-            echo $COMEDI_DIR
-            ;;
-        --efltk-dir)
-            echo $EFLTK_DIR
-            ;;
-        --posix-wrap)
-            echo $RTAI_POSIX_WRAP
-            ;;
-        *)
-         usage 1 1>&2
-         ;;
-    esac
-    shift
+while [[ "${#}" -gt 0 ]] ; do
+argument="${1}"
+case "${argument}" in
+	--version)
+		echo "${RTAI_VERSION}"
+		;;
+	--cc)
+		echo "${RTAI_CC}"
+		;;
+	--cxx)
+		echo "${RTAI_CXX}"
+		;;
+	--arch)
+		echo "${RTAI_TARGET_ARCH}"
+		;;
+	--subarch)
+		echo "${RTAI_TARGET_SUBARCH}"
+		;;
+	--prefix)
+		echo "${RTAI_PREFIX}"
+		;;
+	--datarootdir)
+		echo "${RTAI_PREFIX}"
+		;;
+	--config)
+		echo "${RTAI_CONFIG}"
+		;;
+	--mod*-cflags|--kernel-cflags)
+		echo "${RTAI_KERNEL_CFLAGS}"
+		;;
+	--mod*-cxxflags|--kernel-cxxflags)
+		echo "${RTAI_KERNEL_CXXFLAGS}"
+		;;
+	--lxrt-cflags|--user-cflags)
+		echo "${RTAI_LXRT_CFLAGS}"
+		;;
+	--lxrt-ldflags)
+		echo "${RTAI_LXRT_LDFLAGS}"
+		;;
+	--mod*-dir)
+		echo "${RTAI_MODULE_DIR}"
+		;;
+	--lib*-dir|--libdir|--user-libdir)
+		echo "${RTAI_LIBRARY_DIR}"
+		;;
+	--linux-dir|--linux)
+		echo "${RTAI_LINUX_DIR}"
+		;;
+	--linux-ver*)
+		echo "${RTAI_LINUX_VERSION}"
+		;;
+	--posix-wrap)
+		echo "${RTAI_POSIX_WRAP}"
+		;;
+	*)
+		usage
+		exit 0
+		;;
+	esac
+	shift
 done

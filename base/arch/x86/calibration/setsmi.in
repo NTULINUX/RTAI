@@ -1,17 +1,36 @@
 #!/usr/bin/env bash
 # Re-written in GNU Bash by Alec Ari
 
+if [[ "${EUID}" != 0 ]] ; then
+	echo "This script must be run with superuser permissions."
+	exit 1
+fi
+
 while [[ $# -gt 0 ]] ; do
 argument="$1"
-case ${argument} in
+case "${argument}" in
 	hal_smi_masked_bits)
-	shift
 	;;
 	*)
 	;;
 esac
 shift
 done
+
+# Determine if setting or resetting
+CMDNAME=$(basename "${0}")
+case "${CMDNAME}" in
+	setsmi)
+		SMIRESET="0"
+		;;
+	rstsmi)
+		SMIRESET="1"
+		;;
+	*)
+		echo "invalid SMI script name ${0}"
+		exit 1
+		;;
+esac
 
 if [[ -n "${argument}" && "${argument}" == hal_smi_masked_bits=* ]] ; then
 	echo "Using ${argument}"
@@ -21,27 +40,11 @@ fi
 
 MODULENAME="rtai_smi.ko"
 
-# Determine if setting or resetting
-CMDNAME=$(basename "${0}")
-case "${CMDNAME}" in
-	setsmi)
-	SMIRESET="0"
-	;;
-	rstsmi)
-	SMIRESET="1"
-	;;
-	*)
-	echo "invalid SMI script name ${0}"
-	exit 1
-	;;
-esac
-
-if [[ "${EUID}" != 0 ]] ; then
-	echo "This script must be run with superuser permissions."
-	exit 1
-fi
-
-type rtai-config > /dev/null 2>&1 || echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
+PATH="${PATH}:@prefix@/bin"
+type rtai-config > /dev/null 2>&1 || \
+	{
+	echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
+	}
 
 MODULEDIR=$(rtai-config --module-dir)
 

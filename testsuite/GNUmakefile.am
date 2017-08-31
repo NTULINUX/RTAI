@@ -1,0 +1,38 @@
+testdir = $(prefix)/testsuite
+
+test_PROGRAMS = latency display
+
+latency_SOURCES = latency.c
+
+latency_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+latency_LDADD = \
+	../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+display_SOURCES = display.c
+
+display_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+display_LDADD = \
+	../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(testdir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(testdir)/.runinfo
+	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(testdir)/run
+	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(testdir)/.runinfo" >> $(DESTDIR)$(testdir)/run
+	@echo "$(DESTDIR)$(testdir)/latency & $(DESTDIR)$(testdir)/display" >> $(DESTDIR)$(testdir)/run
+	@chmod +x $(DESTDIR)$(testdir)/run
+
+run: all
+	@$(top_srcdir)/base/scripts/rtai-load $(DESTDIR)$(testdir)/.runinfo
+
+EXTRA_DIST = runinfo
