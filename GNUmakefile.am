@@ -62,7 +62,7 @@ distclean-local:
 	$(MAKE) srctree=$(srcdir) -C $(srcdir)/base/scripts/kconfig \
 	--no-print-directory -f Makefile.kconfig distclean
 	find . -name GNUmakefile.in | xargs rm -rf
-	rm -rf rtai_config* autom4te.cache
+	rm -rf rtai_config* .rtai_config* autom4te.cache aclocal.m4 m4/l*
 
 install-data-local: .rtai_config
 	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)
