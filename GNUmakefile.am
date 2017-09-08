@@ -31,6 +31,7 @@ menuconfig:
 config-status: .rtai_config
 	@test -r config.status && recf=yes || recf=no ; \
 	eval `grep ^CONFIG_RTAI_INSTALLDIR $<`; \
+	eval `grep ^CONFIG_RTAI_LINUXDIR $<`; \
 	CC="gcc" \
 	CXX="g++" \
 	LD="ld" \
@@ -42,7 +43,7 @@ config-status: .rtai_config
 	--build=$(build_alias) \
 	--host=$(host_alias) \
 	--with-kconfig-file=./$< \
-	--with-linux-dir=$(RTAI_LINUX_DIR) \
+	--with-linux-dir=$$CONFIG_RTAI_LINUXDIR \
 	--prefix=$$CONFIG_RTAI_INSTALLDIR \
 	$$confopts ; \
 	if test $$? = 0; then \

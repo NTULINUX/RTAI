@@ -707,6 +707,7 @@ dnl
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MAJOR,$CONFIG_RTAI_VERSION_MAJOR,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MINOR,$CONFIG_RTAI_VERSION_MINOR,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_REVISION_LEVEL,$CONFIG_RTAI_REVISION_LEVEL,[Kconfig])
+test \! x$CONFIG_RTAI_LINUXDIR = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_LINUXDIR,$CONFIG_RTAI_LINUXDIR,[Kconfig])
 
 AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
 test \! x$CONFIG_RTAI_HAL_PREEMPT = x && AC_DEFINE(CONFIG_RTAI_HAL_PREEMPT,1,[Kconfig])
@@ -909,7 +910,6 @@ RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
 
 AC_CONFIG_LINKS(base/include/asm:$srcdir/base/include/asm-x86)
 AC_CONFIG_LINKS(base/arch/x86/hal/Makefile:base/arch/x86/hal/Makefile.kbuild)
-AC_CONFIG_LINKS(base/include/rtai_config.h:rtai_config.h)
 AC_CONFIG_LINKS(base/arch/x86/calibration/Makefile:base/arch/x86/calibration/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/fifos/Makefile:base/ipc/fifos/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/mbx/Makefile:base/ipc/mbx/Makefile.kbuild)
@@ -950,8 +950,6 @@ AC_SUBST(RTAI_KBUILD_CMD)
 AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
 AC_SUBST(RTAI_POSIX_WRAP)
-
-AC_SUBST(CONFIG_RTAI_LINUXDIR)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
