@@ -1,0 +1,49 @@
+From daf3781885369252784b0d0916ea1c9a81b813f4 Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Wed, 27 May 2015 10:48:56 -0400
+Subject: [PATCH 5/7] ring-buffer: Add trace_recursive checks to
+ ring_buffer_write()
+
+The ring_buffer_write() function isn't protected by the trace recursive
+writes. Luckily, this function is not used as much and is unlikely
+to ever recurse. But it should still have the protection, because
+even a call to ring_buffer_lock_reserve() could cause ring buffer
+corruption if called when ring_buffer_write() is being used.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+ kernel/trace/ring_buffer.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index 4c19c42..dd761a2 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -2967,9 +2967,12 @@ int ring_buffer_write(struct ring_buffer *buffer,
+ 	if (length > BUF_MAX_DATA_SIZE)
+ 		goto out;
+ 
++	if (unlikely(trace_recursive_lock(cpu_buffer)))
++		goto out;
++
+ 	event = rb_reserve_next_event(buffer, cpu_buffer, length);
+ 	if (!event)
+-		goto out;
++		goto out_unlock;
+ 
+ 	body = rb_event_data(event);
+ 
+@@ -2980,6 +2983,10 @@ int ring_buffer_write(struct ring_buffer *buffer,
+ 	rb_wakeups(buffer, cpu_buffer);
+ 
+ 	ret = 0;
++
++ out_unlock:
++	trace_recursive_unlock(cpu_buffer);
++
+  out:
+ 	preempt_enable_notrace();
+ 
+-- 
+1.8.3.1
+

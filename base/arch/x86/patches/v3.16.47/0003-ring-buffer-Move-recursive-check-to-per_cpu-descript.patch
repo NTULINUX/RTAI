@@ -1,0 +1,136 @@
+From 76ffc421de24dc3338ffaa57929d564b4c1777ed Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Wed, 27 May 2015 10:27:47 -0400
+Subject: [PATCH 3/7] ring-buffer: Move recursive check to per_cpu descriptor
+
+Instead of using a global per_cpu variable to perform the recursive
+checks into the ring buffer, use the already existing per_cpu descriptor
+that is part of the ring buffer itself.
+
+Not only does this simplify the code, it also allows for one ring buffer
+to be used within the guts of the use of another ring buffer. For example
+trace_printk() can now be used within the ring buffer to record changes
+done by an instance into the main ring buffer. The recursion checks
+will prevent the trace_printk() itself from causing recursive issues
+with the main ring buffer (it is just ignored), but the recursive
+checks wont prevent the trace_printk() from recording other ring buffers.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Alec Ari <alec@onelabs.com>
+
+Conflicts:
+	kernel/trace/ring_buffer.c
+---
+ kernel/trace/ring_buffer.c | 37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index 55a2974..9bd30bb 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -467,6 +467,7 @@ struct ring_buffer_per_cpu {
+ 	arch_spinlock_t			lock;
+ 	struct lock_class_key		lock_key;
+ 	unsigned long			nr_pages;
++	unsigned int			current_context;
+ 	struct list_head		*pages;
+ 	struct buffer_page		*head_page;	/* read from head */
+ 	struct buffer_page		*tail_page;	/* write to tail */
+@@ -2690,11 +2691,11 @@ rb_reserve_next_event(struct ring_buffer *buffer,
+  * just so happens that it is the same bit corresponding to
+  * the current context.
+  */
+-static DEFINE_PER_CPU(unsigned int, current_context);
+ 
+-static __always_inline int trace_recursive_lock(void)
++static __always_inline int
++trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+ {
+-	unsigned int val = __this_cpu_read(current_context);
++	unsigned int val = cpu_buffer->current_context;
+ 	int bit;
+ 
+ 	if (in_interrupt()) {
+@@ -2711,20 +2712,21 @@ static __always_inline int trace_recursive_lock(void)
+ 		return 1;
+ 
+ 	val |= (1 << bit);
+-	__this_cpu_write(current_context, val);
++	cpu_buffer->current_context = val;
+ 
+ 	return 0;
+ }
+ 
+-static __always_inline void trace_recursive_unlock(void)
++static __always_inline void
++trace_recursive_unlock(struct ring_buffer_per_cpu *cpu_buffer)
+ {
+-	__this_cpu_and(current_context, __this_cpu_read(current_context) - 1);
++	cpu_buffer->current_context &= cpu_buffer->current_context - 1;
+ }
+ 
+ #else
+ 
+-#define trace_recursive_lock()		(0)
+-#define trace_recursive_unlock()	do { } while (0)
++#define trace_recursive_lock(cpu_buffer)	(0)
++#define trace_recursive_unlock(cpu_buffer)	do { } while (0)
+ 
+ #endif
+ 
+@@ -2757,10 +2759,7 @@ ring_buffer_lock_reserve(struct ring_buffer *buffer, unsigned long length)
+ 	preempt_disable_notrace();
+ 
+ 	if (unlikely(atomic_read(&buffer->record_disabled)))
+-		goto out_nocheck;
+-
+-	if (unlikely(trace_recursive_lock()))
+-		goto out_nocheck;
++		goto out;
+ 
+ 	cpu = raw_smp_processor_id();
+ 
+@@ -2775,16 +2774,18 @@ ring_buffer_lock_reserve(struct ring_buffer *buffer, unsigned long length)
+ 	if (unlikely(length > BUF_MAX_DATA_SIZE))
+ 		goto out;
+ 
++	if (unlikely(trace_recursive_lock(cpu_buffer)))
++		goto out;
++
+ 	event = rb_reserve_next_event(buffer, cpu_buffer, length);
+ 	if (!event)
+-		goto out;
++		goto out_unlock;
+ 
+ 	return event;
+ 
++ out_unlock:
++	trace_recursive_unlock(cpu_buffer);
+  out:
+-	trace_recursive_unlock();
+-
+- out_nocheck:
+ 	preempt_enable_notrace();
+ 	return NULL;
+ }
+@@ -2874,7 +2875,7 @@ int ring_buffer_unlock_commit(struct ring_buffer *buffer,
+ 
+ 	rb_wakeups(buffer, cpu_buffer);
+ 
+-	trace_recursive_unlock();
++	trace_recursive_unlock(cpu_buffer);
+ 
+ 	preempt_enable_notrace();
+ 
+@@ -2985,7 +2986,7 @@ void ring_buffer_discard_commit(struct ring_buffer *buffer,
+  out:
+ 	rb_end_commit(cpu_buffer);
+ 
+-	trace_recursive_unlock();
++	trace_recursive_unlock(cpu_buffer);
+ 
+ 	preempt_enable_notrace();
+ 
+-- 
+1.8.3.1
+

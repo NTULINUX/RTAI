@@ -1,0 +1,115 @@
+From 84f4e5d75f4417f07b4497fd0d3054c9d16538d8 Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Thu, 21 May 2015 17:39:29 -0400
+Subject: [PATCH 2/7] ring-buffer: Add unlikelys to make fast path the default
+
+I was running the trace_event benchmark and noticed that the times
+to record a trace_event was all over the place. I looked at the assembly
+of the ring_buffer_lock_reserver() and saw this:
+
+ <ring_buffer_lock_reserve>:
+       31 c0                   xor    %eax,%eax
+       48 83 3d 76 47 bd 00    cmpq   $0x1,0xbd4776(%rip)        # ffffffff81d10d60 <ring_buffer_flags>
+       01
+       55                      push   %rbp
+       48 89 e5                mov    %rsp,%rbp
+       75 1d                   jne    ffffffff8113c60d <ring_buffer_lock_reserve+0x2d>
+       65 ff 05 69 e3 ec 7e    incl   %gs:0x7eece369(%rip)        # a960 <__preempt_count>
+       8b 47 08                mov    0x8(%rdi),%eax
+       85 c0                   test   %eax,%eax
+ +---- 74 12                   je     ffffffff8113c610 <ring_buffer_lock_reserve+0x30>
+ |     65 ff 0d 5b e3 ec 7e    decl   %gs:0x7eece35b(%rip)        # a960 <__preempt_count>
+ |     0f 84 85 00 00 00       je     ffffffff8113c690 <ring_buffer_lock_reserve+0xb0>
+ |     31 c0                   xor    %eax,%eax
+ |     5d                      pop    %rbp
+ |     c3                      retq
+ |     90                      nop
+ +---> 65 44 8b 05 48 e3 ec    mov    %gs:0x7eece348(%rip),%r8d        # a960 <__preempt_count>
+       7e
+       41 81 e0 ff ff ff 7f    and    $0x7fffffff,%r8d
+       b0 08                   mov    $0x8,%al
+       65 8b 0d 58 36 ed 7e    mov    %gs:0x7eed3658(%rip),%ecx        # fc80 <current_context>
+       41 f7 c0 00 ff 1f 00    test   $0x1fff00,%r8d
+       74 1e                   je     ffffffff8113c64f <ring_buffer_lock_reserve+0x6f>
+       41 f7 c0 00 00 10 00    test   $0x100000,%r8d
+       b0 01                   mov    $0x1,%al
+       75 13                   jne    ffffffff8113c64f <ring_buffer_lock_reserve+0x6f>
+       41 81 e0 00 00 0f 00    and    $0xf0000,%r8d
+       49 83 f8 01             cmp    $0x1,%r8
+       19 c0                   sbb    %eax,%eax
+       83 e0 02                and    $0x2,%eax
+       83 c0 02                add    $0x2,%eax
+       85 c8                   test   %ecx,%eax
+       75 ab                   jne    ffffffff8113c5fe <ring_buffer_lock_reserve+0x1e>
+       09 c8                   or     %ecx,%eax
+       65 89 05 24 36 ed 7e    mov    %eax,%gs:0x7eed3624(%rip)        # fc80 <current_context>
+
+The arrow is the fast path.
+
+After adding the unlikely's, the fast path looks a bit better:
+
+ <ring_buffer_lock_reserve>:
+       31 c0                   xor    %eax,%eax
+       48 83 3d 76 47 bd 00    cmpq   $0x1,0xbd4776(%rip)        # ffffffff81d10d60 <ring_buffer_flags>
+       01
+       55                      push   %rbp
+       48 89 e5                mov    %rsp,%rbp
+       75 7b                   jne    ffffffff8113c66b <ring_buffer_lock_reserve+0x8b>
+       65 ff 05 69 e3 ec 7e    incl   %gs:0x7eece369(%rip)        # a960 <__preempt_count>
+       8b 47 08                mov    0x8(%rdi),%eax
+       85 c0                   test   %eax,%eax
+       0f 85 9f 00 00 00       jne    ffffffff8113c6a1 <ring_buffer_lock_reserve+0xc1>
+       65 8b 0d 57 e3 ec 7e    mov    %gs:0x7eece357(%rip),%ecx        # a960 <__preempt_count>
+       81 e1 ff ff ff 7f       and    $0x7fffffff,%ecx
+       b0 08                   mov    $0x8,%al
+       65 8b 15 68 36 ed 7e    mov    %gs:0x7eed3668(%rip),%edx        # fc80 <current_context>
+       f7 c1 00 ff 1f 00       test   $0x1fff00,%ecx
+       75 50                   jne    ffffffff8113c670 <ring_buffer_lock_reserve+0x90>
+       85 d0                   test   %edx,%eax
+       75 7d                   jne    ffffffff8113c6a1 <ring_buffer_lock_reserve+0xc1>
+       09 d0                   or     %edx,%eax
+       65 89 05 53 36 ed 7e    mov    %eax,%gs:0x7eed3653(%rip)        # fc80 <current_context>
+       65 8b 05 fc da ec 7e    mov    %gs:0x7eecdafc(%rip),%eax        # a130 <cpu_number>
+       89 c2                   mov    %eax,%edx
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+ kernel/trace/ring_buffer.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index d5e452c..8484ec2 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -2706,23 +2706,23 @@ ring_buffer_lock_reserve(struct ring_buffer *buffer, unsigned long length)
+ 	/* If we are tracing schedule, we don't want to recurse */
+ 	preempt_disable_notrace();
+ 
+-	if (atomic_read(&buffer->record_disabled))
++	if (unlikely(atomic_read(&buffer->record_disabled)))
+ 		goto out_nocheck;
+ 
+-	if (trace_recursive_lock())
++	if (unlikely(trace_recursive_lock()))
+ 		goto out_nocheck;
+ 
+ 	cpu = raw_smp_processor_id();
+ 
+-	if (!cpumask_test_cpu(cpu, buffer->cpumask))
++	if (unlikely(!cpumask_test_cpu(cpu, buffer->cpumask)))
+ 		goto out;
+ 
+ 	cpu_buffer = buffer->buffers[cpu];
+ 
+-	if (atomic_read(&cpu_buffer->record_disabled))
++	if (unlikely(atomic_read(&cpu_buffer->record_disabled)))
+ 		goto out;
+ 
+-	if (length > BUF_MAX_DATA_SIZE)
++	if (unlikely(length > BUF_MAX_DATA_SIZE))
+ 		goto out;
+ 
+ 	event = rb_reserve_next_event(buffer, cpu_buffer, length);
+-- 
+1.8.3.1
+

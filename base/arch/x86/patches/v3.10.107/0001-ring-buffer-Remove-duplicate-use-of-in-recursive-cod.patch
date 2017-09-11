@@ -1,0 +1,56 @@
+From 133e85bf27b42c73515f9092e5d9174b8fe817cf Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Fri, 27 Mar 2015 17:39:49 -0400
+Subject: [PATCH 1/7] ring-buffer: Remove duplicate use of '&' in recursive
+ code
+
+A clean up of the recursive protection code changed
+
+  val = this_cpu_read(current_context);
+  val--;
+  val &= this_cpu_read(current_context);
+
+to
+
+  val = this_cpu_read(current_context);
+  val &= val & (val - 1);
+
+Which has a duplicate use of '&' as the above is the same as
+
+  val = val & (val - 1);
+
+Actually, it would be best to remove that line altogether and
+just add it to where it is used.
+
+And Christoph even mentioned that it can be further compacted to
+just a single line:
+
+  __this_cpu_and(current_context, __this_cpu_read(current_context) - 1);
+
+Link: http://lkml.kernel.org/alpine.DEB.2.11.1503271423580.23114@gentwo.org
+
+Suggested-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+ kernel/trace/ring_buffer.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index 1caa755..d5e452c 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -2668,10 +2668,7 @@ static __always_inline int trace_recursive_lock(void)
+ 
+ static __always_inline void trace_recursive_unlock(void)
+ {
+-	unsigned int val = __this_cpu_read(current_context);
+-
+-	val &= val & (val - 1);
+-	__this_cpu_write(current_context, val);
++	__this_cpu_and(current_context, __this_cpu_read(current_context) - 1);
+ }
+ 
+ #else
+-- 
+1.8.3.1
+

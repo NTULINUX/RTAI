@@ -1,0 +1,447 @@
+From 61ba3ff4e790d74432e96125a3d125a250b11eba Mon Sep 17 00:00:00 2001
+From: Alec Ari <alec@onelabs.com>
+Date: Tue, 12 Sep 2017 06:33:02 -0500
+Subject: [PATCH 7/7] Convert to RTAI
+
+Includes some indentation fixes and silences
+some compiler warnings. Also disables THP.
+
+Signed-off-by: Alec Ari <alec@onelabs.com>
+---
+ arch/x86/kernel/ipipe.c |  11 ++++-
+ init/Kconfig            |   2 +-
+ kernel/ipipe/Kconfig    |   1 +
+ kernel/ipipe/core.c     | 126 ++++++++++++++++++------------------------------
+ kernel/ipipe/timer.c    |  22 +++------
+ kernel/sched/core.c     |  83 +++++++++++++++++--------------
+ mm/Kconfig              |   1 +
+ 7 files changed, 114 insertions(+), 132 deletions(-)
+
+diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
+index c20bc18..2f83c9c 100644
+--- a/arch/x86/kernel/ipipe.c
++++ b/arch/x86/kernel/ipipe.c
+@@ -56,6 +56,15 @@
+ #include <asm/i387.h>
+ #include <asm/fpu-internal.h>
+ 
++EXPORT_SYMBOL(io_apic_irqs);
++EXPORT_SYMBOL(find_task_by_pid_ns);
++extern void *sys_call_table;
++EXPORT_SYMBOL(sys_call_table);
++#ifdef CONFIG_X86_32
++extern spinlock_t i8259A_lock;
++EXPORT_SYMBOL(i8259A_lock);
++#endif
++
+ DEFINE_PER_CPU(unsigned long, __ipipe_cr2);
+ EXPORT_PER_CPU_SYMBOL_GPL(__ipipe_cr2);
+ 
+@@ -527,7 +536,7 @@ int __ipipe_syscall_root(struct pt_regs *regs)
+ 	if (!__ipipe_syscall_watched_p(current, regs->orig_ax))
+ 		return 0;
+ 
+-	ret = __ipipe_notify_syscall(regs);
++	ret = __ipipe_notify_kevent(IPIPE_EVENT_SYSCALL - IPIPE_FIRST_EVENT, regs); // __ipipe_notify_syscall(regs);
+ 
+ 	hard_local_irq_disable();
+ 
+diff --git a/init/Kconfig b/init/Kconfig
+index dbb755a..8c9c642 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -55,7 +55,7 @@ config CROSS_COMPILE
+ 
+ config LOCALVERSION
+ 	string "Local version - append to kernel release"
+-	default "-ipipe"
++	default "-RTAI"
+ 	help
+ 	  Append an extra string to the end of your kernel version.
+ 	  This will show up when you type uname, for example.
+diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
+index 218f51da..983eaa4 100644
+--- a/kernel/ipipe/Kconfig
++++ b/kernel/ipipe/Kconfig
+@@ -8,6 +8,7 @@ config IPIPE
+ config IPIPE_LEGACY
+ 	bool "I-pipe legacy interface"
+ 	depends on IPIPE
++	default y
+ 	---help---
+ 	  Activate this option if you want to control the interrupt
+ 	  pipeline via the legacy interface.
+diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
+index 2746906..87d64f6 100644
+--- a/kernel/ipipe/core.c
++++ b/kernel/ipipe/core.c
+@@ -1007,34 +1007,36 @@ int __weak ipipe_trap_hook(struct ipipe_trap_data *data)
+ 
+ int __ipipe_notify_trap(int exception, struct pt_regs *regs)
+ {
+-	struct ipipe_percpu_domain_data *p;
+-	struct ipipe_trap_data data;
+-	unsigned long flags;
+-	int ret = 0;
++	{ if (current->ipipe.flags & PF_EVNOTIFY) return ((int (*)(unsigned long, void *))ipipe_root_domain->legacy.handlers[exception])(exception, regs); } {
++		struct ipipe_percpu_domain_data *p;
++		struct ipipe_trap_data data;
++		unsigned long flags;
++		int ret = 0;
+ 
+-	flags = hard_local_irq_save();
++		flags = hard_local_irq_save();
+ 
+-	/*
+-	 * We send a notification about all traps raised over a
+-	 * registered head domain only.
+-	 */
+-	if (__ipipe_root_p)
++		/*
++		* We send a notification about all traps raised over a
++		* registered head domain only.
++		*/
++		if (__ipipe_root_p)
+ 		goto out;
+ 
+-	p = ipipe_this_cpu_head_context();
+-	if (likely(p->coflags & __IPIPE_TRAP_E)) {
+-		p->coflags |= __IPIPE_TRAP_R;
+-		hard_local_irq_restore(flags);
+-		data.exception = exception;
+-		data.regs = regs;
+-		ret = ipipe_trap_hook(&data);
+-		flags = hard_local_irq_save();
+-		p->coflags &= ~__IPIPE_TRAP_R;
+-	}
++		p = ipipe_this_cpu_head_context();
++		if (likely(p->coflags & __IPIPE_TRAP_E)) {
++			p->coflags |= __IPIPE_TRAP_R;
++			hard_local_irq_restore(flags);
++			data.exception = exception;
++			data.regs = regs;
++			ret = ipipe_trap_hook(&data);
++			flags = hard_local_irq_save();
++			p->coflags &= ~__IPIPE_TRAP_R;
++		}
+ out:
+-	hard_local_irq_restore(flags);
++		hard_local_irq_restore(flags);
+ 
+-	return ret;
++		return ret;
++	}
+ }
+ 
+ int __weak ipipe_kevent_hook(int kevent, void *data)
+@@ -1044,26 +1046,28 @@ int __weak ipipe_kevent_hook(int kevent, void *data)
+ 
+ int __ipipe_notify_kevent(int kevent, void *data)
+ {
+-	struct ipipe_percpu_domain_data *p;
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	ipipe_root_only();
++	{ return ((int (*)(unsigned long, void *))ipipe_root_domain->legacy.handlers[IPIPE_FIRST_EVENT + kevent])(IPIPE_FIRST_EVENT + kevent, data); } {
++		struct ipipe_percpu_domain_data *p;
++		unsigned long flags;
++		int ret = 0;
+ 
+-	flags = hard_local_irq_save();
++		ipipe_root_only();
+ 
+-	p = ipipe_this_cpu_root_context();
+-	if (likely(p->coflags & __IPIPE_KEVENT_E)) {
+-		p->coflags |= __IPIPE_KEVENT_R;
+-		hard_local_irq_restore(flags);
+-		ret = ipipe_kevent_hook(kevent, data);
+ 		flags = hard_local_irq_save();
+-		p->coflags &= ~__IPIPE_KEVENT_R;
+-	}
+ 
+-	hard_local_irq_restore(flags);
++		p = ipipe_this_cpu_root_context();
++		if (likely(p->coflags & __IPIPE_KEVENT_E)) {
++			p->coflags |= __IPIPE_KEVENT_R;
++			hard_local_irq_restore(flags);
++			ret = ipipe_kevent_hook(kevent, data);
++			flags = hard_local_irq_save();
++			p->coflags &= ~__IPIPE_KEVENT_R;
++		}
+ 
+-	return ret;
++		hard_local_irq_restore(flags);
++
++		return ret;
++	}
+ }
+ 
+ void __weak ipipe_migration_hook(struct task_struct *p)
+@@ -1158,48 +1162,8 @@ void __ipipe_notify_vm_preemption(void)
+ EXPORT_SYMBOL_GPL(__ipipe_notify_vm_preemption);
+ #endif /* CONFIG_IPIPE_HAVE_VM_NOTIFIER */
+ 
+-static void dispatch_irq_head(unsigned int irq) /* hw interrupts off */
+-{
+-	struct ipipe_percpu_domain_data *p = ipipe_this_cpu_head_context(), *old;
+-	struct ipipe_domain *head = p->domain;
+-
+-	if (unlikely(test_bit(IPIPE_STALL_FLAG, &p->status))) {
+-		__ipipe_set_irq_pending(head, irq);
+-		return;
+-	}
+-
+-	/* Switch to the head domain if not current. */
+-	old = __ipipe_current_context;
+-	if (old != p)
+-		__ipipe_set_current_context(p);
+-
+-	p->irqall[irq]++;
+-	__set_bit(IPIPE_STALL_FLAG, &p->status);
+-	barrier();
+-	head->irqs[irq].handler(irq, head->irqs[irq].cookie);
+-	__ipipe_run_irqtail(irq);
+-	hard_local_irq_disable();
+-	p = ipipe_this_cpu_head_context();
+-	__clear_bit(IPIPE_STALL_FLAG, &p->status);
+-
+-	/* Are we still running in the head domain? */
+-	if (likely(__ipipe_current_context == p)) {
+-		/* Did we enter this code over the head domain? */
+-		if (old->domain == head) {
+-			/* Yes, do immediate synchronization. */
+-			if (__ipipe_ipending_p(p))
+-				__ipipe_sync_stage();
+-			return;
+-		}
+-		__ipipe_set_current_context(ipipe_this_cpu_root_context());
+-	}
+-
+-	/*
+-	 * We must be running over the root domain, synchronize
+-	 * the pipeline for high priority IRQs (slow path).
+-	 */
+-	__ipipe_do_sync_pipeline(head);
+-}
++void (*rtai_irq_handler)(int) = NULL;
++EXPORT_SYMBOL(rtai_irq_handler);
+ 
+ void __ipipe_dispatch_irq(unsigned int irq, int flags) /* hw interrupts off */
+ {
+@@ -1300,7 +1264,7 @@ void __ipipe_dispatch_irq(unsigned int irq, int flags) /* hw interrupts off */
+ 		if (unlikely(flags & IPIPE_IRQF_NOSYNC))
+ 			__ipipe_set_irq_pending(ipd, irq);
+ 		else
+-			dispatch_irq_head(irq);
++			rtai_irq_handler(irq);
+ 		return;
+ 	}
+ 
+@@ -1461,6 +1425,8 @@ respin:
+ 	__clear_bit(IPIPE_STALL_FLAG, &p->status);
+ }
+ 
++EXPORT_SYMBOL(__ipipe_do_sync_stage);
++
+ #ifdef CONFIG_SMP
+ 
+ /* Always called with hw interrupts off. */
+diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
+index f32a7ff..9d23408 100644
+--- a/kernel/ipipe/timer.c
++++ b/kernel/ipipe/timer.c
+@@ -294,6 +294,8 @@ err_remove_all:
+ 	return -ENODEV;
+ }
+ 
++EXPORT_SYMBOL(ipipe_select_timers);
++
+ static void ipipe_timer_release_sync(void)
+ {
+ 	struct ipipe_timer *timer = __ipipe_this_cpu_read(percpu_timer);
+@@ -318,17 +320,7 @@ void ipipe_timers_release(void)
+ 	}
+ }
+ 
+-static void __ipipe_ack_hrtimer_irq(unsigned int irq, struct irq_desc *desc)
+-{
+-	struct ipipe_timer *timer = __ipipe_this_cpu_read(percpu_timer);
+-
+-	if (desc)
+-		desc->ipipe_ack(irq, desc);
+-	if (timer->ack)
+-		timer->ack();
+-	if (desc)
+-		desc->ipipe_end(irq, desc);
+-}
++EXPORT_SYMBOL(ipipe_timers_release);
+ 
+ int ipipe_timer_start(void (*tick_handler)(void),
+ 		      void (*emumode)(enum clock_event_mode mode,
+@@ -348,9 +340,7 @@ int ipipe_timer_start(void (*tick_handler)(void),
+ 
+ 	flags = ipipe_critical_enter(NULL);
+ 
+-	ret = ipipe_request_irq(ipipe_head_domain, timer->irq,
+-				(ipipe_irq_handler_t)tick_handler,
+-				NULL, __ipipe_ack_hrtimer_irq);
++	ret = 0;
+ 	if (ret < 0 && ret != -EBUSY) {
+ 		ipipe_critical_exit(flags);
+ 		return ret;
+@@ -386,6 +376,8 @@ int ipipe_timer_start(void (*tick_handler)(void),
+ 	return ret;
+ }
+ 
++EXPORT_SYMBOL(ipipe_timer_start);
++
+ void ipipe_timer_stop(unsigned cpu)
+ {
+ 	unsigned long __maybe_unused flags;
+@@ -422,6 +414,8 @@ void ipipe_timer_stop(unsigned cpu)
+ 	ipipe_free_irq(ipipe_head_domain, timer->irq);
+ }
+ 
++EXPORT_SYMBOL(ipipe_timer_stop);
++
+ void ipipe_timer_set(unsigned long cdelay)
+ {
+ 	unsigned long tdelay;
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 60a877d..4e884c3 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -2026,63 +2026,73 @@ asmlinkage void schedule_tail(struct task_struct *prev)
+  * context_switch - switch to the new MM and the new
+  * thread's register state.
+  */
+-static inline int
++static int
+ context_switch(struct rq *rq, struct task_struct *prev,
+ 	       struct task_struct *next)
+ {
+ 	struct mm_struct *mm, *oldmm;
+ 
+-	prepare_task_switch(rq, prev, next);
+-
+ 	mm = next->mm;
+ 	oldmm = prev->active_mm;
+-	/*
+-	 * For paravirt, this is coupled with an exit in switch_to to
+-	 * combine the page table reload and the switch backend into
+-	 * one hypercall.
+-	 */
+-	arch_start_context_switch(prev);
+ 
+-	if (!mm) {
+-		next->active_mm = oldmm;
+-		atomic_inc(&oldmm->mm_count);
+-		enter_lazy_tlb(oldmm, next);
+-	} else
+-		switch_mm(oldmm, mm, next);
++	if (!rq) {
++		__switch_mm(oldmm, next->active_mm, next);
++		if (!mm) enter_lazy_tlb(oldmm, next);
++	} else {
++		prepare_task_switch(rq, prev, next);
+ 
+-	if (!prev->mm) {
+-		prev->active_mm = NULL;
+-		rq->prev_mm = oldmm;
+-	}
+-	/*
+-	 * Since the runqueue lock will be released by the next
+-	 * task (which is an invalid locking op but in the case
+-	 * of the scheduler it's an obvious special-case), so we
+-	 * do an early lockdep release here:
+-	 */
++		/*
++		* For paravirt, this is coupled with an exit in switch_to to
++		* combine the page table reload and the switch backend into
++		* one hypercall.
++		*/
++		arch_start_context_switch(prev);
++
++		if (!mm) {
++			next->active_mm = oldmm;
++			atomic_inc(&oldmm->mm_count);
++			enter_lazy_tlb(oldmm, next);
++		} else
++			switch_mm(oldmm, mm, next);
++		if (!prev->mm) {
++			prev->active_mm = NULL;
++			rq->prev_mm = oldmm;
++		}
++		/*
++		* Since the runqueue lock will be released by the next
++		* task (which is an invalid locking op but in the case
++		* of the scheduler it's an obvious special-case), so we
++		* do an early lockdep release here:
++		*/
+ #ifndef __ARCH_WANT_UNLOCKED_CTXSW
+-	spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
++		spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
+ #endif
+-
++	}
++#ifdef CONFIG_IPIPE
++	next->ptd[IPIPE_ROOT_NPTDKEYS - 1] = prev;
++#endif /* CONFIG_IPIPE */
+ 	context_tracking_task_switch(prev, next);
+ 	/* Here we just switch the register state and the stack. */
+ 	switch_to(prev, next, prev);
+ 
+ 	barrier();
+ 
+-	if (unlikely(__ipipe_switch_tail()))
+-		return 1;
+-
+-	/*
+-	 * this_rq must be evaluated again because prev may have moved
+-	 * CPUs since it called schedule(), thus the 'rq' on its stack
+-	 * frame will be invalid.
+-	 */
+-	finish_task_switch(this_rq(), prev);
++	if (unlikely(rq)) {
++		if (unlikely(__ipipe_switch_tail()))
++			return 1; __ipipe_notify_kevent(-2, NULL);
+ 
++		/*
++		* this_rq must be evaluated again because prev may have moved
++		* CPUs since it called schedule(), thus the 'rq' on its stack
++		* frame will be invalid.
++		*/
++		finish_task_switch(this_rq(), prev);
++	}
+ 	return 0;
+ }
+ 
++EXPORT_SYMBOL(context_switch);
++
+ /*
+  * nr_running and nr_context_switches:
+  *
+@@ -5792,6 +5802,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
+ 
+ /* cpus with isolated domains */
+ static cpumask_var_t cpu_isolated_map;
++EXPORT_SYMBOL(cpu_isolated_map);
+ 
+ /* Setup the mask of cpus configured for isolated domains */
+ static int __init isolated_cpu_setup(char *str)
+diff --git a/mm/Kconfig b/mm/Kconfig
+index e742d06..32bedf1 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -385,6 +385,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
+ config TRANSPARENT_HUGEPAGE
+ 	bool "Transparent Hugepage Support"
+ 	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	depends on !IPIPE
+ 	select COMPACTION
+ 	help
+ 	  Transparent Hugepages allows the kernel to use huge pages and
+-- 
+1.8.3.1
+

@@ -1,0 +1,45 @@
+From 251a98655b97881476dc374c704b74fcd4954144 Mon Sep 17 00:00:00 2001
+From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+Date: Wed, 27 May 2015 10:44:43 -0400
+Subject: [PATCH 4/7] ring-buffer: Allways do the trace_recursive checks
+
+Currently the trace_recursive checks are only done if CONFIG_TRACING
+is enabled. That was because there use to be a dependency with tracing
+for the recursive checks (it used the task_struct trace recursive
+variable). But now it uses its own variable and there is no dependency.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+ kernel/trace/ring_buffer.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
+index 9bd30bb..f84fdf4 100644
+--- a/kernel/trace/ring_buffer.c
++++ b/kernel/trace/ring_buffer.c
+@@ -2652,8 +2652,6 @@ rb_reserve_next_event(struct ring_buffer *buffer,
+ 	return NULL;
+ }
+ 
+-#ifdef CONFIG_TRACING
+-
+ /*
+  * The lock and unlock are done within a preempt disable section.
+  * The current_context per_cpu variable can only be modified
+@@ -2723,13 +2721,6 @@ trace_recursive_unlock(struct ring_buffer_per_cpu *cpu_buffer)
+ 	cpu_buffer->current_context &= cpu_buffer->current_context - 1;
+ }
+ 
+-#else
+-
+-#define trace_recursive_lock(cpu_buffer)	(0)
+-#define trace_recursive_unlock(cpu_buffer)	do { } while (0)
+-
+-#endif
+-
+ /**
+  * ring_buffer_lock_reserve - reserve a part of the buffer
+  * @buffer: the ring buffer to reserve from
+-- 
+1.8.3.1
+
