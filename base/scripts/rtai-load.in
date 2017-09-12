@@ -2,69 +2,87 @@
 # RTAI application loader script - Processes the .runinfo files
 # Completely re-written in GNU Bash by Alec Ari
 
-if [[ "${EUID}" != 0 ]] ; then
+if [[ "${EUID}" != "0" ]] ; then
 	echo "This script must be run with superuser permissions."
 	exit 1
 fi
 
-while [[ "${#}" -gt 0 ]] ; do
-argument="${1}"
-case "${argument}" in
-	runinfo)
-		;;
-	.runinfo)
-		;;
-	*)
-		echo "Usage: rtai-load [path to .runinfo]"
-		exit 0
-		;;
+PATH="${PATH}:@prefix@/bin"
+
+type rtai-config > /dev/null 2>&1 || \
+	{
+		echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
+	}
+
+MODULEDIR=$(rtai-config --module-dir)
+argument_save="/tmp/runinfo"
+
+while [[ "${#}" -gt "0" ]] ; do
+	argument="${1}"
+	case "${argument}" in
+		*runinfo)
+			;;
+		cleanup)
+			for_cleanup=$(tac "${argument_save}")
+			echo "Cleaning up..."
+			for module in ${for_cleanup} ; do
+				rmmod "${MODULEDIR}/${module}" || \
+				{
+					echo "Error removing ${module}" ;
+					exit 1 ;
+				}
+			done
+			echo "RTAI successfully unloaded."
+			echo "Removing /tmp/runinfo..."
+			rm -f /tmp/runinfo
+			echo "Done."
+			exit 0
+			;;
+		*)
+			echo "Usage: rtai-load [path to .runinfo]"
+			exit 0
+			;;
 	esac
 	shift
 done
 
-PATH="${PATH}:@prefix@/bin"
-type rtai-config > /dev/null 2>&1 || \
-	{
-	echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
-	}
-
-MODULEDIR=$(rtai-config --module-dir)
-
-if [[ -n "${argument}" && "${argument}" == *runinfo ]] ; then
-	RUNINFO="${argument}"
-else
-	echo "Incorrect or no command specified."
-	exit 1
-fi
-
-if [[ -r "${RUNINFO}" ]] ; then
-	echo ".runinfo is ${RUNINFO}"
+if [[ -r "${argument}" ]] ; then
+	echo ".runinfo is ${argument}"
+	cp -a "${argument}" "${argument_save}"
 else
 	echo "Unable to find .runinfo file at ${argument}"
 	exit 1
 fi
 
-for_insmod=$(cat "${RUNINFO}")
-for_rmmod=$(tac "${RUNINFO}")
+for_insmod=$(cat "${argument}")
+for_rmmod=$(tac "${argument}")
 LOADED_RTAI_MODULES=$(grep "rtai_" /proc/modules)
 
 if [[ -z "${LOADED_RTAI_MODULES}" ]] ; then
 	echo "No RTAI modules loaded."
-	echo "Running insmod on ${RUNINFO}..."
+	echo "Running insmod on ${argument}..."
 	for module in ${for_insmod} ; do
-		insmod "${MODULEDIR}/${module}"
+		insmod "${MODULEDIR}/${module}" || \
+		{
+			echo "Error inserting ${module}" ;
+			exit 1 ;
+		}
 	done
 else
 	echo "RTAI loaded."
 	echo "Unloading modules..."
-	echo "Running rmmod on ${RUNINFO}..."
+	echo "Running rmmod on ${argument}..."
 	for module in ${for_rmmod} ; do
 		rmmod "${MODULEDIR}/${module}"
 	done
 	echo "All RTAI modules unloaded."
-	echo "Running insmod on ${RUNINFO}..."
+	echo "Running insmod on ${argument}..."
 	for module in ${for_insmod} ; do
-		insmod "${MODULEDIR}/${module}"
+		insmod "${MODULEDIR}/${module}" || \
+		{
+			echo "Error inserting ${module}" ;
+			exit 1 ;
+		}
 	done
 fi
 

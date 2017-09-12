@@ -107,7 +107,7 @@ AC_ARG_WITH(module-dir,
 dnl Set a default module dir if unspecified
 if test "x" = "x$RTAI_MODULE_DIR"
 then
-	RTAI_MODULE_DIR='${exec_prefix}/modules'
+	RTAI_MODULE_DIR='${prefix}/modules'
 fi
 
 AC_MSG_RESULT([$RTAI_MODULE_DIR])

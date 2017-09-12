@@ -58,8 +58,9 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
 	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
 	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(calibrationdir)/run
-	@echo "$${DESTDIR}$$(bindir)/rtai-load .runinfo" >> $(DESTDIR)$(calibrationdir)/run
-	@chmod +x $(DESTDIR)$(calibrationdir)/run
+	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(calibrationdir)/.runinfo" >> $(DESTDIR)$(calibrationdir)/run
+	@echo "sleep 1 && sync && ${DESTDIR}$(bindir)/rtai-load cleanup" >> $(DESTDIR)$(calibrationdir)/run
+	@chmod 755 $(DESTDIR)$(calibrationdir)/run
 	$(INSTALL_SCRIPT) -m 755 setsmi $(DESTDIR)$(bindir)
 	@$(LN_S) -f $(bindir)/setsmi $(DESTDIR)$(bindir)/rstsmi
 

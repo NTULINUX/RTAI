@@ -27,88 +27,86 @@ RTAI_POSIX_WRAP="@RTAI_POSIX_WRAP@"
 
 unset prefix libdir datadir pkgdatadir includedir
 
-usage ()
-{
-printf "Usage rtai-config OPTIONS
-Options:
-\\t--help
-\\t--version
-\\t--cc
-\\t--cxx
-\\t--arch
-\\t--subarch
-\\t--prefix
-\\t--config
-\\t--module-cflags
-\\t--module-cxxflags
-\\t--module-ext
-\\t--lxrt-cflags
-\\t--lxrt-ldflags
-\\t--linux-dir
-\\t--linux-version
-\\t--module-dir
-\\t--library-dir
-\\t--posix-wrap\\n"
-}
-
-while [[ "${#}" -gt 0 ]] ; do
-argument="${1}"
-case "${argument}" in
-	--version)
-		echo "${RTAI_VERSION}"
-		;;
-	--cc)
-		echo "${RTAI_CC}"
-		;;
-	--cxx)
-		echo "${RTAI_CXX}"
-		;;
-	--arch)
-		echo "${RTAI_TARGET_ARCH}"
-		;;
-	--subarch)
-		echo "${RTAI_TARGET_SUBARCH}"
-		;;
-	--prefix)
-		echo "${RTAI_PREFIX}"
-		;;
-	--datarootdir)
-		echo "${RTAI_PREFIX}"
-		;;
-	--config)
-		echo "${RTAI_CONFIG}"
-		;;
-	--mod*-cflags|--kernel-cflags)
-		echo "${RTAI_KERNEL_CFLAGS}"
-		;;
-	--mod*-cxxflags|--kernel-cxxflags)
-		echo "${RTAI_KERNEL_CXXFLAGS}"
-		;;
-	--lxrt-cflags|--user-cflags)
-		echo "${RTAI_LXRT_CFLAGS}"
-		;;
-	--lxrt-ldflags)
-		echo "${RTAI_LXRT_LDFLAGS}"
-		;;
-	--mod*-dir)
-		echo "${RTAI_MODULE_DIR}"
-		;;
-	--lib*-dir|--libdir|--user-libdir)
-		echo "${RTAI_LIBRARY_DIR}"
-		;;
-	--linux-dir|--linux)
-		echo "${RTAI_LINUX_DIR}"
-		;;
-	--linux-ver*)
-		echo "${RTAI_LINUX_VERSION}"
-		;;
-	--posix-wrap)
-		echo "${RTAI_POSIX_WRAP}"
-		;;
-	*)
-		usage
-		exit 0
-		;;
+while [[ "${#}" -gt "0" ]] ; do
+	argument="${1}"
+	case "${argument}" in
+		--version)
+			echo "${RTAI_VERSION}"
+			;;
+		--cc)
+			echo "${RTAI_CC}"
+			;;
+		--cxx)
+			echo "${RTAI_CXX}"
+			;;
+		--arch)
+			echo "${RTAI_TARGET_ARCH}"
+			;;
+		--subarch)
+			echo "${RTAI_TARGET_SUBARCH}"
+			;;
+		--prefix)
+			echo "${RTAI_PREFIX}"
+			;;
+		--datarootdir)
+			echo "${RTAI_PREFIX}"
+			;;
+		--config)
+			echo "${RTAI_CONFIG}"
+			;;
+		--mod*-cflags|--kernel-cflags)
+			echo "${RTAI_KERNEL_CFLAGS}"
+			;;
+		--mod*-cxxflags|--kernel-cxxflags)
+			echo "${RTAI_KERNEL_CXXFLAGS}"
+			;;
+		--mod*-ext)
+			echo ".ko"
+			;;
+		--lxrt-cflags|--user-cflags)
+			echo "${RTAI_LXRT_CFLAGS}"
+			;;
+		--lxrt-ldflags)
+			echo "${RTAI_LXRT_LDFLAGS}"
+			;;
+		--mod*-dir)
+			echo "${RTAI_MODULE_DIR}"
+			;;
+		--lib*-dir|--libdir|--user-libdir)
+			echo "${RTAI_LIBRARY_DIR}"
+			;;
+		--linux-dir|--linux)
+			echo "${RTAI_LINUX_DIR}"
+			;;
+		--linux-ver*)
+			echo "${RTAI_LINUX_VERSION}"
+			;;
+		--posix-wrap)
+			echo "${RTAI_POSIX_WRAP}"
+			;;
+		*)
+			echo "rtai-config
+	Options:
+	--help
+	--version
+	--cc
+	--cxx
+	--arch
+	--subarch
+	--prefix
+	--config
+	--module-cflags
+	--module-cxxflags
+	--module-ext
+	--lxrt-cflags
+	--lxrt-ldflags
+	--linux-dir
+	--linux-version
+	--module-dir
+	--library-dir
+	--posix-wrap"
+			exit 0
+			;;
 	esac
 	shift
 done

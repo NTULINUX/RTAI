@@ -26,11 +26,12 @@ display_LDADD = \
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(testdir)
-	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(testdir)/.runinfo
+	$(INSTALL_DATA) $(top_srcdir)/testsuite/runinfo $(DESTDIR)$(testdir)/.runinfo
 	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(testdir)/run
 	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(testdir)/.runinfo" >> $(DESTDIR)$(testdir)/run
 	@echo "$(DESTDIR)$(testdir)/latency & $(DESTDIR)$(testdir)/display" >> $(DESTDIR)$(testdir)/run
-	@chmod +x $(DESTDIR)$(testdir)/run
+	@echo "sleep 1 && sync && ${DESTDIR}$(bindir)/rtai-load cleanup" >> $(DESTDIR)$(testdir)/run
+	@chmod 755 $(DESTDIR)$(testdir)/run
 
 run: all
 	@$(top_srcdir)/base/scripts/rtai-load $(DESTDIR)$(testdir)/.runinfo
