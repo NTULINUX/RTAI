@@ -5,17 +5,24 @@ Commands marked with # specify root, commands marked with $ are user commands.
 1.) Download the RTAI source
 
 $ cd ~/ && git clone https://github.com/NTULINUX/RTAI.git
-$ sudo cp -v base/arch/x86/patches/hal-linux-3.14.17-x86-1.patch /usr/src/
+$ sudo cp -v base/arch/x86/patches/v3.10.108/*.patch /usr/src/
 
-2.) Patch kernel with IPIPE, in this case we use 3.14.17
+2.) Patch kernel with IPIPE, in this case we use 3.10.108
 
 # cd /usr/src
-# rm -rf linux
-# wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.14.17.tar.xz
-# tar xf linux-3.14.17.tar.xz
-# ln -sv linux-3.14.17 linux
+# rm -rf 000*.patch linux
+# wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.108.tar.xz
+# tar xf linux-3.10.108.tar.xz
+# ln -sv linux-3.10.108 linux
 # cd linux
-# patch -p1 < ../hal-linux-3.14.17-x86-1.patch
+# patch -p1 < ../0001-ring-buffer*.patch
+# patch -p1 < ../0002-ring-buffer*.patch
+# patch -p1 < ../0003-ring-buffer*.patch
+# patch -p1 < ../0004-ring-buffer*.patch
+# patch -p1 < ../0005-ring-buffer*.patch
+# patch -p1 < ../0006-IPIPE-core-release-9-for-3.10.108.patch
+# patch -p1 < ../0007-Convert-to-RTAI.patch
+# make tinyconfig
 # make menuconfig
 
 Configure to your needs
@@ -25,7 +32,9 @@ Configure to your needs
 
 3.) Update grub
 
-Refer to your distribution documentation to do this. Generally, grub2-mkconfig -o /boot/grub/grub.cfg for newer distros.
+Refer to your distribution documentation to do this. Generally for newer distros:
+
+# grub-mkconfig -o /boot/grub/grub.cfg
 
 4.) Compile, configure and install RTAI (MUST BE BOOTED INTO YOUR NEW RTAI KERNEL)
 
