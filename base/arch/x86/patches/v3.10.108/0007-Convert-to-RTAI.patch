@@ -1,4 +1,4 @@
-From 61ba3ff4e790d74432e96125a3d125a250b11eba Mon Sep 17 00:00:00 2001
+From cd46216565cd1da4b3bf9b7b742220dc225a04fe Mon Sep 17 00:00:00 2001
 From: Alec Ari <alec@onelabs.com>
 Date: Tue, 12 Sep 2017 06:33:02 -0500
 Subject: [PATCH 7/7] Convert to RTAI
@@ -18,7 +18,7 @@ Signed-off-by: Alec Ari <alec@onelabs.com>
  7 files changed, 114 insertions(+), 132 deletions(-)
 
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
-index c20bc18..2f83c9c 100644
+index c20bc1837d8a..2f83c9cc223b 100644
 --- a/arch/x86/kernel/ipipe.c
 +++ b/arch/x86/kernel/ipipe.c
 @@ -56,6 +56,15 @@
@@ -47,7 +47,7 @@ index c20bc18..2f83c9c 100644
  	hard_local_irq_disable();
  
 diff --git a/init/Kconfig b/init/Kconfig
-index dbb755a..8c9c642 100644
+index dbb755a64c53..8c9c642c7dee 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -55,7 +55,7 @@ config CROSS_COMPILE
@@ -60,7 +60,7 @@ index dbb755a..8c9c642 100644
  	  Append an extra string to the end of your kernel version.
  	  This will show up when you type uname, for example.
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index 218f51da..983eaa4 100644
+index 218f51da9ea5..983eaa45bd7d 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
 @@ -8,6 +8,7 @@ config IPIPE
@@ -72,7 +72,7 @@ index 218f51da..983eaa4 100644
  	  Activate this option if you want to control the interrupt
  	  pipeline via the legacy interface.
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
-index 2746906..87d64f6 100644
+index 04e54a8dc61c..12f52a5184df 100644
 --- a/kernel/ipipe/core.c
 +++ b/kernel/ipipe/core.c
 @@ -1007,34 +1007,36 @@ int __weak ipipe_trap_hook(struct ipipe_trap_data *data)
@@ -248,7 +248,7 @@ index 2746906..87d64f6 100644
  
  /* Always called with hw interrupts off. */
 diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
-index f32a7ff..9d23408 100644
+index f32a7ff5f5f3..9d234082e4f6 100644
 --- a/kernel/ipipe/timer.c
 +++ b/kernel/ipipe/timer.c
 @@ -294,6 +294,8 @@ err_remove_all:
@@ -309,7 +309,7 @@ index f32a7ff..9d23408 100644
  {
  	unsigned long tdelay;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 60a877d..4e884c3 100644
+index 0c46bb01905e..c94d1eade1c4 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2026,63 +2026,73 @@ asmlinkage void schedule_tail(struct task_struct *prev)
@@ -431,7 +431,7 @@ index 60a877d..4e884c3 100644
  /* Setup the mask of cpus configured for isolated domains */
  static int __init isolated_cpu_setup(char *str)
 diff --git a/mm/Kconfig b/mm/Kconfig
-index e742d06..32bedf1 100644
+index e742d06285b7..32bedf1291e5 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -385,6 +385,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
@@ -443,5 +443,5 @@ index e742d06..32bedf1 100644
  	help
  	  Transparent Hugepages allows the kernel to use huge pages and
 -- 
-1.8.3.1
+2.16.2
 

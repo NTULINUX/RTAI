@@ -1,4 +1,4 @@
-From a0e21717e475a60d323f9720856c17e2391c8127 Mon Sep 17 00:00:00 2001
+From 8b98559d41eab1b07fb3019abe9d5782e0a148a4 Mon Sep 17 00:00:00 2001
 From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
 Date: Wed, 27 May 2015 10:44:43 -0400
 Subject: [PATCH 4/7] ring-buffer: Allways do the trace_recursive checks
@@ -14,7 +14,7 @@ Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
  1 file changed, 9 deletions(-)
 
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index dc0551a..4c19c42 100644
+index dc0551acb4ed..4c19c42aee00 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
 @@ -2602,8 +2602,6 @@ rb_reserve_next_event(struct ring_buffer *buffer,
@@ -41,5 +41,5 @@ index dc0551a..4c19c42 100644
   * ring_buffer_lock_reserve - reserve a part of the buffer
   * @buffer: the ring buffer to reserve from
 -- 
-1.8.3.1
+2.16.2
 

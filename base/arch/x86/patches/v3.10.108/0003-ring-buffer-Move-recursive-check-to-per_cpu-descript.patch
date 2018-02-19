@@ -1,4 +1,4 @@
-From 01982a59a0e091f8069d1661f73b4d70644a8528 Mon Sep 17 00:00:00 2001
+From b08ea094f392736490deebac72c3a50e22ac6c01 Mon Sep 17 00:00:00 2001
 From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
 Date: Wed, 27 May 2015 10:27:47 -0400
 Subject: [PATCH 3/7] ring-buffer: Move recursive check to per_cpu descriptor
@@ -25,7 +25,7 @@ Conflicts:
  1 file changed, 19 insertions(+), 18 deletions(-)
 
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index 8484ec2..dc0551a 100644
+index 8484ec2b93b6..dc0551acb4ed 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
 @@ -464,6 +464,7 @@ struct ring_buffer_per_cpu {
@@ -132,5 +132,5 @@ index 8484ec2..dc0551a 100644
  	preempt_enable_notrace();
  
 -- 
-1.8.3.1
+2.16.2
 
