@@ -1,4 +1,4 @@
-From 4f63bbebf672036b83ec45709dd45394fc74617e Mon Sep 17 00:00:00 2001
+From 90f06507147454260a2a06967e4d4268556ae26e Mon Sep 17 00:00:00 2001
 From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
 Date: Wed, 27 May 2015 10:48:56 -0400
 Subject: [PATCH 5/7] ring-buffer: Add trace_recursive checks to
@@ -16,7 +16,7 @@ Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index f84fdf4..bf826aa 100644
+index f84fdf4cf830..bf826aab2ca1 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
 @@ -3028,9 +3028,12 @@ int ring_buffer_write(struct ring_buffer *buffer,
@@ -45,5 +45,5 @@ index f84fdf4..bf826aa 100644
  	preempt_enable_notrace();
  
 -- 
-1.8.3.1
+2.16.2
 

@@ -1,4 +1,4 @@
-From bd0d854a3789d076efd30c7968f5a25ade69b94d Mon Sep 17 00:00:00 2001
+From 6a9f0bda1577c51f77f144b3606869f8eda04808 Mon Sep 17 00:00:00 2001
 From: Alec Ari <alec@onelabs.com>
 Date: Mon, 11 Sep 2017 17:13:20 -0500
 Subject: [PATCH 7/7] Convert to RTAI
@@ -17,7 +17,7 @@ Signed-off-by: Alec Ari <alec@onelabs.com>
  6 files changed, 156 insertions(+), 173 deletions(-)
 
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
-index 542cf16..ba1d5a0 100644
+index 542cf16b4729..ba1d5a07b702 100644
 --- a/arch/x86/kernel/ipipe.c
 +++ b/arch/x86/kernel/ipipe.c
 @@ -58,6 +58,15 @@
@@ -37,7 +37,7 @@ index 542cf16..ba1d5a0 100644
  EXPORT_PER_CPU_SYMBOL_GPL(__ipipe_cr2);
  
 diff --git a/init/Kconfig b/init/Kconfig
-index 532d35c..534057a 100644
+index 532d35cfb2c9..534057a1b6e2 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -69,7 +69,7 @@ config COMPILE_TEST
@@ -50,7 +50,7 @@ index 532d35c..534057a 100644
  	  Append an extra string to the end of your kernel version.
  	  This will show up when you type uname, for example.
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index da17b04..ca4df2e 100644
+index da17b0464331..ca4df2e22211 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
 @@ -8,6 +8,7 @@ config IPIPE
@@ -62,7 +62,7 @@ index da17b04..ca4df2e 100644
  	  Activate this option if you want to control the interrupt
  	  pipeline via the legacy interface.
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
-index 753be96..35b27f5 100644
+index fae12282bff9..78266d649fcd 100644
 --- a/kernel/ipipe/core.c
 +++ b/kernel/ipipe/core.c
 @@ -985,53 +985,55 @@ void __ipipe_root_sync(void)
@@ -135,7 +135,7 @@ index 753be96..35b27f5 100644
 -		p = ipipe_this_cpu_root_context();
 -		if (__ipipe_ipending_p(p))
 -			__ipipe_sync_stage();
-- 	} else if (ipipe_test_thread_flag(TIP_MAYDAY))
+-	} else if (ipipe_test_thread_flag(TIP_MAYDAY))
 -		__ipipe_call_mayday(regs);
  
 -	hard_local_irq_restore(flags);
@@ -336,7 +336,7 @@ index 753be96..35b27f5 100644
  {
  	unsigned long flags;
 diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
-index e71f26b..a32b41e6 100644
+index e71f26bc18d8..a32b41e60d1a 100644
 --- a/kernel/ipipe/timer.c
 +++ b/kernel/ipipe/timer.c
 @@ -295,6 +295,8 @@ err_remove_all:
@@ -397,7 +397,7 @@ index e71f26b..a32b41e6 100644
  {
  	unsigned long tdelay;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 987f2d6..9344aec 100644
+index e689a0191a44..5cca77f49ee9 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2359,63 +2359,73 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
@@ -510,7 +510,7 @@ index 987f2d6..9344aec 100644
  /*
   * nr_running and nr_context_switches:
   *
-@@ -5770,6 +5780,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
+@@ -5771,6 +5781,7 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
  
  /* cpus with isolated domains */
  static cpumask_var_t cpu_isolated_map;
@@ -519,5 +519,5 @@ index 987f2d6..9344aec 100644
  /* Setup the mask of cpus configured for isolated domains */
  static int __init isolated_cpu_setup(char *str)
 -- 
-1.8.3.1
+2.16.2
 
