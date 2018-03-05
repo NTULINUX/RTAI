@@ -3,7 +3,7 @@
 # RTAI/x86 configuration
 #
 CONFIG_MODULES=y
-CONFIG_RTAI_VERSION="4.1.3"
+CONFIG_RTAI_VERSION="4.9.9"
 
 #
 # General
