@@ -373,8 +373,8 @@ AC_ARG_ENABLE(sched-lock-isr,
 AC_MSG_RESULT(${CONFIG_RTAI_SCHED_ISR_LOCK:-no})
 
 AC_MSG_CHECKING(for RTC freq)
-AC_ARG_WITH(rtc-freq,
-	[ --with-rtc-freq		Enable RTC freq],
+AC_ARG_ENABLE(rtc-freq,
+	[ --enable-rtc-freq		Enable RTC freq],
 	[case "$enableval" in
  changequote(,)dnl add a test for 0 or power of 2, <2-8192>
 	[0-9]*) CONFIG_RTAI_RTC_FREQ=$enableval ;;
@@ -397,13 +397,13 @@ AC_ARG_ENABLE(long-timed-lists,
 AC_MSG_RESULT(${CONFIG_RTAI_LONG_TIMED_LIST:-no})
 
 AC_MSG_CHECKING(for 8254 tuning latency)
-AC_ARG_WITH(8254-latency,
-	[ --with-8254-latency		Set 8254 tuning latency],
+AC_ARG_ENABLE(8254-latency,
+	[ --enable-8254-latency		Set 8254 tuning latency],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_8254_LATENCY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-8254-latency=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-8254-latency=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_8254_LATENCY = x ; then
 	# Use a reasonable default if unset
@@ -413,12 +413,12 @@ AC_MSG_RESULT($CONFIG_RTAI_SCHED_8254_LATENCY)
 
 AC_MSG_CHECKING(for APIC tuning latency)
 AC_ARG_ENABLE(apic-latency,
-	[ --with-apic-latency		Set APIC tuning latency],
+	[ --enable-apic-latency		Set APIC tuning latency],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_APIC_LATENCY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-apic-latency=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-apic-latency=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_APIC_LATENCY = x ; then
 	# Use a reasonable default if unset
@@ -427,13 +427,13 @@ fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_APIC_LATENCY)
 
 AC_MSG_CHECKING(for user busy align ret delay)
-AC_ARG_WITH(user-ret-delay,
-	[ --with-user-ret-delay		Set user busy align ret delay],
+AC_ARG_ENABLE(user-ret-delay,
+	[ --enable-user-ret-delay	Set user busy align ret delay],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-user-ret-delay=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-user-ret-delay=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY = x ; then
 	# Use a reasonable default if unset
@@ -442,13 +442,13 @@ fi
 AC_MSG_RESULT($CONFIG_RTAI_USER_BUSY_ALIGN_RET_DELAY)
 
 AC_MSG_CHECKING(for kernel busy align ret delay)
-AC_ARG_WITH(kernel-ret-delay,
-	[ --with-kernel-ret-delay	Set kernel busy align ret delay],
+AC_ARG_ENABLE(kernel-ret-delay,
+	[ --enable-kernel-ret-delay	Set kernel busy align ret delay],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-kernel-ret-delay=<nanoseconds>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-kernel-ret-delay=<nanoseconds>]) ;;
 	esac])
 if test x$CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY = x ; then
 	# Use a reasonable default if unset
@@ -457,13 +457,13 @@ fi
 AC_MSG_RESULT($CONFIG_RTAI_KERN_BUSY_ALIGN_RET_DELAY)
 
 AC_MSG_CHECKING(for maximum number of LXRT slots)
-AC_ARG_WITH(lxrt-numslots,
-	[ --with-lxrt-numslots		Set maximum number of LXRT slots],
+AC_ARG_ENABLE(lxrt-numslots,
+	[ --enable-lxrt-numslots		Set maximum number of LXRT slots],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-lxrt-numslots=<number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-lxrt-numslots=<number>]) ;;
 	esac])
 if test x$CONFIG_RTAI_SCHED_LXRT_NUMSLOTS = x ; then
 	# Use a reasonable default if unset
@@ -499,13 +499,13 @@ AC_ARG_ENABLE(align-priority,
 AC_MSG_RESULT(${CONFIG_RTAI_ALIGN_LINUX_PRIORITY:-no})
 
 AC_MSG_CHECKING(for calibration frequency factor)
-AC_ARG_WITH(cal-freq-fact,
-	[ --with-cal-freq-fact		Set calibration frequency factor],
+AC_ARG_ENABLE(cal-freq-fact,
+	[ --enable-cal-freq-fact		Set calibration frequency factor],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_CAL_FREQS_FACT=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-cal-freq-fact=<number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-cal-freq-fact=<number>]) ;;
 	esac])
 if test x$CONFIG_RTAI_CAL_FREQS_FACT = x ; then
 	# Use a reasonable default if unset
@@ -546,13 +546,13 @@ AC_ARG_ENABLE(malloc-vmalloc,
 AC_MSG_RESULT(${CONFIG_RTAI_MALLOC_VMALLOC:-no})
 
 AC_MSG_CHECKING(for size of real-time malloc heap)
-AC_ARG_WITH(malloc-heap-size,
-	[ --with-malloc-heap-size	Set size of real-time malloc heap],
+AC_ARG_ENABLE(malloc-heap-size,
+	[ --enable-malloc-heap-size	Set size of real-time malloc heap],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_MALLOC_HEAPSZ=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-malloc-heap-size=<Kbytes>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-malloc-heap-size=<Kbytes>]) ;;
 	esac])
 if test x$CONFIG_RTAI_MALLOC_HEAPSZ = x ; then
 	# Use a reasonable default if unset (in Kbytes)
@@ -561,13 +561,13 @@ fi
 AC_MSG_RESULT($CONFIG_RTAI_MALLOC_HEAPSZ)
 
 AC_MSG_CHECKING(for size of real-time kernel task stack heap)
-AC_ARG_WITH(kstack-heap-size,
-	[ --with-kstack-heap-size	Set size of real-time kernel task stack heap],
+AC_ARG_ENABLE(kstack-heap-size,
+	[ --enable-kstack-heap-size	Set size of real-time kernel task stack heap],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-9]*) CONFIG_RTAI_KSTACK_HEAPSZ=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-kstack-heap-size=<Kbytes>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-kstack-heap-size=<Kbytes>]) ;;
 	esac])
 if test x$CONFIG_RTAI_KSTACK_HEAPSZ = x ; then
 	# Use a reasonable default if unset (in Kbytes)
@@ -576,13 +576,13 @@ fi
 AC_MSG_RESULT($CONFIG_RTAI_KSTACK_HEAPSZ)
 
 AC_MSG_CHECKING(for number of CPUs)
-AC_ARG_WITH(cpus,
-	[ --with-cpus			Number of physical CPU cores],
+AC_ARG_ENABLE(cpus,
+	[ --enable-cpus			Number of physical CPU cores],
 	[case "$enableval" in
  changequote(,)dnl
 	[1-8]) CONFIG_RTAI_CPUS=$enableval ;;
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --with-cpus=<number-of-CPUs>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-cpus=<number-of-CPUs>]) ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
 
@@ -603,20 +603,20 @@ dnl FIXME: is 0-7 correct?
 dnl what about larger CPU numbers (if at all possible)?
 dnl should we test for valid CPU number?
 AC_MSG_CHECKING(for master CPU for aligning MP-TSCs)
-AC_ARG_WITH(master-tsc-cpu,
-	[ --with-master-tsc-cpu		Enable master TSC CPU],
+AC_ARG_ENABLE(master-tsc-cpu,
+	[ --enable-master-tsc-cpu	Enable master TSC CPU],
 	[case "$enableval" in
  changequote(,)dnl
 	[0-7])
  changequote([,])dnl
 		if test x$CONFIG_RTAI_CPUS = x ; then
-			AC_MSG_ERROR([Option --with-cpus must be defined before --with-master-tsc-cpu])
+			AC_MSG_ERROR([Option --enable-cpus must be defined before --enable-master-tsc-cpu])
 		fi
 		if test $enableval -lt 0 -o $enableval -ge $CONFIG_RTAI_CPUS ; then
-			AC_MSG_ERROR([Invalid value to option: --with-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
+			AC_MSG_ERROR([Invalid value to option: --enable-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
 		fi
 		CONFIG_RTAI_MASTER_TSC_CPU=$enableval ;;
-	*) AC_MSG_ERROR([Bad argument to option: --with-master-tsc-cpu=<master-CPU-number>]) ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-master-tsc-cpu=<master-CPU-number>]) ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_MASTER_TSC_CPU:0})
 
