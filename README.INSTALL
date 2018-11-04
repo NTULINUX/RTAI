@@ -4,25 +4,24 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 1.) Download the RTAI source
 
-$ cd ~/ && git clone https://github.com/NTULINUX/RTAI.git
-$ sudo cp -v base/arch/x86/patches/v3.10.108/*.patch /usr/src/
+$ git clone https://github.com/NTULINUX/RTAI.git
 
-2.) Patch kernel with IPIPE, in this case we use 3.10.108
+2.) Patch kernel with IPIPE, in this case we use 3.16.52
 
+# rm -rf /usr/src/000*.patch /usr/src/linux
 # cd /usr/src
-# rm -rf 000*.patch linux
-# wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.108.tar.xz
-# tar xf linux-3.10.108.tar.xz
-# ln -sv linux-3.10.108 linux
+# wget https://www.kernel.org/pub/linux/kernel/v3.x/linux-3.16.52.tar.xz
+# tar xf linux-3.16.52.tar.xz
+# ln -sfv linux-3.16.52 linux
+# cp -aLv /path/to/this/RTAI-git-tree/base/arch/x86/patches/v3.16.52/*.patch /usr/src/
 # cd linux
 # patch -p1 < ../0001-ring-buffer*.patch
 # patch -p1 < ../0002-ring-buffer*.patch
 # patch -p1 < ../0003-ring-buffer*.patch
 # patch -p1 < ../0004-ring-buffer*.patch
 # patch -p1 < ../0005-ring-buffer*.patch
-# patch -p1 < ../0006-IPIPE-core-release-9-for-3.10.108.patch
+# patch -p1 < ../0006-IPIPE-core-release-7-for-3.16.52.patch
 # patch -p1 < ../0007-Convert-to-RTAI.patch
-# make tinyconfig
 # make menuconfig
 
 Configure to your needs
