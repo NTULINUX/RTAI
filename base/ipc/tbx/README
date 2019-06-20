@@ -1,0 +1,88 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+Typed mailboxes and POSIX message queues modules for RTAI
+=========================================================
+
+
+------------------------ T Y P E D   M A I L B O X E S -------------------------
+
+COPYRIGHT (C) 2001  G.M. Bertani (gmbertani@yahoo.it) 
+                    (http://www.geocities.com/gmbertani)
+
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+This library is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+
+Introduction
+------------
+
+Typed mailboxes (TBX) are an alternative to the default RTAI ones that offers:
+
+1-Message broadcasting, that means send a message to ALL the tasks that are 
+pending on the same TBX.
+
+2-Urgent sending of messages: these messages are not enqueued, but inserted in
+the head of the queue, bypassing all the other messages already present in TBX.
+
+3-The PRIORITY/FIFO wakeup policy can be set at runtime when creating the TBX
+
+Features (1) and (2) are achieved by adding a type field (1 byte) to every 
+message inserted in a TBX, so when receiving it is possible to discriminate
+normal, urgent and broadcast messages. The type field is silently removed by 
+the receiving functions, so from the user point of view it is not visible.
+Users must consider type fields only when specifying the TBX sizes.
+
+
+System requirements
+-------------------
+
+RTAI-24.x.y (Linux 2.4.x) : http://www.rtai.org
+
+
+Acknowledgements
+----------------
+
+Thanks to Paolo Mantegazza (mantegazza@aero.polimi.it) for his work in
+changing this code from a simple upsched.c patch to an autonomous RTAI
+module.
+
+
+------------------- P O S I X   M E S S A G E   Q U E U E S --------------------
+
+After discovering that Trevor's (Woolven) kernel space implementation of POSIX 
+message queues was usable directly, almost unchanged, with RTAI, i.e. without 
+the specific kernel POSIX support found within RTAI itself, it followed that
+it had to work symmetrically in user space also.
+Its structuring within RTAI appears similar to TBXes, i.e an extension of RTAI
+intertask communication APIs, not born in the RTAI schedulers directly. So it
+goes into the existing "tbx" directory, along with its (NEW)LXRT user space 
+extension module.
+So to use POSIX message queues everywhere you'll have just to care of insmoding
+the related modules: rtai_pqueue.o and rtai_pqueue_lxrt.o found here, the 
+related header file, rtai_pqueue.h, is found in directory "include". It is the
+same for both kernel and user space applications.
+It should be remarked that the rtai_pqueue.c file found here contains also 
+timed version of send/receive, that are missing in its native parent found 
+under the "/posix/src" directory. 
+On the lucky side is that POSIX message queues are all natively based on the 
+POSIX standard naming, thanks to the fact that RTAI core APIs had nothing 
+similar to them yet.
+
+Paolo Mantegazza.

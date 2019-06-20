@@ -1,0 +1,152 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+/* -*- C -*- */
+
+/**
+
+@page fifos_overview A general overview of RTAI fifos.
+
+The new fifo implementation for RTAI maintains full compatibility with the
+basic services provided by its original NMT-RTL counterpart while adding many
+more.
+
+It is important to remark that even if RTAI fifo APIs appears as before the
+implementation behind them is based on the mailbox concepts, already available
+in RTAI and symmetrically usable from kernel modules and Linux processes.   The
+only notable difference, apart from the file style API functions to be used in
+Linux processes, is that on the module side you always have only non blocking
+put/get, so that any different policy should be enforced by using appropriate
+user handler functions.
+
+With regard to fifo handlers it is now possible to install also one with a
+read/write argument (read @c 'r' , write @c 'w' ). In this way you have a
+handler that can know what it has been called for.   It is useful when you open
+read-write fifos or to check against miscalls.
+
+For that you can have a handler prototyped as:
+@code
+int x_handler(unsigned int fifo, int rw);
+@endcode
+
+that can be installed by using:
+@code
+rtf_create_handler(fifo_numver, X_FIFO_HANDLER(x_handler));
+@endcode
+
+see rtai_fifos.h for the #X_FIFO_HANDLER macro definition.
+The handler code is likely to be a kind of:
+@code
+int x_handler(unsigned int fifo, int rw);
+{
+    if (rw == 'r') {
+        // do stuff for a call from read and return appropriate value.
+    } else {
+        // do stuff for a call from write and return appropriate value.
+    }
+}
+@endcode
+
+Even if fifos are strictly no more required in RTAI, because of the
+symmetric inter/intra kernel/user space support, they are kept both for 
+compatibility reasons and because they are very useful tools to be used to 
+communicate with interrupt handlers, since they do not require any scheduler 
+to be installed. Notice that for such applications RTAI has now shared memory 
+circular buffers (SCB) that might be even more effective to exchange data 
+to/from interrupt handlers.
+In this sense you can see this new implementation of fifos as a kind of
+universal form of device drivers, since once you have your interrupt handler
+installed you can use fifo services to do all the rest.
+
+However the new implementation made it easy to add some new services.   One of
+these is the possibility of using asyncronous signals to notify data
+availability by catching a user set signal.   It is implemented in a standard
+way, see the function:
+@code
+rtf_set_async_sig(int fd, int signum) (default signum is SIGIO);
+@endcode
+
+and standard Linux man for fcntl and signal/sigaction, while the others are
+specific to this implementation.
+
+A complete picture of what is available can be obtained from a look at
+rtai_fifos.h prototypes.
+
+It is important to remark that now fifos allows multiple readers/writers so the
+select/poll mechanism to synchronize with in/out data can lead to unexpected
+blocks for such cases.   For example: you poll and get that there are data
+available, then read/write them sure not to be blocked, meanwhile another user
+gets into and stoles all of your data, when you ask for them you get blocked.
+
+To avoid such problems you have available the functions:
+
+@code
+rtf_read_all_at_once(fd, buf, count);
+@endcode
+
+that blocks till all count bytes are available;
+
+@code
+rtf_read_timed(fd, buf, count, ms_delay);
+        
+rtf_write_timed(fd, buf, count, ms_delay);
+@endcode
+
+that block just for the specified delay in milliseconds but are queued in real
+time Linux process priority order.   If @a ms_delay is zero they return
+immediately with all the data they could get, even if you did not set
+@c O_NONBLOCK at fifo opening.
+
+So by mixing normal read/writes with their friends above you can easily
+implement blocking, non blocking and timed IOs.   They are not standard and so
+not portable, but far easy to use then the select/poll mechanism.
+The standard llseek is also available but it is equivalent to calling
+rtf_reset, whatever fifo place you point at in the call.
+
+For an easier timing you have available also:
+@code
+rtf_suspend_timed(fd, ms_delay).
+@endcode
+
+To make them easier to use, fifos can now be created by the user at open
+time.   If a fifo that does not exist already is opened, it is created with a
+1K buffer.   Any following creation on modules side resizes it without any loss
+of data.   Again if you want to create a fifo from the user side with a desired
+buffer size you can use:
+@code
+rtf_open_sized(const char *dev, perm, size).
+@endcode
+
+Since they had to be there already to implement our mailboxes we have made
+available also binary semaphores.   They can be used for many things, e.g. to
+synchronize shared memory access without any scheduler installed and in place
+of using blocking fifos read/writes with dummy data, just to synchronize.
+The semaphore services available are:
+@code
+rtf_sem_init(fd, init_val);
+
+rtf_sem_wait(fd);
+
+rtf_sem_trywait(fd);
+
+rtf_sem_timed_wait(fd, ms_delay);
+
+rtf_sem_post(fd);
+
+rtf_sem_destroy(fd);
+@endcode
+
+Note that @a fd is the file descriptor, a semaphore is always associated to a
+fifo and you must get a file descriptor by opening the corresponding fifo.
+
+Naturally the above functions are symmetrically available in kernel space but,
+except for init and create, only for the nonblocking services, i.e: trywait and
+post.
+
+*/

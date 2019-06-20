@@ -1,0 +1,194 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+﻿       *** SERVING LINUX SYSCALLS IN RTAI HARD REAL TIME MODE ***
+
+The default RTAI way of dealing with Linux syscalls done while in hard real
+time consists in moving a task wanting to use Linux back to soft mode, 
+recovering it to hard real time again, as soon as possible, afterward. See the 
+related RTAI configuration helper for an explanation of the different available 
+modes to implement the "as soon as possible" above on various architectures.
+
+This README documents possible alternative ways to access Linux services from 
+hard real time RTAI applications in user space. Such a support is based on the 
+creation of a general purpose server thread that takes over Linux requests. 
+
+It must be noticed that if Linux is to be used synchronously at the very moment
+Linux is called the task becomes timed by Linux, wherever a Linux server is 
+used or not. So hard real time constraints cannot be satisfied anyhow. The use 
+of a Linux server has an advantage though. In fact it takes just two context 
+switches, in place of the four used by hard-soft-hard transitions. Moreover it 
+ensures that RTAI returns to hard real time immediately after the Linux syscall 
+has finished while, if the architecture does not support the immediate Linux 
+syscall mode reliably for all Linux syscalls, there will be the need to wait 
+for a call to an RTAI function to go back in RTAI hard real time fully. That 
+will add even far more latencies when a hard RTAI task does some processing 
+for a significant amount of time after the Linux syscall, without using any 
+RTAI service. So, provided it is allowed loosing real time, installing a 
+synchronous server might be the best way to interact with Linux anyhow.
+
+There are however instances in which Linux can be used asynchronously. In 
+such cases RTAI hard real time tasks might use Linux without loosing hard
+real time determinism. Such a capability can be implemented in many ways, 
+the one chosen by RTAI is based on a buffering of async Linux syscalls mated 
+either to an optional callback function or to inquiry mechanisms to help 
+implementing any user own async call policy. Beware of not reusing read/write 
+data buffers made available to async calls though. 
+If you do not want, or cannot, either inquire for or check async terminations, 
+to avoid running the risk of reusing an yet unserved buffer, use RTAI dynamic 
+memory or SCB to allocate them in real time, freeing them afterward, possibly 
+with the help of a support callback function. 
+Async support is a bit tricky but, provided one cares of what said above, it
+should work always when Linux syscalls arguments are fully contained in the 
+passed registers structure. That is not the case for a few Linux syscalls that 
+are multiplexed within a single framework, whereas libc can end in building a 
+hidden object on the stack, so that it is not assured it will be available at 
+the time the server uses it. On some archs a notable example of that is the 
+socketcall, but RTAI should already care of it appropriately. There remain 
+nonetheless the chance of other instances to be cared as well. So beware that 
+some async calls might not work with a few Linux services yet, in which case 
+you should let us know about it for a possible fix.
+Just to mention another typical care to be taken we notice that printf might
+work as it is but it will often crash. So the safe way to printf is as follows:
+- sprintf(buffer, format, args, ....);
+- write(STDOUT_FILENO, buffer, strlen(buffer));
+
+Provided the socketcall has been intercepted well you should be able to do many
+IO operations asynchronously, e.g.: dumping data directly to disk, Linux ipcs 
+and POSIX mq, fifos, pipes, serial and networked communications etc. etc. 
+In many applications one often requires RTAI specific IO drivers just to avoid 
+loosing real time for communications with non real time support/interface 
+processes and tasks. The async server should be of much help in such cases by 
+letting you use standard Linux, with the ensuing advantage of not needing any 
+special hard real time driver.
+
+Clearly what above does not impede you to set up your own async server to 
+which your hard real time task can be connected by using RTAI non blocking 
+communication functions, i.e. those ending with "_if". So the choice of the 
+most viable solution is left to you.
+ 
+How it works
+------------
+
+By using the functions described below a server thread is created that will
+block waiting for parent task requests to Linux. Whenever the RTAI scheduler 
+intercepts a Linux syscall in hard real time mode it passes it to the server 
+thread and:
+- remains waiting for its execution if in sync mode;
+- returns immediately if in async mode.
+The server carries out the syscall and:
+- resumes the hard real time parent, returning what returned by Linux, if in 
+sync mode:
+- calls a callback function, if one has been made available, in async mode,
+returning an identifier.
+
+As said in sync mode real time is lost, but there will be two task switches per
+Linux service request only, while there will be four if no sync server is used.
+In async mode there is no need for any task switch, as the server will execute 
+in soft mode when there will be no RTAI real time activity any more.
+The need of passing syscall data to the server is responsible for most of the 
+penalty incurred by using a Linux server. 
+Let's stress once more that this is a far better alternative way to what the 
+RTAI scheduler will have to do anyhow, i.e. make you soft and recover hard mode 
+at the next RTAI proper service call, which will require four task switches, 
+keeping you in Linux hands from the Linux syscall till an RTAI function is 
+called again. 
+With a server instead you will stay soft just either till Linux has finished 
+servicing your request, when in sync mode, or kept working in real time, when
+in async mode.
+
+API Functions prototypes
+------------------------
+
+The available functions are:
+
+- void *rt_create_linux_syscall_server(RT_TASK *task, int mode, void 
+(*callback_fun)(long, long), int nr_bufd_async_calls);
+create a Linux syscall server for task, a NULL task means the current one; a 
+non NULL return is the handle allowing you to link to the server for any 
+further management request, see functions below, NULL indicates a failure in 
+setting the server up; a NULL callback_fun is allowed. It will operate 
+according to mode setting, either SYNC_LINUX_SYSCALL or ASYNC_LINUX_SYSCALL. 
+Beware of using an appropriate nr_bufd_async_calls. If async requests overrun 
+the latest will be discarded till some space is available again.
+If a server exists already it is terminated and a new one replaces it.
+
+- void rt_destroy_linux_syscall_server(RT_TASK *task);
+destroy the linux_syscall_server of task, if NULL use the current task. 
+
+- void *rt_sync_async_linux_syscall_server_create(RT_TASK *task, int mode, 
+  void (*callback_fun)(long, long), int nr_bufd_async_calls);
+legacy interface, the same as: 
+rt_create_linux_syscall_server(task, mode, callback_fun, nr_bufd_async_calls).
+
+- void *rt_linux_syscall_server_create(RT_TASK *task);
+legacy call, the same as:
+rt_create_linux_syscall_server(task, SYNC_LINUX_SYSCALL, NULL, 1).
+
+Notice that in sync mode Linux functions will return their usual values while 
+that is not possible in async mode and what returned is an identifier, id, of 
+that specific async call, a negative id meaning the call was not satisfied
+because of a buffer overrun. When <= 0 ids can be used for monitoring async
+calls execution, as explained below.
+
+- int rt_set_linux_syscall_mode(int mode, void (*callback_fun)(long, long);
+to both switch between sync and async mode and change the call back function.
+It returns EINVAL if there is no server or the mode setting is not correct.
+
+Notice that this is a legacy call, you'd better use:
+
+- int rt_linux_syscall_mode(struct linux_syscalls_list *syscalls, int mode);
+to switch between sync and async mode; syscalls is the handle returned by
+rt_sync_async_linux_syscall_server_create; mode can be: SYNC_LINUX_SYSCALL, 
+ASYNC_LINUX_SYSCALL, LINUX_SYSCALL_GET_MODE.
+The function returns the previous mode and LINUX_SYSCALL_GET_MODE can be used
+to just inquire for it, in which case mode is discarded. EINVAL is returned if
+syscalls is not a valid pointer. 
+
+- void *rt_linux_syscall_cbfun(struct linux_syscalls_list *syscalls, void (*cbfun)(long, long));
+to change the callback function; syscalls is the handle returned by
+rt_sync_async_linux_syscall_server_create; cbfun can be either a NULL, no 
+callback will be used, a pointer to a true callback function, 
+LINUX_SYSCALL_GET_CALLBACK.
+The function returns the pointer to the previous callback function and 
+LINUX_SYSCALL_GET_CALLBACK can be used to just inquire for it. EINVAL is 
+returned if syscall is not a valid pointer 
+
+The callback function afford a notification control mechanism for async calls.
+An alternative way to monitor async calls execution is given by the following
+functions:
+
+- int rt_linux_syscall_status(struct linux_syscalls_list *syscalls, int id, int *retval);
+syscalls is the handle returned from rt_sync_async_linux_syscall_server_create;
+id is the value returned by the call to Linux, retval is a pointer to an int
+that will receive the value returned by Linux after executing the related 
+service.
+It returns:
+- EINVAL if syscalls is not a valid pointer or id < 0
+- ENOENT if no id is found, meaning the function has been overwritten;
+- ECANCELED when the function has call has been explicitly canceled by the 
+  user;
+- EINPROGRESS when the function is pending waiting for execution;
+- 0 when the function has been executed, in such a case retval, if not NULL,
+  will receive the value returned by Linux.
+
+- int rt_linux_syscall_cancel(struct linux_syscalls_list *syscalls, int id);
+Syscalls is the handle returned from rt_sync_async_linux_syscall_server_create;
+id is the value returned by the call to Linux.
+It returns:
+- EINVAL if syscalls is not a valid pointer or id < 0
+- ENOENT if no id is found, meaning the function has been overwritten;
+- -id when the function has been executed already;
+- 0 if the function has been successfully canceled.
+
+Examples
+-------
+
+They are in RTAI "showroom" CVS: linux_server and printer_server.
+
+Paolo.

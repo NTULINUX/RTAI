@@ -1,0 +1,134 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+calibrationdir = $(prefix)/calibration
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+bin_PROGRAMS = calibration_helper
+
+calibration_helper_SOURCES = calibration_helper.c
+calibration_helper_CPPFLAGS = \
+	@RTAI_REAL_USER_CFLAGS@ \
+	-DHAL_SCHED_PATH="\"$(DESTDIR)$(moduledir)\"" \
+	-DHAL_SCHED_MODEXT="\"$(modext)\"" \
+	-I$(top_srcdir)/base/include \
+	-I../../../include
+calibration_helper_LDADD = \
+	../../../sched/liblxrt/liblxrt.la \
+	-lpthread
+
+if CONFIG_BUILD_SMISPV
+bin_PROGRAMS += smispv
+
+smispv_SOURCES = smispv.c
+smispv_LDADD = -lncurses -lpci @SENSORS_LIBS@
+smispv_CPPFLAGS = \
+	-I$(top_srcdir)/base/include \
+	-I../../../include
+endif # CONFIG_BUILD_SMISPV
+
+libcalibrate_rt_a_SOURCES = calibrate-module.c calibrate.h
+libsmi_rt_a_SOURCES = smi-module.c
+
+if CONFIG_KBUILD
+rtai_smi.ko: @RTAI_KBUILD_ENV@
+rtai_smi.ko: $(libsmi_rt_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+
+distclean-local:
+	@RTAI_KBUILD_DISTCLEAN@
+else
+noinst_LIBRARIES = libcalibrate_rt.a libsmi_rt.a
+
+libcalibrate_rt_a_AR = $(CROSS_COMPILE)ar cru
+libcalibrate_rt_a_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../include
+
+libsmi_rt_a_AR = $(CROSS_COMPILE)ar cru
+libsmi_rt_a_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../include
+
+rtai_smi.o: libsmi_rt.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+endif
+
+calibration_PROGRAMS = calibrate
+
+calibrate_SOURCES = calibrate.c calibrate.h
+calibrate_CPPFLAGS = \
+	@RTAI_REAL_USER_CFLAGS@ \
+	-DHAL_SCHED_PATH="\"$(DESTDIR)$(moduledir)\"" \
+	-DHAL_SCHED_MODEXT="\"$(modext)\"" \
+	-I$(top_srcdir)/base/include \
+	-I../../../include
+calibrate_LDADD = \
+	../../../sched/liblxrt/liblxrt.la \
+	-lpthread
+
+all-local: rtai_smi$(modext)
+
+RT_MODULES = rtai_smi$(modext)
+
+calibrate_DEPENDENCIES = liblxrt.la
+liblxrt.la:
+	@(cd ../../../sched/liblxrt && make liblxrt.la)
+
+.PHONY: liblxrt.la
+
+install-exec-local: $(RT_MODULES)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	@for m in $(RT_MODULES) ; do \
+		echo "installing module $$m in $(DESTDIR)$(moduledir)" ; \
+		$(INSTALL_DATA) $$m $(DESTDIR)$(moduledir)/$$m ; \
+	done
+
+if CONFIG_BUILD_SMISPV
+# the only difference is installation of smispv in calibrationdir
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
+	@echo '#!/bin/sh' > $(DESTDIR)$(calibrationdir)/run
+	@echo "\$${DESTDIR}$(bindir)/rtai-load \$$*" >> $(DESTDIR)$(calibrationdir)/run
+	@chmod +x $(DESTDIR)$(calibrationdir)/run
+	$(INSTALL_SCRIPT) -m 755 setsmi $(DESTDIR)$(bindir)
+	@$(LN_S) -f $(bindir)/setsmi $(DESTDIR)$(bindir)/rstsmi
+	$(INSTALL_SCRIPT) -m 755 smicnt $(DESTDIR)$(bindir)
+	$(INSTALL_SCRIPT) -m 755 smispv $(DESTDIR)$(bindir)
+else
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
+	@echo '#!/bin/sh' > $(DESTDIR)$(calibrationdir)/run
+	@echo "\$${DESTDIR}$(bindir)/rtai-load \$$*" >> $(DESTDIR)$(calibrationdir)/run
+	@chmod +x $(DESTDIR)$(calibrationdir)/run
+	$(INSTALL_SCRIPT) -m 755 setsmi $(DESTDIR)$(bindir)
+	@$(LN_S) -f $(bindir)/setsmi $(DESTDIR)$(bindir)/rstsmi
+	$(INSTALL_SCRIPT) -m 755 smicnt $(DESTDIR)$(bindir)
+endif # CONFIG_BUILD_SMISPV
+
+run: all
+	@$(top_srcdir)/rtai-scripts/rtai-load --verbose
+
+EXTRA_DIST = runinfo README.SMI README.SMISPV Makefile.kbuild
+
+DISTCLEANFILES = Makefile

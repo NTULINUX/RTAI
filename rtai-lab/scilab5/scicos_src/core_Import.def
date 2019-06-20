@@ -1,0 +1,38 @@
+	LIBRARY    core.dll
+;
+; Scilab ( http://www.scilab.org/ ) - This file is part of Scilab
+; Copyright (C) 2015 INRIA 
+;
+; This file must be used under the terms of the CeCILL.
+; This source file is licensed as described in the file COPYING, which
+; you should have received as part of this distribution.  The terms
+; are also available at
+; http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
+;
+;
+
+
+EXPORTS
+;
+;core
+;
+; import required by F2C
+ierode_
+;
+iop_
+recu_
+com_
+vstk_
+errgst_
+cha1_
+parse_
+isrecursioncalltofunction_
+callinterf_
+;
+; explicit imports (COMMON) to fix warning LNK4049: locally defined symbol 
+;
+stack_
+adre_
+intersci_
+;
+

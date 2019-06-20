@@ -1,0 +1,105 @@
+/*
+ * Copyright (C) 1999-2017 Lorenzo Dozio
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/* XPM */
+static char *profile_icon[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 66 1",
+"  c #000000",
+". c #141414",
+"X c #1e1e1e",
+"o c #202121",
+"O c #2b2b2b",
+"+ c #343434",
+"@ c #3a3835",
+"# c #3d3d3d",
+"$ c #003c5a",
+"% c #434343",
+"& c #494949",
+"* c #585858",
+"= c #606060",
+"- c #6b6a6a",
+"; c #747474",
+": c #0b5482",
+"> c #0e5c8d",
+", c #0e5e91",
+"< c #006b9e",
+"1 c #0e6596",
+"2 c #0f6698",
+"3 c #0770a1",
+"4 c #0873a5",
+"5 c #106da0",
+"6 c #1173a4",
+"7 c #127cad",
+"8 c #127fb1",
+"9 c #276c8c",
+"0 c #286c8e",
+"q c #276892",
+"w c #0786b5",
+"e c #1380b2",
+"r c #169acb",
+"t c #19afee",
+"y c #38a2c5",
+"u c #3cb9ed",
+"i c #57a1c0",
+"p c #58aecd",
+"a c #56b0cd",
+"s c #5db1d0",
+"d c #73b9d4",
+"f c #79bfd6",
+"g c #9d9d9d",
+"h c #81a0b0",
+"j c #88a6b5",
+"k c #8aa9b9",
+"l c #a4a4a4",
+"z c #adadad",
+"x c #b3b3b3",
+"c c #bcbcbc",
+"v c #82c3d8",
+"b c #91c9db",
+"n c #c1bebe",
+"m c #c3c3c3",
+"M c #cbcbcb",
+"N c #d4d4d4",
+"B c #dbd7d6",
+"V c #dddddd",
+"C c #c1e1ed",
+"Z c #d3edf6",
+"A c #e3e3e3",
+"S c #e9e4e4",
+"D c #eaeaea",
+"F c #f3f3f3",
+"G c #fcfcfc",
+"H c None",
+/* pixels */
+"HHHH &HHHHHHHHHH",
+"HHH.MD&&OHHHHHHH",
+"HH#<$;lMD& &; HH",
+"HHOCZf<$;lMSDD H",
+"HHouyfCZv4$;lMD%",
+"HHXtwypdvCZv3$;&",
+"HHXr57wwyadbCZf%",
+"HHO8:,158wwypdC%",
+"HH%GSk0:>147wwd#",
+"HH%GFDDBh0:,26i%",
+"HH%DDSAVNBMj0:q#",
+"HH+mVVVNMMmmmm-%",
+"HHH @-cMMmmcxz-&",
+"HHHHHH +=zcxxz-%",
+"HHHHHHHHH O*gl-@",
+"HHHHHHHHHHHH O@H"
+};

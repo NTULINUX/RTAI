@@ -1,0 +1,158 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+/* -*- C -*- */
+
+/**
+
+@page whatis_lxrt RTAI schedulers and hard real time in kernel/user space.
+
+RTAI provides symmetric hard real time services inter/intra user/kernel space. 
+Such a support comes through two schedulers, at the moment called rtai_lxrt and
+rtai_ksched, that can operate in both user and kernel land, differing only in 
+relation to the objects they can schedule.
+So rtai_lxrt is simply a Linux coscheduler, i.e it supports hard real time for 
+all Linux schedulable objects, i.e. processes/threads/kthreads. 
+Rtai_ksched instead supports not only hard real time for all Linux schedulable 
+objects, i.e. processes/threads/kthreads, but also for RTAI own kernel tasks, 
+i.e. very light kernel space only schedulable objects proper to RTAI.
+So while in user space there is no choice but scheduling Linux processes and 
+threads one could ask her/himsel what is worth the redundancy of having 
+different scheduling objects in kernel space, as at a first glance they will
+afford much the same functionalities. Let's say immediately that the big pro 
+of RTAI own light kernel tasks is their fast switching time with respect to 
+Linux kernel threads, while their big con is that they operate outside any Linux
+environment so they require some special care if one needs to interoperate 
+with Linux. On the contrary Linux kernel threads offer the advantage of being
+fully integrated in the Linux environment and ease any needed RTAI Linux 
+interaction.
+
+That said let's see first how any of the 2 available RTAI schedulers can become
+a coscheduler of Linux schedulable objects. To such an aim we assume to be 
+within a process, you know how to build it for sure, a user thread, created
+either by pthread_create or clone, a kernel thread, created by kernel_thread or
+the newer support functions found in 2.6.xx. Then to use RTAI you need to 
+extend the Linux task structure, by linking it to RTAI. That comes by using:
+- rt_task_init_schmod (rt_task_init being a simpler but somewhat limited 
+schortcut) in user space only;
+- set_rtext in kernel space.
+After such calls your Linux schedulable object can use both Linux and RTAI APIs,
+without any constraint, but you'll not be in hard real time. At most you might 
+be in Linux user space soft real time by setting SCHED_FIFO/SCHED_RR in 
+rt_task_init_schmod or, in kernel space, by calling rtai_set_linux_task_priority
+to obtain the same result.
+
+At this point if you want to operate in hard real time you have to call:
+rtai_make_hard_real_time. In user space you should anticipate such a call with
+a cautious stack extension plus a preallocation of all the needed memory 
+followed by memory locking, see "man mlockall", to staticalise all of your 
+needed stack and heap. The macro "rt_grow_and_lock_stack" might be your helper.
+That is needed to avoid breaking hard real time through dynamic virtual memory
+paging. 
+In kernel space there is no such a need for the stack, beware you'll have 
+available just the small stack the kernel makes available for its kthreads,
+but you need to do much the same with k/vmalloc, i.e. call them for all of what
+is needed before going hard real time anyhow, albeit without the need for any
+further memory locking call.
+
+Now you are in hard real time and to keep so you cannot use any Linux syscall
+or kernel space service as that will:
+- send you back into Linux hands
+- execute what you asked to Linux, possibly being rescheduled by it
+- return to RTAI hard real time when Linux has served you.
+RTAI can bear such things but it is suggested that you'll be fully aware of it
+by mating you hard real time task to a Linux buddy, to which you'll ask for 
+the Linux service you need, thus being fully aware that you are giving up
+hard real time till your buddy has served you. If you'll find it a bit annoying
+consider using the support of Linux server RTAI makes available through:
+rt_linux_syscall_server_create; If that is still too annying then keep mixing
+Linux and RTAI even for hardened task but be aware that experience shows
+that even experienced users have found them bitten already by too much 
+confidence in doing it "we know what we are doing" way. With too much 
+a confidence Linux services are often placed, inadvertently of course, in the 
+wrong place and you'll get slapped, better say you'll slap against end run 
+stoppers, may be it is better to call them crashes of course.
+Notice that RTAI does such transitions as effectively as possible. So as hard 
+real time capabilities improves in Linux natively (PREEMPT_RT) such pains 
+might be lifted a bit and a higher level real time imteroperabilty might become
+feasible.
+Finally when a task is exiting or hard real time is not needed any more one
+should call rtai_make_soft_real_time following it with:
+- rt_task_delete in user space, to detach RTAI from the Linux task structure;
+- clr_rtext in kernel space to do the same for kernel threads.
+Latest RTAI versions should be capable of doing that for you, if you'll forget
+it.
+
+The above generic scheme is mostly used for user space, a worth to note 
+exception being found in netrpc.c. In fact in kernel space the standard usage 
+legacy is to work in hard real time mode directly and there is where the 
+difference between rtai_lxrt and rtai_ksched comes into the play.
+To have it clear one should recall that RTAI was first in promoting hard real
+time in user space and the symmetric kernel/user space usage was achieved by
+using RTAI own light kernel space tasks only. When the need was felt of 
+supporting a symmetric scheduling in user/kernel space based on a coscheduler
+approach only emphasis was shifted to user space mainly with some kernel space 
+only.
+So to avoid the burden of making Linux kthreads hard real time, as explained 
+above, a support for the direct creation of hardened Linux kthreads was created,
+by setting up functions "rt_kthread_init" and "rt_kthread_init_cpuid", 
+mirroring the functions "rt_task_init" and "rt_task_init_cpuid" used for 
+RTAI own light kernel tasks. However RTAI users were most used to the latter
+function so, to allow them to not care of what was behind the curtains, there 
+was the need to have "rt_task_init" and "rt_task_init_cpuid" create hardened 
+Linux kthreads. In such a view rtai_lxrt must be used so thats kthread_inits 
+and task_inits end in being the same things. 
+Thus users wanting to use RTAI own light kernel threads only or both them and 
+hardened Linux kthreads should use rtai_ksched, caring of using 
+kthread_init/task_inits according to their needs.
+
+So let's get rid of badly inheredited legacy concepts that drifted inito a long
+series of urban legends, not to say FUD, and state clearly what has been true
+for years now:
+
+THERE IS JUST ONE WAY OF SCHEDULING IN RTAI AND IS AN ORIGINAL RTAI FIRST, 
+IT HAS AN UBIQUITOUS APPEARENCE IN TWO FORMS BECAUSE OF WHAT EXPLAINED ABOVE.
+
+How does hard real time comes for Linux schedulable objects?
+
+Hardened real time schedulable objects are just normal Linux 
+processes/threads/kthreds, by calling rt_make_hard_real_time a task suspends
+itself so that another schedulable Linux objects is switch in. As soon as the
+new task is switched in the RTAI task switching is called, without even exiting
+the just called Linux "schedule" function and the RTAI tasks is resumed in
+real time hardened mode. When it has nothing to do it will call RTAI
+"rt_schedule" and such a function will schedule a Linux object again. Notice
+that full interoperability of Linux/RTAI context switches is assured by a 
+a common context switch function available in Linux sched.c.
+This is believed to be a truly original, albeit trivial idea, within Linux
+environment that appear to have been blatantly copied by others. 
+Doing the trick the other way around, i.e. going back into Linux hands requires
+some care. In fact once hardened a schedulable object can fully preempt Linux
+anywhere without it being aware it happened. The solution is as trivial as
+going hardened thogh. So for the hardened task suspend itself and put itself
+on a circular buffer list, there is one for each CPU, waiting to be awaken
+by a call to Linxu "wake_up_process" when there is no other hard real time
+to be scheduled by the RTAI scheduler, so a full return to the Linux 
+environment is ensured. Thanks to the commonality of context switches when
+the task is resumed by Linux it finds itself softened again. However it will
+not be at the end of Linux "schedule" but of RTAI "rt_schedule" instead. 
+So RTAI must care of carring out the same epilogue found in schedule and 
+all the black magic will do no harm. The actual function doing all of it
+are: steal_from_linux and give_back_to_linux.
+
+Such functions are used, without an explicit user request, when a hardened
+real time schedulable objects issues a linux syscalls. For that RTAI has
+to intercept all of the Linux syscalls and if any is done in hard real time
+mode the hardened object is given back to Linux, then depending on the
+architecture the Linux syscall is either executed immediately (i.e. internally
+to the RTAI scheduler) and the object stolen from Linux just after returning 
+from the syscall (e.g. i386) or the syscall is executed along the standard Linux
+syscall path, so that the recovery of hard real time will happen just at the
+next RTAI call (e.g. x86_64, at the moment). 
+*/

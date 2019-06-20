@@ -1,0 +1,175 @@
+/* -*- C -*- */
+
+/**
+
+@page lxrt_faq LXRT-INFORMED FAQs
+
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+Pierre Cloutiers: How does LXRT works?
+
+(REMARK: this is somewhat outdated and you should read the document on RTAI 
+schedulers to have the real picture of what RTAI does now. So one might ask: 
+why is it kept in the docs? 
+There are two answers:
+- it is a good witness on how an RTAI first, i.e. a way of using Linux user 
+space for hard real time, aka LXRT, was born;
+- it pays a tribute to somebody that did a lot to improve and complement LXRT 
+with a better integration into Linux; Pierre's extension of basic LXRT ideas 
+have been known as LXRT-INFORMED for some time, then they became the only LXRT,
+with "angels" as he says here, distributed in RTAI; his core ideas for patching 
+Linux to support LXRT-INFORMED can still be seen in ADEOS.)
+
+This one pager is an attempt to explain conceptually how LXRT works.   It does
+not try to get into the nifty gritty details of the implementation but it tries
+to explain how the context of execution switches between Linux and RTAI.
+
+But first, what are we trying to do?
+
+LXRT provides a family of real time scheduler services that can be used by both
+real time RTAI tasks and Linux tasks.   To keep things simple for the
+programmer the implementation is fully symmetric.   In other words, the same
+function calls are used in both the kernel and user space.
+
+What are those real time scheduler services?
+
+RTAI provides the standard services like resume, yield, suspend, make periodic,
+wait until etc.   You will also find semaphores, mail boxes, remote procedure
+calls, send and receive primitives integrated into the state machine of the
+real time scheduler.   Typically, the IPC function calls support:
+
+            . Blocking until the transaction occurs.
+            . Returning immediately if the other end is not ready.
+            . Blocking for the transaction until a timeout occurs.
+
+How do I setup my Linux program for LXRT?
+
+You call rt_task_init( name, ...).   The call differs from the real time
+counterpart (there are a few exceptions to the symmetry rule) in that, among
+other things, you provide a name for your program.   The name must be unique
+and is registered by LXRT.   Thus, other programs, real time or not, can find
+the task pointer of your program and communicate with it.
+
+LXRT creates a real time task who becomes the "angel" of your program.   The
+angel's job is to execute the real time services for you.   For example, if you
+call rt_sleep(...), LXRT will get your angel to execute the real rt_sleep()
+function in the real time scheduler.   Control will return to your program when
+the angel returns from rt_sleep().
+
+With LXRT, can a Linux task send a message to a real time task?
+
+Yes. You simply use the rt_send(...) primitive that you would normally use in
+the code of a kernel program. LXRT gets your angel to execute rt_send(...).
+Control returns to your program when the target task  completes the
+corresponding rt_receive(...) call.
+
+What happens when I send a message to another user space program?
+
+Well, pretty much the same thing except that you now have two angels talking to
+each other...
+
+Can a real time task also register a name with LXRT?
+
+Yes. The call rt_register( name, ...) does that.   Thus, other programs, real
+time or not, can find the task pointer of your program and communicate with it.
+
+Where do I put the code for the "angels"?
+
+There is not any code required for the real time component of your Linux
+task.   LXRT uses the standard RTAI scheduler functions for that.   In the QNX
+world, the "angel" is called a virtual circuit.
+
+How does it work from the point of view of a user space program?
+
+The inline functions declared in rtai_lxrt.h all do a software interrupt (int
+0xFC).   Linux system calls use the software int 0x80.   Hence the approach is
+similar to a system call. LXRT sets the interrupt vector to call
+rtai_lxrt_handler(void), a function that saves everything on the stack, changes
+ds and es to __KERNEL_DS and then calls lxrt_handler, the function that does
+the work.
+
+lxrt_handler(...) extracts the first argument from user space and decides what
+to do from the service request number srq.   For real time services,
+lxrt_resume(...) is called with the scheduler function address pointer fun,
+the number of remaining arguments, a pointer to the next argument, a service
+type argument, and the real time task pointer.   lxrt_resume(...) will do what
+is necessary to change the context of execution to RTAI and transfer execution
+to the specified function address in the real time scheduler.
+
+lxrt_resume(...) first copies the other arguments on the stack of the real time
+task.   Any required data is also extracted from user space and copied into
+rt_task->msg_buf.   At this point, the addresses of three functions are stored
+above stack_top (LXRT made sure this wizardry would be possible when it first
+created the real time task):
+
+            top-1 lxrt_suspend(...)
+            top-2 fun(...)
+            top-3 lxrt_global_sti(...)
+
+The stack is changed to point to top-3, global interrupts are disabled and and
+the context of execution is switched to RTAI with the call to LXRT_RESUME
+(rt_task).   RTAI executes lxrt_global_sti(...), fun(...), and eventually
+lxrt_suspend(...).   Remember that fun(...) is a RTAI scheduler function like,
+for example, rt_rpc(...).   At this point, fun(...) may or may not complete.
+
+The easy way back to user space - fun(...) completes immediately:
+
+RTAI enters function lxrt_suspend(...) that sets the real time task status to 0
+and calls rt_schedule().   The context of execution is eventually switched back
+to Linux and the system call resumes after LXRT_RESUME(rt_task).   Data for
+mail boxes is copied to user space and a jump to ret_from_intr() is made to
+complete the system call.
+
+The long way back to user space - fun(...) cannot completed immediately:
+
+RTAI schedules Linux to run again and the state of the real time task is non
+zero, indicating it is held. Therefore, the system call cannot return to user
+space and must wait.   So it sets itself TASK_INTERRUPTIBLE and calls the Linux
+scheduler.
+
+Eventually fun(...) completes and RTAI enters function lxrt_suspend(...) that
+notices the system call is held. So RTAI pends a system call request to
+instruct Linux to execute another system call whose handler is function
+lxrt_srq_handler(void).   When Linux calls lxrt_srq_handler(), the original
+system call is re-scheduled for execution and returns to user space as
+explained above.
+
+What happens to the registered resources if the Linux task crashes?
+
+The "informed" version of LXRT has setup a pointer to a callback function in
+the do_exit() code of the Linux kernel.   The callback is used to free the
+resources that where registered by the real time task.   It also deletes the
+real time task and unblocks any other task that may have been SEND, RPC, RETURN
+or SEM blocked on the real time task.
+
+What about mail boxes?
+
+The mail box IPC approach is connection less.   In other words, it is not
+possible for a zombie real time task to detect that another task is MBX blocked
+specifically for a message from him.   The solution here is to use the
+rt_mbx_receive_timed() with a timeout value and verify the return value to
+detect the error.
+
+What about performance?
+
+Intertask communications with LXRT are about 36% faster than with old FIFO's.
+Testing Linux ó Linux communications with int size msg and rep's on a P233 I
+got these numbers:
+
+LXRT         12,000 cycles RTAI-0.9x :-)
+LXRT         13,000 cycles RTAI-0.8
+Fifo            19,000 cycles RTAI-0.8
+Fifo new     22,300 cycles RTAI-0.8 10% more cycles, a lot more utilities (that
+cause some overhead)
+SRR           14,200 cycles QNX 4 Send/Receive/Reply implemented with a Linux
+module without a real time executive.
+
+
+*/

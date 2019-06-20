@@ -1,0 +1,61 @@
+//
+// Copyright (C) 1999-2017 Roberto Bucher
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of the
+// License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//
+mode(-1);
+lines(0);
+// ====================================================================
+// Created by toolbox_creator
+// ====================================================================
+warning_mode = warning('query'); warning('off');
+
+disp('Start RTAI');
+etc_tlbx = get_absolute_file_path('RTAI.start');
+etc_tlbx = getshortpathname(etc_tlbx);
+root_tlbx = strncpy( etc_tlbx, length(etc_tlbx)-length('\etc\') );
+pathmacros = pathconvert( root_tlbx ) + 'macros'+ filesep();
+
+disp("RTAI Code generation: Please click on the following menu entry in xcos: ");
+disp("Simulation/Compile. Then go to the scilab terminal and type :");
+disp("RTCodeGen()");
+
+// to load scicos library on linux
+scicos_debug();
+
+disp('Load macros');
+//Load  functions library
+RTAIlib = lib(pathmacros);
+exec("SCI/contrib/RTAI/src/c/loader.sce");
+
+xcosPalAdd(pathmacros+'/RTAI.xpal','Palettes');
+if getos()=="Windows" then
+   link("hdf5"+getdynlibext());
+else
+   link("libscihdf5"+getdynlibext());
+end
+
+
+//predef('all');
+
+warning(warning_mode);
+// ====================================================================
+clear warning_mode;
+if exists('path_addchapter') then clear path_addchapter; end
+clear root_tlbx;
+clear etc_tlbx;
+if exists('pathmacros') then clear pathmacros; end
+if exists('pathconvert') then clear pathconvert; end
+// ====================================================================

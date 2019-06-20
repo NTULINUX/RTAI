@@ -1,0 +1,58 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+RTAI-Lab supports now 3 versions of Scilab:
+
+scilab-4.1.2
+scicoslab-4.3
+scilab-5.1.1
+
+Installing files for scilab-4.1.2
+=================================
+
+1) move in the folder "scilab/macros"
+2) check the macros "SCILAB_VERSION" and "SCILAB_DIR" in the Makefile
+3) launch "make install" as superuser
+4) launch "make user" for each user to create the .Scilab/scilab-4.1.2/.scilab file
+
+
+Installing files for scicoslab-gtk-4.3
+======================================
+
+1) move in the folder "scicoslab/macros"
+2) check the macros "SCILAB_VERSION" and "SCILAB_DIR" in the Makefile
+3) launch "make install" as superuser
+4) launch "make user" for each user to create the .Scilab/4.3/.scilab file
+
+
+Installing files for scilab-5.1.1
+=================================
+
+1) move in the folder "scilab5"
+2) check the macros "SCILAB_VERSION" and "SCILAB_DIR" in the Makefile
+3) If you want static libraries in the executable RT task you can launch
+      "make install as superuser"
+   If you prefer shared libraries you can launch
+      "make install_shared" as superuser
+4) launch "make user" for each user to create the .Scilab/scilab-5.1.1/.scilab file
+
+Many thanks to Holger Nahrstaedt for implementing the template Makefile for 
+shared libraries!
+
+Users with static libraries need liblapack.a and libblas.a installed in their PC!
+
+To be tested:
+Users with Scilab-5.1 and static libraries should remove "-lblas -llapack" from the 
+SCI/share/scilab/contrib/RTAI/RT_templates/rtai.mak file
+
+User with Scilab-5.1 an shared libraries should remove the line 
+"-lscicall_scilab" and the "\" in previous line
+from the SCI/share/scilab/contrib/RTAI/RT_templates/rtai.mak file
+
+21.4.2009, roberto.bucher@supsi.ch

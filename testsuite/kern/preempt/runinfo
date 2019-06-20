@@ -1,0 +1,1 @@
+display:sched+fifos:push preempt_rt;./display;popall:control_c

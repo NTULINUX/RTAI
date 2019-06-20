@@ -1,0 +1,1 @@
+display:sched+fifos:push kthreads_preempt_rt;./display;popall:control_c

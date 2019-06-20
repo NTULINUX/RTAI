@@ -1,0 +1,73 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+libhal_a_SOURCES = hal.c
+
+if CONFIG_ARCH_EP9301
+libhal_a_SOURCES += mach-ep9301/ep9301-timer.c
+endif
+if CONFIG_ARCH_PXA
+libhal_a_SOURCES += mach-pxa/pxa-timer.c
+endif
+if CONFIG_ARCH_AT91
+libhal_a_SOURCES += mach-at91/at91-timer.c
+endif
+if CONFIG_ARCH_IMX
+libhal_a_SOURCES += mach-imx/imx-timer.c
+endif
+
+if CONFIG_KBUILD
+
+rtai_hal.ko: @RTAI_KBUILD_ENV@
+rtai_hal.ko: $(libhal_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+
+else
+
+noinst_LIBRARIES = libhal.a
+
+libhal_a_AR = $(CROSS_COMPILE)ar cru
+
+AM_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../include \
+	-I../../../..
+
+rtai_hal.o: libhal.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+
+clean-local:
+
+endif
+
+all-local: rtai_hal$(modext)
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: rtai_hal$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+
+
+EXTRA_DIST = Makefile.kbuild hal.immed hal.piped

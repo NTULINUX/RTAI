@@ -1,0 +1,63 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+libmath_a_SOURCES = libm.c export_glibc.h export_newlib.h export_uclibc.h export_musl.h
+
+if CONFIG_KBUILD
+rtai_math.ko: @RTAI_KBUILD_ENV@
+rtai_math.ko: $(libmath_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" rtai_extraopt="@RTAI_TARGET_ARCH_OPTS@" \
+	@RTAI_KBUILD_BOTTOM@
+	mv $@ $@.tmp
+	$(CROSS_COMPILE)$(LD) -r -static -o $@ $@.tmp @RTAI_MATH_LIBM@
+	rm -f $@.tmp
+
+#	$(CROSS_COMPILE)$(LD) --whole-archive -r -static -o $@ rtai_math.o -L/usr/lib/x86_64-linux-gnu/ -lm
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+else
+noinst_LIBRARIES = libmath.a
+
+libmath_a_AR = $(CROSS_COMPILE)ar cru
+
+AM_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	@RTAI_FP_CFLAGS@ \
+	-D_IEEE_LIBM -D_ISOC99_SOURCE -D_SVID_SOURCE \
+	-I$(top_srcdir)/base/include \
+	-I../include
+
+# $(LD) -r -static -o $@ $< libm_32.a
+rtai_math.o: libmath.a
+
+#	$(CROSS_COMPILE)$(LD) --whole-archive -r -static -o $@ $< -L/usr/lib -lm
+endif
+
+all-local: rtai_math$(modext)
+if !CONFIG_RTAI_MATH_BUILTIN
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: rtai_math$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+endif
+
+EXTRA_DIST = Makefile.kbuild README.KLIBM

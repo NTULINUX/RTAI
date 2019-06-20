@@ -1,0 +1,252 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+		      <*> RTAI_KCOMEDI IN USER SPACE <*>
+
+This release of RTAI is intended to be mated to the latest COMEDI git 
+repository, as found at: www.comedi.org. Warm thanks are due to Frank Mori Hess 
+<fmhess@users.sourceforge.net> and Ian Abbott <abbotti@mev.co.uk>, for their
+help and suggestions about stabilizing on such a choice, taking the chance
+of these thanks to recall also the one who initiated it all: David Schleef.
+
+This porting of KCOMEDI to user space is done using the standard extension 
+feature of LXRT and makes KCOMEDI symmetrically usable in kernel and user 
+space within RTAI, in soft/hard real time. To use KCOMEDI in user space you 
+have just to know how to use it in kernel space. So whatever space you are 
+going to work in it will be mostly the same.
+
+There are nonetheless a few points forbidding the above statements to be 
+unconditionally true. The related clashes are resolved with functions
+prefixed with "rt_".
+
+One is related to a couple of name returning functions: 
+"comedi_get_driver_name" and "comedi_get_board_name".
+
+In kernel space the requested name is simply got by returning a pointer to 
+a directly addressable global namestring, which wont work in user space. 
+So there is the need of copying the namestring available in kernel space to 
+user space, therefore the calling convention must be changed. Then the 
+following two aliases, usable both in kernel and user space, have been made 
+available:
+void *rt_comedi_get_driver_name(unsigned int dev, char *name);
+void *rt_comedi_get_board_name(unsigned int dev, char *name);
+On success both of them return the address "name", at which the actual name 
+is copied, NULL otherwise.
+
+The solution of the above problem is simple and, almost, compulsory. 
+In fact the only real problem to be solved for a symmetric approach to 
+KCOMEDI in kernel and user space has been the use of a callback function 
+in user space for which a fairly general usage scheme has been devised.
+
+The callback method made available is based on using a built in callback 
+function that triggers an rt_task_resume and allows returning back to the 
+user the important unsigned long mask, made available by the standard KCOMEDI 
+callback service as its first argument.
+
+The related support comes from using the following function, not needed but 
+available in kernel space also (in case you'll like it):
+int rt_comedi_register_callback(void *dev, unsigned int subdev, unsigned int 
+mask, int (*callback)(unsigned int, void *), void *task);
+- the first 3 arguments are the same as in "comedi_register_callback", while
+  "callback" is discarded and "task" is the pointer to an RTAI task that
+  waits for asynchronous events to happen. NULL can be used in place of 
+  "task", if it is the current one, in which case RTAI can care of setting 
+  it appropriately.
+
+For compatibility reasons the standard COMEDI: 
+int comedi_register_callback(unsigned int minor, unsigned int subdev, 
+unsigned int mask, int (*cb)(unsigned int, void *), void *arg); 
+is also available in user space in the form of a macro that redirects it to 
+"rt_comedi_register_callback", setting "cb" to NULL while "arg" should be 
+assigned either the pointer to the task to be used or NULL. 
+As said there is clearly no need for anything similar in kernel space, as the 
+original COMEDI function is available directly, but the user space approach,
+with its canned solution, might prove viable and easier to use in kernel space 
+also.
+
+After the COMEDI callback has been initialized a user can synchronize its
+application with COMEDI asynchronous events by using any of the following 
+functions, usable in kernel space also naturally:
+
+long rt_comedi_wait(unsigned int *cbmask);
+- this function waits for the callback unconditionally; cbmask is a compulsory
+  non NULL pointer to a variable that will receive the callback mask of the
+  events that triggered it.
+
+long rt_comedi_wait_if(unsigned int *cbmask);
+- this function is equivalent to "rt_comedi_wait" but returns immediately 
+  if no COMEDI event has been signaled yet. Useful for polling COMEDI events, 
+  through the returned mask, without blocking.
+
+long rt_comedi_wait_until(RTIME until, unsigned int *cbmask);
+- this function is equivalent to "rt_comedi_wait" but features an absolute 
+  timeout, given by "until".
+
+unsigned long rt_comedi_wait_timed(RTIME delay, unsigned int *cbmask);
+- this function is equivalent to "rt_comedi_wait" but features a relative 
+  timeout, given by "delay".
+
+- The returned value can be:
+- 0 if waiting for a callback succeeded,
+- a negative number, in which case its absolute value indicates wait overruns;
+- an RTAI error if >= RTE_BASE.
+
+It is likely that the illustrated callback scheme and synchronization is 
+better exploited by using a thread acting as an asynchronous COMEDI events 
+manager in hard real time. However it is by no means the only way as the 
+above wait functions can be used anywhere and rt_comedi_wait_if makes it 
+possible an easy implementation of a polling scheme.
+In fact async wait read functions embed comedi_waits for an easier and more
+compact use of async command readings, see below.
+Notice that rt_comedi_wait_if is provided to comply with the standard RTAI
+synchronizing functions scheme: unconditional, if, until, timed. 
+An alternative way is provided through the standard KCOMEDI async data polling,
+i.e.: comedi_poll.
+
+Once woken up from wait one can call:
+long rt_comedi_command_data_read (void *dev, unsigned int subdev, long nchans, 
+lsampl_t *data);
+to get "nchans" channels in "data". Notice that data are read only if "nchans"
+elements are available, nothing being done otherwise. Such a condition can
+be checked through the returned value, which will be the number of available
+read channels data. So a return value less than "nchans" will mean nothing has 
+been read. The return value can be RTE_OBJINV also, in the case of dev/subdev 
+being wrong.
+It is believed that imposing that either "nchans" data or nothing is available 
+is the most appropriate real time mechanism, as it is better to let the user
+decide what to do in place of waiting on a rescheduling by default. In fact,
+after an appropriate wait function is called, missing data might be a error 
+to care of. If it is not so then, by exploiting the available wait functions, 
+the user has plenty of opportunities to implement her/his own best policy.
+If one notices a bias toward sampling data for digital control systems, versus
+pure data acquisition, (s)he is right, absolutely. See below for something
+reinforcing such a bias. Despite such an attitude nothing is lost in the case
+of pure data acquisition.
+
+A typical code sample could be:
+
+	long mask, avbs;
+.
+	comedi_register_callback(dev, subdev, COMEDI_CB_EOS, NULL, task);
+.
+	if (rt_comedi_wait_timed(nano2count(TIMEOUT), &mask) != 0) {
+		printf("waiting for async data failed\n");
+	}
+.
+	if (mask & COMEDI_CB_EOS) {
+		if ((avbs = rt_comedi_command_data_read(dev, subdev, NCHAN, data)) != NCHAN) {
+			printf("only %ld channels data available in place of %d, nothing read\n", avbs, NCHAN);
+		}
+.
+	}
+.
+
+Calling an rt_comedi_wait followed by rt_comedi_command_data_read is OK and
+let the user do whatever check (s)he needs. Nonetheless, when working in user
+space, it has the disadvantage of taking two trips to kernel space. Since what 
+is mostly required is a successful rt_comedi_wait with a mask containing the 
+appropriate user expected callback mask the two calls can be unified. Such a 
+scheme is mostly useful in a digital controller, whereas a single call paces 
+its action in such a way that at each sampling time one is ready to apply 
+her/his control law on the available channels samples immediately.
+
+To that end RTAI makes available the following:
+long rt_comedi_command_data_wread(void *dev, unsigned int subdev, long nchans, lsampl_t *data, long *mask);
+long rt_comedi_command_data_wread_if(void *dev, unsigned int subdev, long nchans, lsampl_t *data, long *mask);
+long rt_comedi_command_data_wread_until (void *dev, unsigned int subdev, long nchans, lsampl_t *data, RTIME until, long *mask);
+long rt_comedi_command_data_wread_timed(void *dev, unsigned int subdev, long nchans, lsampl_t *data, RTIME delay, long *mask);
+whose arguments are the union of the previous calls, with "mask" containing
+the event flags that must be found set in the callback mask returned by COMEDI
+callbacks.
+
+The previous code snippet would become:
+
+	long mask, avbs;
+.
+	comedi_register_callback(dev, subdev, COMEDI_CB_EOS, NULL, task);
+.
+	mask = COMEDI_CB_EOS;
+	if ((avbs = rt_comedi_command_data_wread_timed(dev, subdev, NCHAN, data, nano2count(TIMEOUT), &mask)) != NCHAN) {
+		printf("only %ld channels data available in place of %d, or an error occured, nothing read\n", avbs, NCHAN);
+	}
+.
+
+There are examples in RTAI "showroom" CVS, "user/comedi" that should help
+in depicting the use of the above explained extensions.
+
+The async write mate of async data reading is the following:
+long rt_comedi_command_data_write(void *dev, unsigned int subdev, long nchans, lsampl_t *data);
+arguments and return values being the same of rt_comedi_command_data_read.
+
+Another useful service is:
+int rt_comedi_trigger(void *dev, unsigned int subdev);
+It is based on an easy set up of a wrapper, using the appropriate 
+comedi_do_insn for the actual triggering action.
+
+Finally the function:
+int rt_comedi_do_insnlist(void *dev, comedi_insnlist *ilist);
+has been added, symmetrically in kernel/user space as usual.
+It is an exact image of its parent:
+int comedi_do_insnlist(void *dev, comedi_insnlist *list);
+which is not available in KCOMEDI. That's why we prefixed it with an "rt_".
+The simple reason of it being missed in kernel space is because it will add 
+just the overhead of one call more to obtain something that a user can have 
+directly by executing repeated "comedi_do_insn" in her/his own way. From user
+space instead the overhead of calling "comedi_do_insn" many times could 
+be much more significant, so it might help in having the possibility of 
+executing a whole set of instructions in a single shot to kernel space only.
+
+The following macros can be used to avoid remembering the instruction fields:	
+#define BUILD_AREAD_INSN(insn, subdev, data, nd, chan, arange, aref) 
+to set up an instruction for analog input;
+#define BUILD_AWRITE_INSN(insn, subdev, data, nd, chan, arange, aref)
+to set up an instruction for analog output;
+#define BUILD_DIO_INSN(insn, subdev, data, nd)
+to set up an instruction for digital input/output.
+
+A final warning: all KCOMEDI functions are executed without the comedi_lock
+being activated. That's because it adds some, albeit negligible on nowadays 
+machines, overhead and because in control systems it is rare to have possible
+conflicting acquisitions shared among more tasks. If a locked execution is
+needed nonetheless, then the user can explicitly configure RTAI to do that, 
+in which case it will be applied to all services. Being "comedi_lock" and 
+"comedi_unlock" available to the user anyhow, (s)he is free to apply them 
+explicitly whenever (s)he has decided to not configure them by default.
+
+"The Comedi Players"
+
+
+         <*> USING RTAI_KCOMEDI FOR DISTRIBUTED DATA ACQUISITION <*>
+
+Distributed data acquisition is obtained by simply using the standard NETRPC
+specification, i.e.:
+
+- use just the name of any already available function substituting either 
+  "rt_..." with "RT_..." or, as for the direct use of COMEDI APIs names.
+  prefixing "RT_" in front of them
+- add two initial arguments more, i.e. the "node" of and the "port" on the
+  remote machine that will execute "RT_..." functions.
+
+For example:
+	rt_comedi_do_insnlist(dev, ilist);
+becomes:
+	RT_comedi_do_insnlist(dev, ilist);
+while:
+	comedi_do_insn(dev, insn);
+becomes:
+	RT_comedi_do_insn(dev, insn);
+as well.
+
+Naturally the remote node, where the data acquisition hardware is installed,
+must have insmoded: all of the modules needed for COMEDI, rtai_netrpc and
+rtai_comedi.
+There are examples in RTAI "showroom" CVS, "user/comedi" that should help
+in depicting the use of the above explained extensions.
+
+Paolo Mantegazza

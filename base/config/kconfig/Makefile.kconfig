@@ -1,0 +1,200 @@
+# We want t# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# We want these to be the native ones.
+
+ifeq ($(HOSTCC),)
+override CC := gcc
+else
+override CC := $(HOSTCC)
+endif
+ifeq ($(HOSTCXX),)
+override CXX := g++
+else
+override CXX := $(HOSTCXX)
+endif
+#override CC := gcc -Wall -pedantic
+#override CXX := g++ -Wall -pedantic
+
+ifeq ($(MAKECMDGOALS),qbuild)
+-include .qtinst
+endif
+
+ifeq ($(MAKECMDGOALS),gbuild)
+-include .gtkinst
+endif
+
+srcdir := $(srctree)/base/config/kconfig
+this_dir := $(shell pwd)
+MOC = $(QTDIR)/bin/moc
+
+CFLAGS := -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer 
+LXDIALOG_EXTRACFLAGS := -DLOCALE 
+LXDIALOG_LOADLIBES   := -lncurses
+
+ifeq (/usr/include/ncurses/ncurses.h, $(wildcard /usr/include/ncurses/ncurses.h))
+        LXDIALOG_EXTRACFLAGS += -I/usr/include/ncurses -DCURSES_LOC="<ncurses.h>"
+else
+ifeq (/usr/include/ncurses/curses.h, $(wildcard /usr/include/ncurses/curses.h))
+        LXDIALOG_EXTRACFLAGS += -I/usr/include/ncurses -DCURSES_LOC="<ncurses/curses.h>"
+else
+ifeq (/usr/include/ncurses.h, $(wildcard /usr/include/ncurses.h))
+        LXDIALOG_EXTRACFLAGS += -DCURSES_LOC="<ncurses.h>"
+else
+	LXDIALOG_EXTRACFLAGS += -DCURSES_LOC="<curses.h>"
+endif
+endif
+endif
+
+LXDIALOG_OBJS := lxdialog/checklist.o lxdialog/menubox.o \
+		 lxdialog/textbox.o lxdialog/yesno.o lxdialog/inputbox.o \
+		 lxdialog/util.o lxdialog/lxdialog.o lxdialog/msgbox.o
+
+xconfig: qconf
+	@./qconf $(srctree)/base/arch/$(ARCH)/Kconfig
+
+gconfig: gconf
+	@./gconf $(srctree)/base/arch/$(ARCH)/Kconfig
+
+menuconfig mconfig: mconf
+	@./mconf $(srctree)/base/arch/$(ARCH)/Kconfig
+
+config: conf
+	@./conf $(srctree)/base/arch/$(ARCH)/Kconfig
+
+oldconfig: conf
+	@./conf -o $(srctree)/base/arch/$(ARCH)/Kconfig
+
+qconf: .qtinst
+	$(MAKE) -f $(srcdir)/Makefile.kconfig qbuild srctree=$(srctree) ARCH=$(ARCH)
+
+qbuild: qconf.o kconfig_load.o libkconfig.so
+	$(CXX) -o qconf $^ -Wl,-rpath,$(this_dir) -L$(QTDIR)/lib -Wl,-rpath,$(QTDIR)/lib -l$(QTLIB) -ldl
+
+gconf: .gtkinst
+	$(MAKE) -f $(srcdir)/Makefile.kconfig gbuild srctree=$(srctree) ARCH=$(ARCH)
+
+gbuild: gconf.o kconfig_load.o libkconfig.so
+	$(CC) -o gconf $^ -Wl,-rpath,$(this_dir) $(GLIBS)
+
+mconf: lxdialog/lxdialog mconf.o libkconfig.so
+	$(CC) -o $@ mconf.o libkconfig.so -Wl,-rpath,$(this_dir)
+
+mconf.o: $(srcdir)/mconf.c
+	$(CC) $(CFLAGS) -I$(srcdir) -c $<
+
+conf: conf.o libkconfig.so
+	$(CC) -o $@ conf.o libkconfig.so -Wl,-rpath,$(this_dir)
+
+conf.o: $(srcdir)/conf.c
+	$(CC) $(CFLAGS) -I$(srcdir) -c $<
+
+libkconfig.so: zconf.tab.o
+	$(CC) -shared -o $@ $<
+
+lkc_defs.h: $(srcdir)/lkc_proto.h
+	@sed < $< > $@ 's/P(\([^,]*\),.*/#define \1 (\*\1_p)/'
+
+kconfig_load.o: $(srcdir)/kconfig_load.c
+	$(CC) $(CFLAGS) -I. -c $<
+
+qconf.moc: $(srcdir)/qconf.h
+	$(MOC) -i $< -o $@
+
+$(srcdir)/qconf.cc: qconf.moc
+
+qconf.o: lkc_defs.h $(srcdir)/qconf.cc
+	$(CXX) -O2 -I$(QTDIR)/include -I$(srcdir) -I. -c $(srcdir)/qconf.cc
+
+lex.zconf.c: $(srcdir)/lex.zconf.c_shipped
+	@cat $< > $@
+
+zconf.tab.c: $(srcdir)/confdata.c $(srcdir)/zconf.tab.c_shipped
+	@cat $(srcdir)/zconf.tab.c_shipped > $@
+
+zconf.tab.o: zconf.tab.c lex.zconf.c
+	$(CC) $(CFLAGS) -I$(srcdir) -fPIC -c zconf.tab.c
+
+gconf.o: lkc_defs.h $(srcdir)/gconf.c
+	$(CC) -O2 $(GCFLAGS) -I$(srcdir) -I. -c $(srcdir)/gconf.c
+
+.qtinst:
+	@set -e; for d in $$QTDIR /usr/share/qt /usr/share/qt*3* /usr/lib/qt*3*; do \
+	  if [ -f $$d/include/qconfig.h ]; then DIR=$$d; break; fi; \
+	done; \
+	if [ -z "$$DIR" ]; then \
+	  echo "*"; \
+	  echo "* Unable to find the QT installation. Please make sure that the"; \
+	  echo "* QT development package is correctly installed. The QTDIR"; \
+	  echo "* environment variable can be set to point to a non-standard location."; \
+	  echo "*"; \
+	  false; \
+	fi; \
+	LIB=qt; \
+	if [ -f $$DIR/lib/libqt-mt.so ]; then LIB=qt-mt; fi; \
+	echo "QTDIR=$$DIR" > $@; echo "QTLIB=$$LIB" >> $@; \
+	if [ ! -x $$DIR/bin/moc -a -x /usr/bin/moc ]; then \
+	  echo "*"; \
+	  echo "* Unable to find $$DIR/bin/moc, using /usr/bin/moc instead."; \
+	  echo "*"; \
+	  echo "MOC=/usr/bin/moc" >> $@; \
+	fi
+
+.gtkinst:
+	@if `pkg-config gtk+-2.0 gmodule-2.0 libglade-2.0 --exists`; then \
+		if `pkg-config gtk+-2.0 --atleast-version=2.0.0`; then	\
+			GCFLAGS=`pkg-config gtk+-2.0 gmodule-2.0 libglade-2.0 --cflags`; \
+			GLIBS=`pkg-config gtk+-2.0 gmodule-2.0 libglade-2.0 --libs`; \
+			echo "GCFLAGS=$$GCFLAGS" > $@; echo "GLIBS=$$GLIBS" >> $@; \
+		else \
+			echo "*"; \
+			echo "* GTK+ is present but version >= 2.0.0 is required."; \
+			echo "*"; \
+			false; \
+		fi \
+	else \
+		echo "*"; \
+		echo "* Unable to find the GTK+ installation. Please make sure that"; \
+		echo "* the GTK+ 2.0 development package is correctly installed..."; \
+		echo "* You will need gtk+-2.0, glib-2.0 and libglade-2.0."; \
+		echo "*"; \
+		false; \
+	fi
+
+lxdialog/lxdialog: .ncurses $(LXDIALOG_OBJS)
+	$(CC) -o $@ $(LXDIALOG_OBJS) $(LXDIALOG_LOADLIBES)
+
+$(LXDIALOG_OBJS): %.o: $(srcdir)/%.c
+	$(CC) $(CFLAGS) $(LXDIALOG_EXTRACFLAGS) -I$(srcdir) -c $< -o $@
+
+.ncurses:
+	@echo "main() {}" > lxtemp.c
+	@if $(CC) lxtemp.c $(LXDIALOG_LOADLIBES); then \
+		rm -f lxtemp.c a.out; \
+	else \
+		rm -f lxtemp.c; \
+		echo -e "\007" ;\
+		echo ">> Unable to find the Ncurses libraries." ;\
+		echo ">>" ;\
+		echo ">> You must have Ncurses installed in order" ;\
+		echo ">> to use 'make menuconfig'" ;\
+		echo ;\
+		exit 1 ;\
+	fi
+	@test -d lxdialog || mkdir -p lxdialog
+	@touch $@
+
+clean:
+	rm -f *.o *.so lkc_defs.h qconf gconf zconf.tab.[ch] lex.zconf.c conf
+	rm -f *.moc .qtinst .gtkinst mconf lxdialog/*.o lxdialog/lxdialog .ncurses
+
+distclean: clean
+	rm -f $(distdir)/*~ $(distdir)/#*#
+
+.PHONY: xconfig gconfig menuconfig mconfig clean distclean

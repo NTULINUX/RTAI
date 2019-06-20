@@ -1,0 +1,128 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+Support for Matlab/Simulink/RTW in RTAI User Space
+==================================================
+
+This directory contains the support files required to run in hard/soft 
+real-time a code generated from a Matlab/Simulink/RTW model. The Matlab 
+version supported is 6.5 Release 13. The support has been completely 
+re-written using "net_rpc" and it is thus native to RTAI: no more VxWorks 
+wrappers. The code is generated as a standalone executable, so Matlab/RTW 
+is used only to build the Simulink model and to create the corresponding 
+[*.c,*.h] files. Its external mode is now to be carried out wholly by 
+RTAI-Lab.
+
+If you are familiar with RTW, and you must, it will not be difficult to
+understand what follows.
+
+What you find in this directory
+===============================
+
+- rtai.tlc: is the Target Language Compiler file to be used for RTAI. 
+
+- rtai.tmf: is the template Makefile to be used in Matlab/RTW. In this file 
+	    you should check and prossibly modify only the following list 
+	    of directories, in order to be compatible with your own 
+	    configuration:
+		LINUX_HOME = /usr/src/linux
+		RTAI_HOME  = /usr/realtime
+		COMEDI_HOME = /usr/src/comedi
+
+- rtmain.c: is the real time main program that allows the model to be 
+	    correctly executed under RTAI.
+    
+- setup.m:  is a matlab script that simply adds the devices directory to the 
+	    "matlab" path.
+
+- devices/sfun_rtai_scope.c: is the Simulink S-Function that performs the 
+			multi-trace real-time scopes
+
+- devices/rtai_scope.mdl: is the Simulink Library of RTAI Scope
+
+- devices/sfun_rtai_log.c: is the Simulink S-Function that performs the 
+			multi-dimensional real time logging
+
+- devices/rtai_log.mdl: is the Simulink Library of RTAI Log
+
+- devices/sfun_rtai_led.c: is the Simulink S-Function that performs the 
+			real time leds
+
+- devices/rtai_led.mdl: is the Simulink Library of RTAI Led
+
+- devices/sfun_rtai_meter.c: is the Simulink S-Function that performs the 
+			real time (volt)meters
+
+- devices/rtai_meter.mdl: is the Simulink Library of RTAI Meter
+
+- devices/sfun_rtai_synchronoscope.c: is the Simulink S-Function that performs the 
+			real time synchronoscope
+
+- devices/rtai_synchronoscope.mdl: is the Simulink Library of RTAI Synchronoscope
+
+- devices/sfun_rtai_comedi_data_read.c: is the Simulink S-Function that performs the 
+			synchronous Comedi analog input operation
+
+- devices/rtai_comedi_data_read.mdl: is the Simulink Library of RTAI Comedi_Data_Read
+
+- devices/sfun_rtai_comedi_data_write.c: is the Simulink S-Function that performs the 
+			synchronous Comedi analog output operation
+
+- devices/rtai_comedi_data_write.mdl: is the Simulink Library of RTAI Comedi_Data_Write
+
+- devices/sfun_rtai_comedi_dio_read.c: is the Simulink S-Function that performs the 
+			synchronous Comedi digital input operation
+
+- devices/rtai_comedi_dio_read.mdl: is the Simulink Library of RTAI Comedi_Dio_Read
+
+- devices/sfun_rtai_comedi_dio_write.c: is the Simulink S-Function that performs the 
+			synchronous Comedi digital output operation
+
+- devices/rtai_comedi_dio_write.mdl: is the Simulink Library of RTAI Comedi_Dio_Write
+
+How to install the support
+==========================
+
+- create under $(MATLABROOT)/rtw/c a directory called rtai
+  (where $(MATLABROOT) is the root directory of Matlab, e.g.
+  /usr/local/matlab)
+
+- copy "rtmain.c"
+       "rtai.tlc"
+       "rtai.tmf"
+       "setup.m"
+  and the directory "devices" to $(MATLABROOT)/rtw/c/rtai
+
+- from the Matlab session run "setup"
+
+How to test the support
+=======================
+
+- create a *.mdl example in Simulink (test.mdl)
+
+- generate the code from the RTW menu
+
+- compile the code from the directory "test_rtai" (typing "make -f test.mk"); 
+  in general a directory called "modelname_rtai" is created at the generation 
+  stage, where modelname is the name of the Simulink model
+
+- load the required rtai modules (you can use the script "loadrtai" in the 
+  RTAI-Lab tree)
+
+- run the real time code "./test [options]" (to see the list of options type 
+      "./test --usage")
+
+- run the RTAI-Lab (rtailab or xrtailab) to communicate with the real time 
+  code locally or remotely
+
+For the execution options available to run the RTW generated standalone code
+read the file README in the main RTAI-Lab directory.
+
+Lorenzo Dozio (dozio@aero.polimi.it)
+2003 July 31.

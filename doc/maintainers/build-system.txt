@@ -1,0 +1,109 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+Description of the build system
+-------------------------------
+
+1. Motivations
+--------------
+
+The RTAI build system is a merge of Linux's 2.5 Kconfig with
+autoconf/automake/libtool. The following requirements led to such
+mixed system:
+
+o GUI-based configuration.
+o Cross-compilation support.
+o Compilation of C and C++ kernel modules.
+o Full shared library support (C/C++).
+o C++ compilation of hosts programs.
+o Compilation of GUI (X-based).
+o Script-based configuration (for automatic mode).
+o Initial support for profile-based configurations.
+o Reliable (host) feature detection framework.
+
+2. Dynamics
+-----------
+
+The dynamics of the system is as follows:
+
+=> Kconfig/Menuconfig-based configuration (GUI-aided)
+
+  $ make menuconfig,xconfig,gconfig
+
+         |
+         | 1. Produces .rtai_config
+	      (Kconfig format: CONFIG_RTAI_FEATURE=<value> or unset)
+         | 2. Runs ./configure --with-kconfig-file=.rtai_config
+         v
+
+=> Script level configuration (automatic or manual). The configure
+script can either be controlled by individual options passed to it, or
+fed with a configuration file in Kconfig format.
+
+  Automatic mode (spawned right after kconfig):
+	./configure --with-kconfig-file=.rtai_config
+
+  Manual mode (from the user CLI):
+	./configure --enable-feature-x --with-param-y=n
+
+         |
+         | 1. Applies a set of reasonable defaults for unset parameters.
+	 | 2. Auto-detects host features as required.
+	 | 3. Produces config.h and Makefiles.
+         v
+
+=> Compilation
+
+   $ make
+
+3. Bootstrapping
+----------------
+
+RTAI needs to be configured prior to being built, but the
+configuration tool cannot rely on autoconf-generated Makefiles to
+build itself. Therefore, the GUI-aided configuration system which
+depends on dynamically built programs is bootstrapped by a simple
+"makefile" (note the small caps) at the root of the source tree.
+
+The bootstrap makefile traps the targets needed to build and run the
+Kconfig tool (make menuconfig|xconfig|gconfig), and invokes the
+self-contained base/config/kconfig/Makefile.kc makefile which in
+turn builds and run the configuration GUI as required. Upon return of
+the GUI-based configuration session, the bootstrap makefile (re)runs
+autoconf's "configure" script as needed to take the configuration
+changes into account.
+
+Once the configuration script has been run successfully at least once,
+there is no more need to use the bootstrap makefile located in the
+source tree, since the top-level autoconf-generated Makefile will be
+available in the build tree, and handle the menuconfig, xconfig,
+gconfig and other targets appropriately (actually, menuconfig, xconfig
+and gconfig are silently passed to the boostrap makefile by the
+autoconf-generated one so that we do not duplicate rather complex
+rules uselessly).
+
+Take a look at ../README.UNSTABLE for more on building RTAI from a
+user standpoint.
+
+4. Dependencies
+---------------
+
+The build system is based on:
+
+o Kconfig as extracted from Linux 2.5.69 development version. The
+X-based configuration front-ends either needs Qt (xconfig) or GTK2
+(gconfig), and the dialog-based one depends on ncurses.
+o Autoconf >= 2.59
+o Automake >= 1.9.2
+o Libtool >= 1.5.8
+
+--
+November 21, 2004
+Philippe Gerum
+<rpm@xenomai.org>

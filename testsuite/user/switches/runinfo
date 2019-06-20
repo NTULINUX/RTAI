@@ -1,0 +1,1 @@
+switches:sched+sem+msg:!./switches;popall:control_c
