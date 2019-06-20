@@ -1,0 +1,72 @@
+# CVS junk
+CVS
+
+# Build Files
+*.o
+*.cmd
+*.mod.c
+*.ko
+*.a
+*.lo
+*.la
+*.swp
+*~
+base/sched/malloc.c
+Module.symvers
+modules.order
+base/include/asm
+base/scripts/rtai-config
+base/scripts/rtai-load
+rtai_config.h
+
+# Auto-generated files
+rtai_config.h.in
+configure
+aclocal.m4
+ltversion.m4
+bin/
+m4/*
+latency
+display
+
+# Generated Makefiles
+GNUmakefile.in
+GNUmakefile
+Makefile.in
+Makefile
+
+# Config Temp Files
+.cfok
+.cfchanged
+.rtai_config*
+autom4te.cache/
+config.log
+config.status
+libtool
+stamp-h1
+
+# Make Temp Files
+.deps
+.tmp_versions
+.libs
+
+# Executables
+base/arch/*/calibration/calibrate
+base/arch/*/calibration/calibration_helper
+base/arch/*/calibration/setsmi
+
+# KConfig Generated files
+base/scripts/kconfig/.config*
+base/scripts/kconfig/.ncurses
+base/scripts/kconfig/lex.zconf.c
+base/scripts/kconfig/libkconfig.so
+base/scripts/kconfig/lxdialog/lxdialog
+base/scripts/kconfig/mconf
+base/scripts/kconfig/zconf.tab.c
+base/config/kconfig/.config*
+base/config/kconfig/.ncurses
+base/config/kconfig/lex.zconf.c
+base/config/kconfig/libkconfig.so
+base/config/kconfig/lxdialog/lxdialog
+base/config/kconfig/mconf
+base/config/kconfig/zconf.tab.c
