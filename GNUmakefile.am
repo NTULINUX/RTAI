@@ -41,7 +41,6 @@ config-status: .rtai_config
 	$(srctree)./configure \
 	--build=$(build_alias) \
 	--host=$(host_alias) \
-	--with-kconfig-file=./$< \
 	--with-linux-dir=$$CONFIG_RTAI_LINUXDIR \
 	--prefix=$$CONFIG_RTAI_INSTALLDIR \
 	$$confopts ; \
