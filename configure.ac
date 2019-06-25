@@ -68,13 +68,19 @@ case "$host" in
 esac
 
 dnl Make it more difficult to do something stupid
-RTAI_KCONFIG_FILE=$srcdir/base/arch/x86/defconfig
+RTAI_DEFCONFIG=$srcdir/base/arch/x86/defconfig
+RTAI_USER_CONFIG=$srcdir/.rtai_config
 AC_MSG_CHECKING([for RTAI Kconfig file])
-if test \! -r $RTAI_KCONFIG_FILE; then
-	AC_MSG_ERROR([Kconfig-file $RTAI_KCONFIG_FILE not found])
+if test \! -r $RTAI_DEFCONFIG; then
+	AC_MSG_ERROR([Kconfig-file $RTAI_DEFCONFIG not found])
+elif test -r $RTAI_USER_CONFIG; then
+	KCONFIG_RESULT=$RTAI_USER_CONFIG
+	source $RTAI_USER_CONFIG
+else
+	KCONFIG_RESULT=$RTAI_DEFCONFIG
+	source $RTAI_DEFCONFIG
 fi
-AC_MSG_RESULT([$RTAI_KCONFIG_FILE])
-source $RTAI_KCONFIG_FILE
+AC_MSG_RESULT([$KCONFIG_RESULT])
 
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
