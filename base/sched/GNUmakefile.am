@@ -32,7 +32,7 @@ all-local: rtai_sched.ko
 
 install-exec-local: rtai_sched.ko
 	$(mkinstalldirs) $(DESTDIR)$(moduledir)
-	$(INSTALL_DATA) $(schedulers) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) rtai_sched.ko $(DESTDIR)$(moduledir)
 
 # liblxrt is always built
 SUBDIRS = liblxrt
