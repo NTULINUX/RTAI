@@ -7,6 +7,9 @@
  * <mantegazza@aero.polimi.it> [ Specific COPYRIGHTS follow along the
  *  code ] 
  *
+ * @note Copyright (C) 2019 Alec Ari
+ * <neotheuser@ymail.com>
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of the
@@ -2241,7 +2244,6 @@ module_init(__rtai_msg_init);
 module_exit(__rtai_msg_exit);
 #endif /* !CONFIG_RTAI_MSG_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rt_send);
 EXPORT_SYMBOL(rt_send_if);
 EXPORT_SYMBOL(rt_send_until);
@@ -2287,4 +2289,3 @@ EXPORT_SYMBOL(rt_Trigger);
 EXPORT_SYMBOL(rt_Name_attach);
 EXPORT_SYMBOL(rt_Name_locate);
 EXPORT_SYMBOL(rt_Name_detach);
-#endif /* CONFIG_KBUILD */

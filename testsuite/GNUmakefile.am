@@ -1,11 +1,39 @@
-# Copyright (C) 2005-2017 The RTAI project
-# This [file] is free software; the RTAI project
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.
+testdir = $(prefix)/testsuite
 
+test_PROGRAMS = latency display
 
-SUBDIRS = kern kthreads user
+latency_SOURCES = latency.c
+
+latency_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+latency_LDADD = \
+	../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+display_SOURCES = display.c
+
+display_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+display_LDADD = \
+	../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(testdir)
+	$(INSTALL_DATA) $(top_srcdir)/testsuite/runinfo $(DESTDIR)$(testdir)/.runinfo
+	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(testdir)/run
+	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(testdir)/.runinfo" >> $(DESTDIR)$(testdir)/run
+	@echo "$(DESTDIR)$(testdir)/latency & $(DESTDIR)$(testdir)/display" >> $(DESTDIR)$(testdir)/run
+	@echo "sleep 1 && sync && ${DESTDIR}$(bindir)/rtai-load cleanup" >> $(DESTDIR)$(testdir)/run
+	@chmod 755 $(DESTDIR)$(testdir)/run
+
+run: all
+	@$(top_srcdir)/base/scripts/rtai-load $(DESTDIR)$(testdir)/.runinfo
+
+EXTRA_DIST = runinfo

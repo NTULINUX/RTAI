@@ -1,6 +1,7 @@
-/* $Header: /cvs/rtai/vulcano/base/include/rtai_defs.h.in,v 1.2 2016/03/29 12:15:37 ando Exp $ */
 /*
+ * Re-written and fixed by Alec Ari
  * Copyright (C) 1999-2016 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -17,11 +18,9 @@
  *
  */
 
-
 #ifndef RTAI_DEFS_H
 #define RTAI_DEFS_H
 
-#define RTAI_INSTALL_DIR	"/usr/rtai-5.2"
+#define RTAI_INSTALL_DIR	"/usr/local"
 
 #endif /* RTAI_DEFS_H */
-

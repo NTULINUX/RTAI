@@ -7,6 +7,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -110,15 +111,6 @@ static inline int remap_page_range(struct vm_area_struct *vma, unsigned long uva
 
 #include <rtai_malloc.h>
 
-#ifndef CONFIG_MMU
-
-static inline unsigned long uvirt_to_kva(pgd_t *pgd, unsigned long adr)
-{
-	return adr;
-}
-
-#else
-
 static inline unsigned long uvirt_to_kva(pgd_t *pgd, unsigned long adr)
 {
 	if (!pgd_none(*pgd) && !pgd_bad(*pgd)) {
@@ -140,8 +132,6 @@ static inline unsigned long kvirt_to_pa(unsigned long adr)
 {
 	return virt_to_phys((void *)uvirt_to_kva(pgd_offset_k(adr), adr));
 }
-
-#endif
 
 int __rtai_shm_init(void);
 

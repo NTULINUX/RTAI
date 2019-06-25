@@ -2,6 +2,7 @@
  * \brief Dynamic memory allocation services.
  *
  * Copyright (C) 2007 Paolo Mantegazza <mantegazza@aero.polimi.it>.
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>.
  * Specific following parts as copyrighted/licensed by their authors. 
  *
  * RTAI is free software; you can redistribute it and/or modify it
@@ -1427,11 +1428,6 @@ module_init(__rtai_heap_init);
 module_exit(__rtai_heap_exit);
 #endif /* !CONFIG_RTAI_MALLOC_BUILTIN */
 
-#ifndef CONFIG_KBUILD
-#define CONFIG_KBUILD
-#endif
-
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rtheap_init);
 EXPORT_SYMBOL(rtheap_destroy);
 EXPORT_SYMBOL(rtheap_alloc);
@@ -1439,4 +1435,3 @@ EXPORT_SYMBOL(rtheap_free);
 EXPORT_SYMBOL(rtai_global_heap);
 EXPORT_SYMBOL(rtai_global_heap_adr);
 EXPORT_SYMBOL(rtai_global_heap_size);
-#endif /* CONFIG_KBUILD */

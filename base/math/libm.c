@@ -9,6 +9,8 @@
  * so to use just the standard GPLed glibc, with the added possibility of 
  * calling both the float and double version of libm.a functions, complex
  * support included.
+ *
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -663,7 +665,6 @@ module_init(__rtai_math_init);
 module_exit(__rtai_math_exit);
 #endif /* CONFIG_RTAI_MATH_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(acos);
 EXPORT_SYMBOL(asin);
 EXPORT_SYMBOL(atan);
@@ -727,6 +728,5 @@ EXPORT_SYMBOL(y1);
 EXPORT_SYMBOL(yn);
 EXPORT_SYMBOL(libm_errno);
 #endif /* CONFIG_RTAI_MATH_C99 */
-#endif /* CONFIG_KBUILD */
 
 #endif

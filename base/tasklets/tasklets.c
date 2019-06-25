@@ -7,6 +7,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2006 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -1020,7 +1021,6 @@ module_init(__rtai_tasklets_init);
 module_exit(__rtai_tasklets_exit);
 #endif /* !CONFIG_RTAI_TASKLETS_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rt_insert_tasklet);
 EXPORT_SYMBOL(rt_remove_tasklet);
 EXPORT_SYMBOL(rt_find_tasklet_by_id);
@@ -1040,4 +1040,3 @@ EXPORT_SYMBOL(rt_wait_tasklet_is_hard);
 EXPORT_SYMBOL(rt_delete_tasklet);
 EXPORT_SYMBOL(rt_get_timer_times);
 EXPORT_SYMBOL(rt_get_timer_overrun);
-#endif /* CONFIG_KBUILD */

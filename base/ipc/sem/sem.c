@@ -1577,7 +1577,7 @@ RTAI_SYSCALL_MODE int rt_spl_unlock(SPL *spl)
  * handle pointing to the allocated semaphore structure, to be used as the
  * usual semaphore address in all semaphore based services. Named objects
  * are useful for use among different processes, kernel/user space and
- * in distributed applications, see netrpc.
+ * in distributed applications.
  *
  * @param sem_name is the identifier associated with the returned object.
  *
@@ -1677,7 +1677,7 @@ RTAI_SYSCALL_MODE int rt_named_sem_delete(SEM *sem)
  * handle pointing to the allocated multi readers single writer lock o
  * structure, to be used as the usual lock address in all rwl based services. 
  * Named objects are useful for use among different processes, kernel/user 
- * space and in distributed applications, see netrpc.
+ * space and in distributed applications.
  *
  * @param rwl_name is the identifier associated with the returned object.
  *
@@ -1962,8 +1962,7 @@ EXPORT_SYMBOL(rt_wakeup_pollers);
  *
  * RTAI _rt_poll roughly does what Linux "poll" does, i.e waits for a desired
  * state to be set upon an RTAI IPC mechanism. At the moment it supports MBXes
- * only. Other IPCs methods will be added as soon as they are needed. It
- * is usable for remote objects also, through RTAI netrpc support.
+ * only. Other IPCs methods will be added as soon as they are needed.
  *
  * @param pdsa is a pointer to an array of "struct rt_poll_s" containing
  * the list of objects to poll. Its content is not preserved through the

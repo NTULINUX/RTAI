@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  * extensions for user space modules are jointly copyrighted (2000) with:
  * Copyright (C) 2000	Pierre Cloutier <pcloutier@poseidoncontrols.com>,
  * Copyright (C) 2000	Steve Papacharalambous <stevep@zentropix.com>.
@@ -43,49 +44,10 @@ union rtai_lxrt_t { RTIME rt; long i[2]; void *v[2]; };
 #define update_linux_timer(cpuid) \
         do { hal_pend_uncond(RTAI_LINUX_TIMER_IRQ, cpuid); } while (0)
 
-#ifdef CONFIG_X86_LOCAL_APIC
 #define MAX_TIMER_COUNT  0x7FFFFFFFLL 
-#else
-#define MAX_TIMER_COUNT  0x7FFLL
-#endif
 #define ONESHOT_SPAN \
 	(((MAX_TIMER_COUNT*(RTAI_CLOCK_FREQ/TIMER_FREQ)) <= INT_MAX) ? \
 	(MAX_TIMER_COUNT*(RTAI_CLOCK_FREQ/TIMER_FREQ)) : (INT_MAX))
-
-#if 0
-#ifdef CONFIG_X86_LOCAL_APIC
-
-//#define TIMER_NAME        "APIC"
-//#define TIMER_TYPE  1
-//#define HRT_LINUX_TIMER_NAME  "lapic"
-//#define FAST_TO_READ_TSC
-//#define TIMER_FREQ        RTAI_FREQ_APIC
-//#define TIMER_LATENCY     RTAI_LATENCY_APIC
-//#define TIMER_SETUP_TIME  RTAI_SETUP_TIME_APIC
-//#define ONESHOT_SPAN      (RTAI_CLOCK_FREQ/(CONFIG_RTAI_CAL_FREQS_FACT + 2)) //(0x7FFFFFFFLL*(CPU_FREQ/TIMER_FREQ))
-#if 0 //def CONFIG_GENERIC_CLOCKEVENTS
-#define USE_LINUX_TIMER
-#define update_linux_timer(cpuid) \
-        do { hal_pend_uncond(RTAI_LINUX_TIMER_IRQ, cpuid); } while (0)
-#else /* !CONFIG_GENERIC_CLOCKEVENTS */
-//#define update_linux_timer(cpuid)
-#endif /* CONFIG_GENERIC_CLOCKEVENTS */
-
-#else /* !CONFIG_X86_LOCAL_APIC */
-
-#define USE_LINUX_TIMER
-#define TIMER_NAME        "8254-PIT"
-#define TIMER_TYPE  0
-#define HRT_LINUX_TIMER_NAME  "pit"
-#define TIMER_FREQ        RTAI_FREQ_8254
-#define TIMER_LATENCY     RTAI_LATENCY_8254
-#define TIMER_SETUP_TIME  RTAI_SETUP_TIME_8254
-#define ONESHOT_SPAN      ((0x7FFF*(RTAI_CLOCK_FREQ/TIMER_FREQ))/(CONFIG_RTAI_CAL_FREQS_FACT + 1)) //(0x7FFF*(CPU_FREQ/TIMER_FREQ))
-#define update_linux_timer(cpuid) \
-        do { hal_pend_uncond(TIMER_8254_IRQ, cpuid); } while (0)
-
-#endif /* CONFIG_X86_LOCAL_APIC */
-#endif
 
 static inline void _lxrt_context_switch (struct task_struct *prev, struct task_struct *next, int cpuid)
 {

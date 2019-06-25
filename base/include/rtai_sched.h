@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -526,12 +527,6 @@ void rt_enq_timed_task(RT_TASK *timed_task);
 void rt_rem_timed_task(RT_TASK *task);
 
 void rt_dequeue_blocked(RT_TASK *task);
-
-RT_TASK **rt_register_watchdog(RT_TASK *wdog,
-			       int cpuid);
-
-void rt_deregister_watchdog(RT_TASK *wdog,
-			    int cpuid);
 
 #endif /* __cplusplus */
 

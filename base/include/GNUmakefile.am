@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -7,41 +8,10 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
-if CONFIG_X86
-ARCHDIR = asm-x86
-endif
-
-#if CONFIG_I386
-#ARCHDIR = asm-i386
-#endif
-
-#if CONFIG_X86_64
-#ARCHDIR = asm-x86_64
-#endif
-
-if CONFIG_ARM
-ARCHDIR = asm-arm
-endif
-
-#if CONFIG_PPC
-#ARCHDIR = asm-ppc
-#endif
-
-#if CONFIG_M68KNOMMU
-#ARCHDIR = asm-m68k
-#endif
-
-#if CONFIG_M68K
-#ARCHDIR = asm-m68k
-#endif
-
 nobase_include_HEADERS = \
 		rtai.h \
 		rtai_hal_names.h \
-		rtai_bits.h \
 		rtai_fifos.h \
-		rtai_leds.h \
 		rtai_lxrt.h \
 		rtai_malloc.h \
 		rtai_math.h \
@@ -50,7 +20,6 @@ nobase_include_HEADERS = \
 		rtai_msg.h \
 		rtai_nam2num.h \
 		rtai_names.h \
-		rtai_netrpc.h \
 		rtai_pmq.h \
 		rtai_posix.h \
 		rtai_prinher.h \
@@ -58,7 +27,6 @@ nobase_include_HEADERS = \
 		rtai_proxies.h \
 		rtai_registry.h \
 		rtai_rwl.h \
-		rtai_sanity.h \
 		rtai_scb.h \
 		rtai_sched.h \
 		rtai_schedcore.h \
@@ -67,37 +35,26 @@ nobase_include_HEADERS = \
 		rtai_signal.h \
 		rtai_spl.h \
 		rtai_tasklets.h \
-		rtai_tbx.h \
 		rtai_trace.h \
 		rtai_types.h \
-		rtai_usi.h \
 		rtai_version.h \
-		rtai_wd.h \
 		rtai_wrappers.h
 
-all-local: rtai_defs.h FORCE
-
-rtai_defs.h: rtai_defs.h.in GNUmakefile
-	sed \
-		-e "s;%RTAI_INSTALL_DIR%;@RTAI_INSTALL_DIR@;" \
-		$(srcdir)/$@.in > $@
+all-local: GNUmakefile
 
 install-data-local:
 	$(INSTALL_HEADER) $(CONFIG_HEADER) $(DESTDIR)$(includedir)/rtai_config.h
 
-if CONFIG_RTAI_OLD_FASHIONED_BUILD
 distclean-local:
 	rm -f $(DESTDIR)$(includedir)/asm $(DESTDIR)$(includedir)/rtai_config.h
-endif
 
 uninstall-local: rtai_defs.h
 	rm -f rtai_defs.h
 
 FORCE:
 
-SUBDIRS = $(ARCHDIR)
+SUBDIRS = asm-x86
 
-EXTRA_DIST = \
-rtai_defs.h.in
+EXTRA_DIST = rtai_defs.h.in
 
 DISTCLEANFILES = asm

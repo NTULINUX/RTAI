@@ -3,6 +3,7 @@
  *   @file
  *
  *   Copyright: 2013-2015 Paolo Mantegazza.
+ *   Copyright: 2019 Alec Ari.
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -58,10 +59,8 @@ int rtai_calibrate_hard_timer(void);
 #include <asm/io.h>
 #include <asm/rtai_atomic.h>
 #include <asm/rtai_fpu.h>
-#ifdef CONFIG_X86_LOCAL_APIC
 #include <asm/fixmap.h>
 #include <asm/apic.h>
-#endif /* CONFIG_X86_LOCAL_APIC */
 #include <rtai_trace.h>
 #include <linux/version.h>
 #include <rtai_hal_names.h>
@@ -623,30 +622,20 @@ static inline void previous_rt_set_timer_delay(int delay)
 	if (delay) {
 		unsigned long flags;
 		rtai_save_flags_and_cli(flags);
-#ifdef CONFIG_X86_LOCAL_APIC
 		if (this_cpu_has(X86_FEATURE_TSC_DEADLINE_TIMER)) {
 			wrmsrl(MSR_IA32_TSC_DEADLINE, rtai_rdtsc() + delay);
 		} else {
 			delay = rtai_imuldiv(delay, rtai_tunables.timer_freq, rtai_tunables.clock_freq);
 			apic_write(APIC_TMICT, delay);
 		}
-#else /* !CONFIG_X86_LOCAL_APIC */
-		delay = rtai_imuldiv(delay, RTAI_TIMER_FREQ, rtai_tunables.clock_freq);
-		outb(delay & 0xff,0x40);
-		outb(delay >> 8,0x40);
-#endif /* CONFIG_X86_LOCAL_APIC */
 		rtai_restore_flags(flags);
 	}
 }
 
 #endif /* __KERNEL__ */
 
-#include <asm/rtai_oldnames.h>
-#include <asm/rtai_emulate_tsc.h>
-
 /*@}*/
 
-#ifdef CONFIG_RTAI_TSC
 static inline RTIME rt_get_tscnt(void)
 {
 #ifdef __i386__
@@ -659,9 +648,6 @@ static inline RTIME rt_get_tscnt(void)
         return t.t;
 #endif
 }
-#else
-#define rt_get_tscnt  rt_get_time
-#endif
 
 #endif /* !_RTAI_ASM_X86_HAL_H */
 

@@ -9,6 +9,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -1956,7 +1957,6 @@ RTAI_SYSCALL_MODE int rtf_getfifobyname(const char *name)
 	return -ENODEV;
 }
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(rtf_create);
 EXPORT_SYMBOL(rtf_create_handler);
 EXPORT_SYMBOL(rtf_create_named);
@@ -1977,4 +1977,3 @@ EXPORT_SYMBOL(rtf_sem_init);
 EXPORT_SYMBOL(rtf_sem_post);
 EXPORT_SYMBOL(rtf_sem_trywait);
 EXPORT_SYMBOL(rtf_named_create);
-#endif /* CONFIG_KBUILD */

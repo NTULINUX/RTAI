@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2015 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,7 +24,6 @@
 #include <linux/version.h>
 #endif /* __KERNEL__ */
 
-#include <rtai_sanity.h>
 #include <asm/rtai.h>
 
 #ifdef __KERNEL__
@@ -58,9 +58,5 @@ static inline long irandu(unsigned long range)
 	return rtai_imuldiv(seed, range, m);
 }
 #endif /* __KERNEL__ */
-
-// To make COMEDY happy.
-#define rt_mount_rtai()   do { } while (0)
-#define rt_umount_rtai()  do { } while (0)
 
 #endif /* !_RTAI_RTAI_H */

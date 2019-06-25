@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2001-2015  Paolo Mantegazza <mantegazza@aero.polimi.it>,
+ * Copyright (C) 2019       Alec Ari <neotheuser@ymail.com>,
  * Copyright (C) 2001       Pierre Cloutier <pcloutier@poseidoncontrols.com>,
  * Copyright (C) 2001       Steve Papacharalambous <stevep@zentropix.com>,
  *
@@ -248,9 +249,7 @@ RT_TASK* __task_init(unsigned long name, int prio, int stack_size, int max_msg_s
 			rt_task->state = 0;
 			__ipipe_share_current(0);
 			ipipe_enable_notifier(current);
-#ifdef CONFIG_MMU
 			__ipipe_disable_ondemand_mappings(current);
-#endif
 			RTAI_OOM_DISABLE();
 			rt_set_task_pid(rt_task);
 			return rt_task;

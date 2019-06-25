@@ -41,8 +41,6 @@ typedef union thread_xstate FPU_ENV;
 typedef union fpregs_state FPU_ENV;
 #define TASK_FPENV(tsk)  (&(tsk)->thread.fpu.state)
 #endif
-   
-#ifdef CONFIG_RTAI_FPU_SUPPORT
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(4,5,0)
 extern unsigned int fpu_kernel_xstate_size;
@@ -250,21 +248,5 @@ static inline void rtai_fpregs_activate(struct fpu *fpu)
 
 #define set_lnxtsk_using_fpu(lnxtsk) \
 	do { rtai_set_fpu_used(lnxtsk); } while(0)
-
-#else /* !CONFIG_RTAI_FPU_SUPPORT */
-
-#define enable_fpu()
-#define save_fpcr_and_enable_fpu(fpcr)
-#define restore_fpcr(fpcr)
-#define init_hard_fpenv()
-#define init_fpenv(fpenv)
-#define save_fpenv(fpenv)
-#define restore_fpenv(fpenv)
-#define init_hard_fpu(lnxtsk)
-#define init_fpu(lnxtsk)
-#define restore_fpu(lnxtsk)
-#define clear_lnxtsk_uses_fpu(lnxtsk)
-
-#endif /* CONFIG_RTAI_FPU_SUPPORT */
 
 #endif /* !_RTAI_ASM_X86_FPU_H */

@@ -7,6 +7,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2003 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -217,126 +218,77 @@
 #define RT_NAME_DETACH                 131
 #define RT_NAME_LOCATE                 132
 
-// bits
-#define BITS_INIT          	       133	
-#define BITS_DELETE        	       134
-#define NAMED_BITS_INIT    	       135
-#define NAMED_BITS_DELETE  	       136
-#define BITS_GET           	       137
-#define BITS_RESET         	       138
-#define BITS_SIGNAL        	       139
-#define BITS_WAIT          	       140
-#define BITS_WAIT_IF       	       141		
-#define BITS_WAIT_UNTIL    	       142
-#define BITS_WAIT_TIMED   	       143
-
-// typed mail boxes
-#define TBX_INIT                       144
-#define TBX_DELETE         	       145
-#define NAMED_TBX_INIT                 146
-#define NAMED_TBX_DELETE               147
-#define TBX_SEND                       148
-#define TBX_SEND_IF                    149
-#define TBX_SEND_UNTIL                 150
-#define TBX_SEND_TIMED                 151
-#define TBX_RECEIVE                    152
-#define TBX_RECEIVE_IF                 153
-#define TBX_RECEIVE_UNTIL              154
-#define TBX_RECEIVE_TIMED              155
-#define TBX_BROADCAST                  156
-#define TBX_BROADCAST_IF               157
-#define TBX_BROADCAST_UNTIL            158
-#define TBX_BROADCAST_TIMED            159
-#define TBX_URGENT                     160
-#define TBX_URGENT_IF                  161
-#define TBX_URGENT_UNTIL               162
-#define TBX_URGENT_TIMED               163
-
 // pqueue
-#define MQ_OPEN         	       164
-#define MQ_RECEIVE      	       165
-#define MQ_SEND         	       166
-#define MQ_CLOSE        	       167
-#define MQ_GETATTR     		       168
-#define MQ_SETATTR      	       169
-#define MQ_NOTIFY       	       170
-#define MQ_UNLINK       	       171
-#define MQ_TIMEDRECEIVE 	       172
-#define MQ_TIMEDSEND    	       173
+#define MQ_OPEN         	       133
+#define MQ_RECEIVE      	       134
+#define MQ_SEND         	       135
+#define MQ_CLOSE        	       136
+#define MQ_GETATTR     		       137
+#define MQ_SETATTR      	       138
+#define MQ_NOTIFY       	       139
+#define MQ_UNLINK       	       140
+#define MQ_TIMEDRECEIVE 	       141
+#define MQ_TIMEDSEND    	       142
 
 // named tasks init/delete
-#define NAMED_TASK_INIT 	       174
-#define NAMED_TASK_INIT_CPUID 	       175
-#define NAMED_TASK_DELETE	       176
+#define NAMED_TASK_INIT 	       143
+#define NAMED_TASK_INIT_CPUID 	       144
+#define NAMED_TASK_DELETE	       145
 
 // registry
-#define GET_ADR         	       177
-#define GET_NAME         	       178
-
-// netrpc
-#define NETRPC			       179
-#define SEND_REQ_REL_PORT	       180
-#define DDN2NL			       181
-#define SET_THIS_NODE		       182
-#define FIND_ASGN_STUB		       183
-#define REL_STUB		       184	
-#define WAITING_RETURN		       185
+#define GET_ADR         	       146
+#define GET_NAME         	       147
 
 // a semaphore extension
-#define COND_SIGNAL		       186
+#define COND_SIGNAL		       148
 
 // new shm
-#define SHM_ALLOC                      187
-#define SHM_FREE                       188
-#define SHM_SIZE                       189
-#define HEAP_SET                       190
-#define HEAP_ALLOC                     191
-#define HEAP_FREE                      192
-#define HEAP_NAMED_ALLOC               193
-#define HEAP_NAMED_FREE                194
-#define MALLOC                         195
-#define FREE                           196
-#define NAMED_MALLOC                   197
-#define NAMED_FREE                     198
+#define SHM_ALLOC                      149
+#define SHM_FREE                       150
+#define SHM_SIZE                       151
+#define HEAP_SET                       152
+#define HEAP_ALLOC                     153
+#define HEAP_FREE                      154
+#define HEAP_NAMED_ALLOC               155
+#define HEAP_NAMED_FREE                156
+#define MALLOC                         157
+#define FREE                           158
+#define NAMED_MALLOC                   159
+#define NAMED_FREE                     160
 
-#define SUSPEND_IF		       199
-#define SUSPEND_UNTIL	 	       200
-#define SUSPEND_TIMED		       201
-#define IRQ_WAIT		       202	
-#define IRQ_WAIT_IF		       203	
-#define IRQ_WAIT_UNTIL		       204
-#define IRQ_WAIT_TIMED		       205
-#define IRQ_SIGNAL		       206
-#define REQUEST_IRQ_TASK	       207
-#define RELEASE_IRQ_TASK	       208
-#define SCHED_LOCK		       209
-#define SCHED_UNLOCK		       210
-#define PEND_LINUX_IRQ		       211
-#define SET_LINUX_SYSCALL_MODE	       212
-/*#define RETURN_LINUX_SYSCALL         213 available */
-#define REQUEST_RTC                    214
-#define RELEASE_RTC                    215
-#define RT_GETTID                      216
-#define SET_NETRPC_TIMEOUT             217
-#define GET_REAL_TIME		       218
-#define GET_REAL_TIME_NS	       219
+#define SUSPEND_IF		       161
+#define SUSPEND_UNTIL	 	       162
+#define SUSPEND_TIMED		       163
+#define IRQ_WAIT		       164
+#define IRQ_WAIT_IF		       165
+#define IRQ_WAIT_UNTIL		       166
+#define IRQ_WAIT_TIMED		       167
+#define IRQ_SIGNAL		       168
+#define REQUEST_IRQ_TASK	       169
+#define RELEASE_IRQ_TASK	       170
+#define SCHED_LOCK		       171
+#define SCHED_UNLOCK		       172
+#define PEND_LINUX_IRQ		       173
+#define SET_LINUX_SYSCALL_MODE	       174
+#define REQUEST_RTC                    175
+#define RELEASE_RTC                    176
+#define RT_GETTID                      177
+#define GET_REAL_TIME		       178
+#define GET_REAL_TIME_NS	       179
 
-#define MQ_REG_USP_NOTIFIER	       220
+#define MQ_REG_USP_NOTIFIER	       180
 
-#define RT_SIGNAL_HELPER   	       221
-#define RT_SIGNAL_WAITSIG  	       222
-#define RT_SIGNAL_REQUEST  	       223
-#define RT_SIGNAL_RELEASE  	       224
-#define RT_SIGNAL_ENABLE	       225
-#define RT_SIGNAL_DISABLE	       226
-#define RT_SIGNAL_TRIGGER	       227
+#define RT_SIGNAL_HELPER   	       181
+#define RT_SIGNAL_WAITSIG  	       182
+#define RT_SIGNAL_REQUEST  	       183
+#define RT_SIGNAL_RELEASE  	       184
+#define RT_SIGNAL_ENABLE	       185
+#define RT_SIGNAL_DISABLE	       186
+#define RT_SIGNAL_TRIGGER	       187
 
-#define SEM_RT_POLL 		       228
-#define RT_POLL_NETRPC		       229
+#define SEM_RT_POLL 		       188
 
-#define RT_USRQ_DISPATCHER	       230
-
-#define MAX_LXRT_FUN		       231
+#define MAX_LXRT_FUN		       189
 
 // not recovered yet 
 // Qblk's 
@@ -571,20 +523,12 @@ void reset_rt_fun_ext_index(struct rt_fun_entry *fun,
 
 struct apic_timer_setup_data;
 
-#ifdef CONFIG_MMU
-
 #define rt_grow_and_lock_stack(incr) \
 	do { \
 		char buf[incr]; \
 		memset(buf, 0, incr); \
 		mlockall(MCL_CURRENT | MCL_FUTURE); \
 	} while (0)
-
-#else
-
-#define rt_grow_and_lock_stack(incr) do { } while (0)
-
-#endif
 
 #define BIDX   0 // rt_fun_ext[0]
 #define SIZARG sizeof(arg)
@@ -1528,10 +1472,6 @@ RTAI_PROTO(unsigned int, rt_get_cpu_freq, (void))
 	struct { unsigned long dummy; } arg;
 	return rtai_lxrt(BIDX, SIZARG, GET_CPU_FREQ, &arg).i[0];
 }
-
-#ifndef CONFIG_RTAI_TSC
-#define rt_get_tscnt rt_get_time
-#endif
 
 static inline RTIME nanos2tscnts(RTIME nanos, unsigned int cpu_freq)
 {

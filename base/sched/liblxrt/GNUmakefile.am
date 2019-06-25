@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -7,24 +8,15 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
 lib_LTLIBRARIES = liblxrt.la
 
-liblxrt_la_SOURCES = \
-		services.c
-if !CONFIG_M68KNOMMU
-liblxrt_la_SOURCES += touchall.c
-endif
+liblxrt_la_SOURCES = services.c touchall.c
 
 liblxrt_la_LDFLAGS = -module -version-info 1:0:0
 
 AM_CPPFLAGS = \
-	@RTAI_REAL_USER_CFLAGS@ \
+	@RTAI_USER_CFLAGS@ \
 	-D_GNU_SOURCE \
 	-fno-inline \
 	-I$(top_srcdir)/base/include \
 	-I../../include
-
-if CONFIG_RTAI_DRIVERS_SERIAL
-AM_CPPFLAGS += -I$(top_srcdir)/addons/drivers/serial
-endif

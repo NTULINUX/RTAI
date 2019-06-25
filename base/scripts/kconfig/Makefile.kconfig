@@ -1,0 +1,246 @@
+# We want these to be the native ones.
+override CC := gcc
+override CXX := g++
+
+squote  := '
+escsq = $(subst $(squote),'\$(squote)',$1)
+cmd = @echo '  $(call escsq,$(quiet_cmd_$(1)))'; $(cmd_$(1))
+this_dir := base/scripts/kconfig
+
+CFLAGS := -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
+
+PHONY += menuconfig
+
+Kconfig := $(srctree)/base/arch/x86/Kconfig
+
+menuconfig: mconf
+	@./$< $(Kconfig)
+
+# Help text used by make help
+help:
+	@echo  '  menuconfig	  - Update current config utilising a menu based program'
+
+# lxdialog stuff
+check-lxdialog  := lxdialog/check-lxdialog.sh
+
+# Use recursively expanded variables so we do not call gcc unless
+# we really need to do so. (Do not call gcc as part of make mrproper)
+EXTRACFLAGS += $(shell $(SHELL) $(check-lxdialog) -ccflags) \
+		    -DLOCALE
+
+# ===========================================================================
+# Shared Makefile for the various kconfig executables:
+# mconf:  Used for the menuconfig target
+#         Utilizes the lxdialog package
+# object files used by all kconfig flavours
+
+lxdialog := lxdialog/checklist.o lxdialog/util.o lxdialog/inputbox.o
+lxdialog += lxdialog/textbox.o lxdialog/yesno.o lxdialog/menubox.o
+
+mconf-objs     := mconf.o zconf.tab.o $(lxdialog)
+kxgettext-objs	:= kxgettext.o zconf.tab.o
+
+hostprogs-y := conf mconf
+
+PHONY += clean distclean
+
+quiet_cmd_clean-objs = CLEAN   $(this_dir)/ objects
+      cmd_clean-objs = rm -rf *.o *.so *.moc *.tmp* *.pot
+quiet_cmd_clean-ships = CLEAN   $(this_dir)/ shipped files
+      cmd_clean-ships = rm -rf zconf.tab.c zconf.lex.c zconf.hash.c
+quiet_cmd_clean-execs = CLEAN   $(this_dir)/ executables
+      cmd_clean-execs = rm -rf mconf
+clean:
+	$(call cmd,clean-objs)
+	$(call cmd,clean-ships)
+	$(call cmd,clean-execs)
+
+distclean: clean
+
+# Check that we have the required ncurses stuff installed for lxdialog (menuconfig)
+PHONY += dochecklxdialog
+$(lxdialog): | dochecklxdialog
+dochecklxdialog:
+	@$(SHELL) $(check-lxdialog) -check gcc $(EXTRACFLAGS) $(LOADLIBES_mconf)
+
+always := dochecklxdialog
+
+# Add environment specific flags
+EXTRACFLAGS += $(shell $(SHELL) $(srctree)/base/scripts/kconfig/check.sh gcc $(CFLAGS))
+
+# generated files seem to need this to find local include files
+CFLAGS_zconf.lex.o	:= -I$(srctree)/base/scripts/kconfig
+CFLAGS_zconf.tab.o	:= -I$(srctree)/base/scripts/kconfig
+
+LEX_PREFIX	:= zconf
+YACC_PREFIX	:= zconf
+
+LOADLIBES_mconf   = $(shell $(SHELL) $(check-lxdialog) -ldflags gcc)
+
+zconf.tab.o: zconf.lex.c zconf.hash.c
+
+# The rest of the file is what is copied and modified from scripts/Makefile.build,
+# scripts/Makefile.host and scripts/Makefile.lib from the Linux kernel.
+# This includes rules to actually build the configuration program.
+
+# ==========================================================================
+# Building
+# ==========================================================================
+
+# Backward compatibility
+ccflags-y  += $(EXTRA_CFLAGS)
+cppflags-y += $(EXTRA_CPPFLAGS)
+ldflags-y  += $(EXTRA_LDFLAGS)
+
+# Figure out what we need to build from the various variables
+# ===========================================================================
+
+# Libraries are always collected in one lib file.
+# Filter out objects already built-in
+
+lib-y := $(filter-out $(obj-y), $(sort $(lib-y)))
+
+
+# if $(foo-objs) exists, foo.o is a composite object
+multi-used-y := $(sort $(foreach m,$(obj-y), $(if $(strip $($(m:.o=-objs)) $($(m:.o=-y))), $(m))))
+multi-used   := $(multi-used-y)
+
+# Build list of the parts of our composite objects, our composite
+# objects depend on those (obviously)
+multi-objs-y := $(foreach m, $(multi-used-y), $($(m:.o=-objs)) $($(m:.o=-y)))
+multi-objs   := $(multi-objs-y)
+
+c_flags       = $(ccflags-y) $(CFLAGS_$(basetarget).o)
+cpp_flags     = $(cppflags-y) $(CPPFLAGS_$(@F))
+ld_flags       = $(LDFLAGS) $(ldflags-y)
+
+# Shipped files
+# ===========================================================================
+quiet_cmd_shipped	= SHIPPED $@
+      cmd_shipped	= cat $< > $@
+%.c: %.c_shipped
+	$(call cmd,shipped)
+%.h: %.h_shipped
+	$(call cmd,shipped)
+
+# ==========================================================================
+# Building binaries on the host system
+# Binaries are used during the compilation of the kernel, for example
+# to preprocess a data file.
+#
+# Both C and C++ are supported, but preferred language is C for such utilities.
+#
+# Sample syntax (see Documentation/kbuild/makefiles.txt for reference)
+# hostprogs-y := bin2hex
+# Will compile bin2hex.c and create an executable named bin2hex
+#
+# hostprogs-y    := lxdialog
+# lxdialog-objs := checklist.o lxdialog.o
+# Will compile lxdialog.c and checklist.c, and then link the executable
+# lxdialog, based on checklist.o and lxdialog.o
+# Note: Shared libraries consisting of C++ files are not supported
+
+__hostprogs := $(sort $(hostprogs-y))
+
+# C code
+# Executables compiled from a single .c file
+host-csingle	:= $(foreach m,$(__hostprogs),$(if $($(m)-objs),,$(m)))
+
+# C executables linked based on several .o files
+host-cmulti	:= $(foreach m,$(__hostprogs),\
+		   $(if $($(m)-cxxobjs),,$(if $($(m)-objs),$(m))))
+
+# Object (.o) files compiled from .c files
+host-cobjs	:= $(sort $(foreach m,$(__hostprogs),$($(m)-objs)))
+
+# C++ code
+# C++ executables compiled from at least on .cc file
+# and zero or more .c files
+host-cxxmulti	:= $(foreach m,$(__hostprogs),$(if $($(m)-cxxobjs),$(m)))
+
+# C++ Object (.o) files compiled from .cc files
+host-cxxobjs	:= $(sort $(foreach m,$(host-cxxmulti),$($(m)-cxxobjs)))
+
+# Shared libaries (only .c supported)
+# Shared libraries (.so) - all .so files referenced in "xxx-objs"
+host-cshlib	:= $(sort $(filter %.so, $(host-cobjs)))
+# Remove .so files from "xxx-objs"
+host-cobjs	:= $(filter-out %.so,$(host-cobjs))
+
+#Object (.o) files used by the shared libaries
+host-cshobjs	:= $(sort $(foreach m,$(host-cshlib),$($(m:.so=-objs))))
+
+__hostprogs     := $(__hostprogs)
+host-csingle	:= $(host-csingle)
+host-cmulti	:= $(host-cmulti)
+host-cobjs	:= $(host-cobjs)
+host-cxxmulti	:= $(host-cxxmulti)
+host-cxxobjs	:= $(host-cxxobjs)
+host-cshlib	:= $(host-cshlib)
+host-cshobjs	:= $(host-cshobjs)
+
+#####
+# Handle options to gcc. Support building with separate output directory
+
+hostc_flags   = $(CFLAGS)   $(EXTRACFLAGS)   \
+		 $(CFLAGS_$(basetarget).o)
+hostcxx_flags = $(CXXFLAGS) $(EXTRACXXFLAGS) \
+		 $(CXXFLAGS_$(basetarget).o)
+
+#####
+# Compile programs on the host
+
+# Create executable from a single .c file
+# host-csingle -> Executable
+quiet_cmd_host-csingle	= HOSTCC  $(this_dir)/$@
+      cmd_host-csingle	= gcc $(hostc_flags) -o $@ $< $(LOADLIBES) $(LOADLIBES_$(@F))
+$(host-csingle): %: %.c
+	$(call cmd,host-csingle)
+
+# Link an executable based on list of .o files, all plain c
+# host-cmulti -> executable
+quiet_cmd_host-cmulti	= HOSTLD  $(this_dir)/$@
+      cmd_host-cmulti	= gcc $(LDFLAGS) -o $@ $($(@F)-objs) $(LOADLIBES) $(LOADLIBES_$(@F))
+$(host-cmulti): %: $(host-cobjs) $(host-cshlib)
+	$(call cmd,host-cmulti)
+
+# Create .o file from a single .c file
+# host-cobjs -> .o
+quiet_cmd_host-cobjs	= HOSTCC  $(this_dir)/$@
+      cmd_host-cobjs	= gcc $(hostc_flags) -c -o $@ $<
+$(host-cobjs): %.o: %.c
+	$(call cmd,host-cobjs)
+
+# Link an executable based on list of .o files, a mixture of .c and .cc
+# host-cxxmulti -> executable
+quiet_cmd_host-cxxmulti	= HOSTLD  $(this_dir)/$@
+      cmd_host-cxxmulti	= $(CXX) $(LDFLAGS) -o $@ $(foreach o,objs cxxobjs,\
+			  $($(@F)-$(o))) \
+			  $(LOADLIBES) $(LOADLIBES_$(@F))
+$(host-cxxmulti): %: $(host-cobjs) $(host-cxxobjs) $(host-cshlib)
+	$(call cmd,host-cxxmulti)
+
+# Create .o file from a single .cc (C++) file
+quiet_cmd_host-cxxobjs	= g++ $(this_dir)/$@
+      cmd_host-cxxobjs	= g++ $(hostcxx_flags) -c -o $@ $<
+$(host-cxxobjs): %.o: %.cc
+	$(call cmd,host-cxxobjs)
+
+# Compile .c file, create position independent .o file
+# host-cshobjs -> .o
+quiet_cmd_host-cshobjs	= gcc -fPIC $(this_dir)/$@
+      cmd_host-cshobjs	= gcc $(hostc_flags) -fPIC -c -o $@ $<
+$(host-cshobjs): %.o: %.c
+	$(call cmd,host-cshobjs)
+
+# Link a shared library, based on position independent .o files
+# *.o -> .so shared library (host-cshlib)
+quiet_cmd_host-cshlib	= ld -shared $(this_dir)/$@
+      cmd_host-cshlib	= gcc $(LDFLAGS) -shared -o $@ $($(@F:.so=-objs))  $(LOADLIBES) $(LOADLIBES_$(@F))
+$(host-cshlib): %: $(host-cshobjs)
+	$(call cmd,host-cshlib)
+
+targets += $(host-csingle)  $(host-cmulti) $(host-cobjs)\
+	   $(host-cxxmulti) $(host-cxxobjs) $(host-cshlib) $(host-cshobjs)
+
+.PHONY: $(PHONY)

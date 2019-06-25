@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -7,12 +8,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
 OPTDIRS=
-
-if CONFIG_RTAI_BITS
-OPTDIRS += bits
-endif
 
 if CONFIG_RTAI_FIFOS
 OPTDIRS += fifos
@@ -34,16 +30,8 @@ if CONFIG_RTAI_MBX
 OPTDIRS += mbx
 endif
 
-if CONFIG_RTAI_TBX
-OPTDIRS += tbx
-endif
-
 if CONFIG_RTAI_MQ
 OPTDIRS += mq
-endif
-
-if CONFIG_RTAI_NETRPC
-OPTDIRS += netrpc
 endif
 
 SUBDIRS = $(OPTDIRS)

@@ -7,6 +7,7 @@
  * This file is part of the RTAI project.
  *
  * @note Copyright &copy; 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -837,15 +838,7 @@ int rt_task_wait_period(void)
 		rt_schedule();
 		blocked_on = rt_current->blocked_on;
 		rt_global_restore_flags(flags);
-#ifdef CONFIG_M68K
-		//Workaround of a gcc bug
-		if(blocked_on == RTP_OBJREM) {
-			__asm__ __volatile__ ("nop");
-		}
-		return likely(!blocked_on) ? 0L : RTE_UNBLKD;
-#else
 		return likely(!blocked_on) ? 0 : RTE_UNBLKD;
-#endif
 	}
 	rt_global_restore_flags(flags);
 	return RTE_TMROVRN;
@@ -2208,12 +2201,6 @@ void rtai_proc_lxrt_unregister(void)
 /* ------------------< end of proc filesystem section >------------------*/
 #endif /* CONFIG_PROC_FS */
 
-#ifndef CONFIG_KBUILD
-#define CONFIG_KBUILD
-#endif
-
-#ifdef CONFIG_KBUILD
-
 EXPORT_SYMBOL(rt_set_sched_policy);
 EXPORT_SYMBOL(rt_get_prio);
 EXPORT_SYMBOL(rt_get_inher_prio);
@@ -2298,8 +2285,6 @@ EXPORT_SYMBOL(rt_get_real_time);
 EXPORT_SYMBOL(rt_get_real_time_ns);
 EXPORT_SYMBOL(rt_get_base_linux_task);
 EXPORT_SYMBOL(rt_alloc_dynamic_task);
-EXPORT_SYMBOL(rt_register_watchdog);
-EXPORT_SYMBOL(rt_deregister_watchdog);
 EXPORT_SYMBOL(count2nano);
 EXPORT_SYMBOL(nano2count);
 EXPORT_SYMBOL(count2nano_cpuid);
@@ -2314,8 +2299,3 @@ EXPORT_SYMBOL(reset_rt_fun_entries);
 EXPORT_SYMBOL(set_rt_fun_ext_index);
 EXPORT_SYMBOL(reset_rt_fun_ext_index);
 EXPORT_SYMBOL(max_slots);
-
-#ifdef CONFIG_SMP
-#endif /* CONFIG_SMP */
-
-#endif /* CONFIG_KBUILD */

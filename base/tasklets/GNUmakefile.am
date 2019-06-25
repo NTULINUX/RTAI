@@ -7,21 +7,13 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
 moduledir = @RTAI_MODULE_DIR@
 
-modext = @RTAI_MODULE_EXT@
-
-CROSS_COMPILE = @CROSS_COMPILE@
-
-libtasklets_a_SOURCES = tasklets.c
-
-if CONFIG_KBUILD
 if CONFIG_RTAI_TASKLETS_BUILTIN
 rtai_tasklets.ko:
 else
 rtai_tasklets.ko: @RTAI_KBUILD_ENV@
-rtai_tasklets.ko: $(libtasklets_a_SOURCES)
+rtai_tasklets.ko: tasklets.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ \
 	@RTAI_KBUILD_BOTTOM@
@@ -29,28 +21,13 @@ rtai_tasklets.ko: $(libtasklets_a_SOURCES)
 clean-local:
 	@RTAI_KBUILD_CLEAN@
 endif
-else
-noinst_LIBRARIES = libtasklets.a
 
-libtasklets_a_AR = $(CROSS_COMPILE)ar cru
-
-AM_CPPFLAGS = \
-	@RTAI_KMOD_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../include
-
-rtai_tasklets.o: libtasklets.a
-	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
-endif
-
-all-local: rtai_tasklets$(modext)
+all-local: rtai_tasklets.ko
 if !CONFIG_RTAI_TASKLETS_BUILTIN
-if CONFIG_RTAI_OLD_FASHIONED_BUILD
 	$(mkinstalldirs) $(top_srcdir)/modules
 	$(INSTALL_DATA) $^ $(top_srcdir)/modules
-endif
 
-install-exec-local: rtai_tasklets$(modext)
+install-exec-local: rtai_tasklets.ko
 	$(mkinstalldirs) $(DESTDIR)$(moduledir)
 	$(INSTALL_DATA) $^ $(DESTDIR)$(moduledir)
 endif

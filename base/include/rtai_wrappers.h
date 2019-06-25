@@ -56,8 +56,6 @@
 
 #include <linux/bitops.h>
 
-#define CONFIG_MMU 1
-
 typedef int clockid_t;
 
 #ifndef TIMER_ABSTIME

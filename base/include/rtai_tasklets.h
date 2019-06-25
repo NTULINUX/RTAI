@@ -7,6 +7,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999-2003 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -292,27 +293,9 @@ RTAI_SYSCALL_MODE void rt_register_task(struct rt_tasklet_struct *tasklet, struc
 #include <sys/mman.h>
 #include <stdarg.h>
 
-#include <rtai_usi.h>
 #include <rtai_lxrt.h>
 
 #define rt_tasklet_struct  rt_usp_tasklet_struct
-#if 0
-struct rt_tasklet_struct {
-	struct rt_tasklet_struct *next, *prev;
-	int priority, uses_fpu, cpuid;
-	RTIME firing_time, period;
-	void (*handler)(unsigned long);
-	unsigned long data, id;
-	long thread;
-	struct rt_task_struct *task;
-	struct rt_tasklet_struct *usptasklet;
-	int overrun;
-#ifdef  CONFIG_RTAI_LONG_TIMED_LIST
-	struct { void *rb_parent; int rb_color; void *rb_right, *rb_left; } rbn;
-	struct { void *rb_node; } rbr;
-#endif
-};
-#endif
 
 #ifndef __SUPPORT_TASKLET__
 #define __SUPPORT_TASKLET__

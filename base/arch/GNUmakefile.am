@@ -7,46 +7,10 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+SUBDIRS = x86
 
-if CONFIG_X86
-ARCHDIR = x86
-endif
+rtai_hal.ko:
+	@(cd x86/hal && make rtai_hal.ko)
 
-#if CONFIG_I386
-#ARCHDIR = i386
-#endif
-
-#if CONFIG_X86_64
-#ARCHDIR = x86_64
-#endif
-
-if CONFIG_ARM
-ARCHDIR = arm
-endif
-
-#if CONFIG_PPC
-#ARCHDIR = ppc
-#endif
-
-#if CONFIG_M68KNOMMU
-#ARCHDIR = m68k
-#endif
-
-#if CONFIG_M68K
-#ARCHDIR = m68k
-#endif
-
-SUBDIRS = $(ARCHDIR)
-
-modext = @RTAI_MODULE_EXT@
-
-rtai_hal$(modext):
-	@(cd $(ARCHDIR)/hal && make rtai_hal$(modext))
-
-if CONFIG_X86
 calibrate:
-	@(cd $(ARCHDIR)/calibration && make calibrate)
-else
-calibrate:
-	echo "*** calibration is x86 only for now ***"
-endif
+	@(cd x86/calibration && make calibrate)

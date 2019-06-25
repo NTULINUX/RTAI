@@ -15,6 +15,9 @@
  *   Copyright &copy 2002 Philippe Gerum.
  *   Copyright &copy 2005 Paolo Mantegazza.
  *
+ *   Unification of x86 architecture: \n
+ *   Copyright &copy 2014-2016 Alec Ari.
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 2 of the License, 
@@ -60,15 +63,11 @@ MODULE_LICENSE("GPL");
 #include <asm/mmu_context.h>
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
-#ifdef CONFIG_X86_LOCAL_APIC
 #include <asm/fixmap.h>
 #include <asm/bitops.h>
 #include <asm/mpspec.h>
-#ifdef CONFIG_X86_IO_APIC
 #include <asm/io_apic.h>
-#endif /* CONFIG_X86_IO_APIC */
 #include <asm/apic.h>
-#endif /* CONFIG_X86_LOCAL_APIC */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,71)
 #include <linux/sched/types.h>
 #endif
@@ -89,9 +88,6 @@ MODULE_LICENSE("GPL");
 MODULE_LICENSE("GPL");
 #endif
 
-#ifndef CONFIG_X86_TSC
-#error "Recent RTAI versions require a TSC; if not so look at older versions and see how to emulate it."
-#endif
 #ifdef CONFIG_IPIPE_LEGACY
 #error "CONFIG_IPIPE_LEGACY MUST NOT BE ENABLED, RECONFIGURE LINUX AND REMAKE BOTH KERNEL AND RTAI."
 #endif
@@ -438,12 +434,6 @@ int rt_request_timers(void *rtai_time_handler)
                 rtimes->linux_time = rtimes->tick_time + rtimes->linux_tick;
 		rtimes->periodic_tick = rtimes->linux_tick;
 	}
-#if 0 // #ifndef CONFIG_X86_LOCAL_APIC, for calibrating 8254 with our set delay
-	rtai_cli();
-	outb(0x30, 0x43);
-	rt_set_timer_delay(rtai_tunables.clock_freq/50000);
-	rtai_sti();
-#endif
 	return 0;
 }
 EXPORT_SYMBOL(rt_request_timers);
@@ -603,7 +593,6 @@ static int rtai_trap_fault (unsigned trap, struct pt_regs *regs)
 	if (!in_hrt_mode(rtai_cpuid())) {
 		goto propagate;
 	}
-#ifdef CONFIG_RTAI_FPU_SUPPORT
 	if (trap == 7)	{
 		struct task_struct *linux_task = current;
 		rtai_cli();
@@ -621,7 +610,6 @@ static int rtai_trap_fault (unsigned trap, struct pt_regs *regs)
 		rtai_sti();
 		return 1;
 	}
-#endif
 	if (rtai_trap_handler && rtai_trap_handler(trap, trap2sig[trap], regs, NULL)) {
 		return 1;
 	}
@@ -664,14 +652,11 @@ long long rtai_usrq_dispatcher (unsigned long srq, unsigned long label)
 }
 EXPORT_SYMBOL(rtai_usrq_dispatcher);
 
-#include <asm/rtai_usi.h>
-
 static int hal_intercept_syscall(struct pt_regs *regs)
 {
 	if (likely(regs->LINUX_SYSCALL_NR >= RTAI_SYSCALL_NR)) {
 		unsigned long srq = regs->LINUX_SYSCALL_REG1;
 		long long retval;
-		IF_IS_A_USI_SRQ_CALL_IT(srq, regs->LINUX_SYSCALL_REG2, (long long *)regs->LINUX_SYSCALL_REG3, regs->LINUX_SYSCALL_FLAGS, 1);
 		retval = rtai_usrq_dispatcher(srq, regs->LINUX_SYSCALL_REG2);
 #ifdef CONFIG_RTAI_USE_STACK_ARGS
 		*((long long *)regs->LINUX_SYSCALL_REG3) = retval;
@@ -822,17 +807,10 @@ int __rtai_hal_init (void)
 		ret = 1;
 	}
 
-#ifndef CONFIG_X86_TSC
-	printk("RTAI[hal]: TIME STAMP CLOCK (TSC) NEEDED FOR THIS RTAI VERSION\n.");
-	ret = 1;
-#endif
-
-#ifdef CONFIG_X86_LOCAL_APIC
 	if (!boot_cpu_has(X86_FEATURE_APIC)) {
 		printk("RTAI[hal]: ERROR, LOCAL APIC CONFIGURED BUT NOT AVAILABLE/ENABLED.\n");
 		ret = 1;
 	}
-#endif
 
 	if (!(rtai_sysreq_virq = ipipe_alloc_virq())) {
 		printk(KERN_ERR "RTAI[hal]: NO VIRTUAL INTERRUPT AVAILABLE.\n");

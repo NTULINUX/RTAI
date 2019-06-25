@@ -4,7 +4,10 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright (C) 1999-2006 Paolo Mantegazza
- * <mantegazza@aero.polimi.it> 
+ * <mantegazza@aero.polimi.it>
+ *
+ * @note Copyright (C) 2019 Alec Ari
+ * <neotheuser@ymail.com> 
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -857,7 +860,7 @@ RTAI_SYSCALL_MODE int _rt_mbx_ovrwr_send(MBX *mbx, void *msg, int msg_size, int 
  * _rt_typed_named_mbx_init initializes a mailbox of type @e qtype
  * and size @e size identified by @e name. Named mailboxed
  * are useful for use among different processes, kernel/user space and
- * in distributed applications, see netrpc.
+ * in distributed applications.
  *
  * @param mbx_name is the mailbox name; since it can be a clumsy identifier,
  * services are provided to convert 6 characters identifiers to unsigned long
@@ -975,7 +978,6 @@ module_init(__rtai_mbx_init);
 module_exit(__rtai_mbx_exit);
 #endif /* !CONFIG_RTAI_MBX_BUILTIN */
 
-#ifdef CONFIG_KBUILD
 EXPORT_SYMBOL(_rt_mbx_evdrp);
 EXPORT_SYMBOL(rt_typed_mbx_init);
 EXPORT_SYMBOL(rt_mbx_init);
@@ -993,4 +995,3 @@ EXPORT_SYMBOL(_rt_mbx_receive_timed);
 EXPORT_SYMBOL(_rt_mbx_ovrwr_send);
 EXPORT_SYMBOL(_rt_typed_named_mbx_init);
 EXPORT_SYMBOL(rt_named_mbx_delete);
-#endif /* CONFIG_KBUILD */

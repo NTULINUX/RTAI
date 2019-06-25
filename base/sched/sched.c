@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -106,8 +107,6 @@ static RT_TASK *rt_smp_fpu_task[RTAI_NR_CPUS];
 int rt_smp_half_tick[RTAI_NR_CPUS];
 
 static volatile int rt_smp_timer_shot_fired[RTAI_NR_CPUS];
-
-static RT_TASK *lxrt_wdog_task[RTAI_NR_CPUS];
 
 RT_TASK *lxrt_prev_task[RTAI_NR_CPUS];
 
@@ -225,12 +224,6 @@ int set_rtext(RT_TASK *task, int priority, int uses_fpu, void(*signal)(void), un
 	}
 	if (task->magic == RT_TASK_MAGIC || cpuid >= RTAI_NR_CPUS || priority < 0) {
 		return -EINVAL;
-	} 
-	if (lxrt_wdog_task[cpuid] &&
-	    lxrt_wdog_task[cpuid] != task &&
-	    priority == RT_SCHED_HIGHEST_PRIORITY) {
-	    	 rt_printk("Highest priority reserved for RTAI watchdog\n");
-		 return -EBUSY;
 	}
 	task->uses_fpu = uses_fpu ? 1 : 0;
 	task->runnable_on_cpus = cpuid;
@@ -344,11 +337,6 @@ int rt_task_init_cpuid(RT_TASK *task, void (*rt_thread)(long), long data, int st
 	} 
 	if (!(st = (long *)rt_kstack_alloc(stack_size))) {
 		return -ENOMEM;
-	}
-	if (lxrt_wdog_task[cpuid] && lxrt_wdog_task[cpuid] != task 
-		             && priority == RT_SCHED_HIGHEST_PRIORITY) {
-	    	 rt_printk("Highest priority reserved for RTAI watchdog\n");
-		 return -EBUSY;
 	}
 
 	task->bstack = task->stack = (long *)(((unsigned long)st + stack_size - 0x10) & ~0xF);
@@ -1266,9 +1254,6 @@ void rt_set_periodic_mode(void)
 	return;
 }
 
-
-#ifdef CONFIG_GENERIC_CLOCKEVENTS
-
 #include <linux/clockchips.h>
 #include <linux/ipipe_tickdev.h>
 
@@ -1300,8 +1285,6 @@ static int _rt_linux_hrt_next_shot(unsigned long deltat, void *hrt_dev) // ??? s
 	rtai_sti();
 	return 0;
 }
-
-#endif /* CONFIG_GENERIC_CLOCKEVENTS */
 
 static void rt_start_timers(void)
 {
@@ -1520,29 +1503,6 @@ RT_TASK *rt_alloc_dynamic_task(void)
 #else
 	return NULL;
 #endif
-}
-
-/* +++++++++++++++++++++++++++ WATCHDOG SUPPORT ++++++++++++++++++++++++++++ */
-
-RT_TASK **rt_register_watchdog(RT_TASK *wd, int cpuid)
-{
-    	RT_TASK *task;
-
-	if (lxrt_wdog_task[cpuid]) return (RT_TASK**) -EBUSY;
-	task = &rt_linux_task;
-	while ((task = task->next)) {
-		if (task != wd && task->priority == RT_SCHED_HIGHEST_PRIORITY) {
-			return (RT_TASK**) -EBUSY;
-		}
-	}
-	lxrt_wdog_task[cpuid] = wd;
-	return (RT_TASK**) 0;
-}
-
-void rt_deregister_watchdog(RT_TASK *wd, int cpuid)
-{
-    	if (lxrt_wdog_task[cpuid] != wd) return;
-	lxrt_wdog_task[cpuid] = NULL;
 }
 
 /* +++++++++++++++ SUPPORT FOR LINUX TASKS AND KERNEL THREADS +++++++++++++++ */
@@ -2002,8 +1962,6 @@ static int lxrt_intercept_linux_syscall(struct pt_regs *regs, RT_TASK *task)
 	return 0;
 }
 
-#include <asm/rtai_usi.h>
-
 extern long long rtai_usrq_dispatcher (unsigned long, unsigned long);
 
 static int lxrt_intercept_syscall(struct pt_regs *regs)
@@ -2011,7 +1969,6 @@ static int lxrt_intercept_syscall(struct pt_regs *regs)
 	RT_TASK *task;
 	if (likely(regs->LINUX_SYSCALL_NR >= RTAI_SYSCALL_NR)) {
 		unsigned long srq  = regs->LINUX_SYSCALL_REG1;
-		IF_IS_A_USI_SRQ_CALL_IT(srq, regs->LINUX_SYSCALL_REG2, (long long *)regs->LINUX_SYSCALL_REG3, regs->LINUX_SYSCALL_FLAGS, 1);
 		if ((task = rtai_tskext_t(current, TSKEXT0)) && unlikely(task->unblocked)) {
 			if (task->is_hard > 0) {
 				give_back_to_linux(task, -1);
@@ -2048,7 +2005,6 @@ static int lxrt_intercept_fastcall(struct pt_regs *regs)
 {
 	long long retval;
 	unsigned long srq  = regs->LINUX_SYSCALL_REG1;
-	IF_IS_A_USI_SRQ_CALL_IT(srq, regs->LINUX_SYSCALL_REG2, (long long *)regs->LINUX_SYSCALL_REG3, regs->LINUX_SYSCALL_FLAGS, 1);
 	if (srq > RTAI_NR_SRQS) {
 		retval = rtai_lxrt_invoke(srq, (void *)regs->LINUX_SYSCALL_REG2, rtai_tskext_t(current, TSKEXT0));
 	} else {
@@ -2374,17 +2330,6 @@ static void lxrt_exit(void)
 
 }
 
-#ifdef DECLR_8254_TSC_EMULATION
-DECLR_8254_TSC_EMULATION;
-
-static void timer_fun(unsigned long none)
-{
-	TICK_8254_TSC_EMULATION();
-	timer.expires = jiffies + (HZ + TSC_EMULATION_GUARD_FREQ/2 - 1)/TSC_EMULATION_GUARD_FREQ;
-	add_timer(&timer);
-}
-#endif
-
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/kmod.h>
@@ -2669,16 +2614,12 @@ static int __rtai_lxrt_init(void)
 	printk(KERN_INFO "RTAI[sched]: Linux timer freq = %d (Hz), TimeBase freq = %lu hz.\n", HZ, (unsigned long)tuned.clock_freq);
 	printk(KERN_INFO "RTAI[sched]: timer setup = %d ns, resched latency = %d ns.\n", (int)rtai_imuldiv(tuned.setup_time_TIMER_CPUNIT, 1000000000, tuned.clock_freq), (int)rtai_imuldiv(tuned.sched_latency - tuned.setup_time_TIMER_CPUNIT, 1000000000, tuned.clock_freq));
 
-#ifdef DECLR_8254_TSC_EMULATION
-	SETUP_8254_TSC_EMULATION;
-#endif
-
 	kthread_server_thread = kthread_run(kthread_server, NULL, "KTHREAD_SERVER");
 
 	retval = rtai_init_features(); /* see rtai_schedcore.h */
 
 exit:
-#if defined(CONFIG_GENERIC_CLOCKEVENTS) && CONFIG_RTAI_RTC_FREQ == 0
+#if CONFIG_RTAI_RTC_FREQ == 0
 	rt_linux_hrt_next_shot = _rt_linux_hrt_next_shot;
 #endif
 	rt_start_timers();
@@ -2706,7 +2647,7 @@ static void __rtai_lxrt_exit(void)
 {
 	unregister_reboot_notifier(&lxrt_reboot_notifier);
 
-#if defined(CONFIG_GENERIC_CLOCKEVENTS) && CONFIG_RTAI_RTC_FREQ == 0
+#if CONFIG_RTAI_RTC_FREQ == 0
 	rt_linux_hrt_next_shot = NULL;
 #endif
 
@@ -2737,10 +2678,6 @@ static void __rtai_lxrt_exit(void)
 	rt_registry_free();
 	msleep(100);
 
-#ifdef DECLR_8254_TSC_EMULATION
-	CLEAR_8254_TSC_EMULATION;
-#endif
-
 #ifdef IPIPE_NOSTACK_FLAG
 	ipipe_clear_foreign_stack(&rtai_domain);
 #endif
@@ -2750,12 +2687,6 @@ static void __rtai_lxrt_exit(void)
 
 module_init(__rtai_lxrt_init);
 module_exit(__rtai_lxrt_exit);
-
-#ifndef CONFIG_KBUILD
-#define CONFIG_KBUILD
-#endif
-
-#ifdef CONFIG_KBUILD
 
 MODULE_ALIAS("rtai_up");
 MODULE_ALIAS("rtai_mup");
@@ -2776,5 +2707,3 @@ EXPORT_SYMBOL(rt_sched_timed);
 EXPORT_SYMBOL(switch_time);
 #endif
 EXPORT_SYMBOL(lxrt_prev_task);
-
-#endif /* CONFIG_KBUILD */
