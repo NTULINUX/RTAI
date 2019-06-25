@@ -20,13 +20,13 @@ base/scripts/rtai-load
 rtai_config.h
 
 # Auto-generated files
-# rtai_defs.h
+rtai_defs.h
 rtai_config.h.in
 configure
 aclocal.m4
 ltversion.m4
 bin/
-# m4/*
+m4/*
 latency
 display
 
