@@ -72,3 +72,6 @@ base/config/kconfig/libkconfig.so
 base/config/kconfig/lxdialog/lxdialog
 base/config/kconfig/mconf
 base/config/kconfig/zconf.tab.c
+
+# Grabbed in automatically from base/math Makefile
+base/math/newlib
