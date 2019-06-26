@@ -1,4 +1,4 @@
-From 09763a4d35f99bea3c4920f92162be64e38f2a27 Mon Sep 17 00:00:00 2001
+From 2be0b76fcaeb286a1e338e501b37d84b73c0c6cd Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Blacklist several options that may interfere with RTAI
@@ -19,6 +19,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/gpu/drm/nouveau/Kconfig |  2 +-
  drivers/iommu/Kconfig           |  2 +-
  drivers/pci/Kconfig             |  9 +++++----
+ drivers/pci/pcie/Kconfig        |  2 +-
  drivers/platform/x86/Kconfig    |  2 +-
  drivers/power/avs/Kconfig       |  1 +
  drivers/power/reset/Kconfig     |  1 +
@@ -29,10 +30,11 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/virtio/Kconfig          |  4 ++--
  drivers/watchdog/Kconfig        |  1 +
  init/Kconfig                    |  2 ++
+ kernel/ipipe/Kconfig            |  2 +-
  kernel/power/Kconfig            |  6 ++++--
  mm/Kconfig                      |  2 +-
  security/Kconfig                |  2 +-
- 25 files changed, 59 insertions(+), 30 deletions(-)
+ 27 files changed, 61 insertions(+), 32 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -428,6 +430,19 @@ index c32a77fc8b03..22d8ce2c0b45 100644
          help
            The PCI device frontend driver allows the kernel to import arbitrary
            PCI devices from a PCI backend to support PCI driver domains.
+diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
+index ac53edbc9613..8268928edb4b 100644
+--- a/drivers/pci/pcie/Kconfig
++++ b/drivers/pci/pcie/Kconfig
+@@ -3,7 +3,7 @@
+ #
+ config PCIEPORTBUS
+ 	bool "PCI Express Port Bus support"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	help
+ 	  This automatically enables PCI Express Port Bus support. Users can
+ 	  choose Native Hot-Plug support, Advanced Error Reporting support,
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
 index 09035705d0a0..a7b3cbe24329 100644
 --- a/drivers/platform/x86/Kconfig
@@ -563,6 +578,19 @@ index 33cca939377e..9919a10cf391 100644
  	select CGROUPS
  	select CGROUP_SCHED
  	select FAIR_GROUP_SCHED
+diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
+index d17edb89f1f5..306be5d0794e 100644
+--- a/kernel/ipipe/Kconfig
++++ b/kernel/ipipe/Kconfig
+@@ -6,7 +6,7 @@ config HAVE_IPIPE_SUPPORT
+ config IPIPE
+ 	bool "Interrupt pipeline"
+ 	depends on HAVE_IPIPE_SUPPORT
+-	default n
++	default y
+ 	---help---
+ 	  Activate this option if you want the interrupt pipeline to be
+ 	  compiled in.
 diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
 index dd2b5a4d89a5..00007dd41191 100644
 --- a/kernel/power/Kconfig
