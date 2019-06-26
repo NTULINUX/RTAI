@@ -569,35 +569,20 @@ config RTAI_USE_NEWERR
 	to choose what to do, without forcing any adaption for already 
 	existing working applications.
 
-# TODO: Port all of this to integrated newlib
-# config RTAI_MATH
-#	bool "Mathfuns support in kernel"
-#	default n
-#	help
-#	This parameter allows building a module containing math support 
-#	functions for kernel space. It might be useful to avoid fighting
-#	for the use of libc within the kernel.
-#
-#config RTAI_MATH_LIBM_TO_USE
-#	string "1 - NEWLIB, 2 - uCLIBC-NG, 3 - MUSL (default)"
-#	depends on RTAI_MATH
-#	default 3
-#	help
-#	Your libm.a of choice. NEWLIB, uCLIBC-NG and MUSL can be used for
-#	both i386 and x86_64. Then the one to be adopted is up to you. 
-#	See: ./base/math/README.KLIBM for a few making suggestions.
-#
-#config RTAI_MATH_LIBM_DIR
-#	depends on RTAI_MATH
-#	string "The installation directory of your chosen libm.a"
-#	default "/usr/lib"
-#
-#config RTAI_MATH_KCOMPLEX
-#	bool "Include complex support"
-#	depends on RTAI_MATH
-#	default n
-#	help
-#	This parameter allows the inclusion of complex support functions.
+config RTAI_MATH
+	bool "Mathfuns support in kernel"
+	default n
+	help
+	This parameter allows building a module containing math support 
+	functions for kernel space. It might be useful to avoid fighting
+	for the use of libc within the kernel.
+
+config RTAI_MATH_KCOMPLEX
+	bool "Include complex support"
+	depends on RTAI_MATH
+	default n
+	help
+	This parameter allows the inclusion of complex support functions.
 
 config RTAI_MALLOC
 	tristate "Real-time malloc support"

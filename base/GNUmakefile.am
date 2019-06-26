@@ -18,10 +18,10 @@ endif
 
 OPTDIRS += sched ipc arch posix
 
-# TODO: Port to newlib, disable this dir entirely for now
-# if CONFIG_RTAI_MATH
-# OPTDIRS += math
-# endif
+# FIXME: Undefined symbols, disable for now.
+#if CONFIG_RTAI_MATH
+#OPTDIRS += math
+#endif
 
 if CONFIG_RTAI_TASKLETS
 OPTDIRS += tasklets

@@ -183,8 +183,8 @@ dnl
 
 RTAI_BUILTIN_MODLIST=""
 
-dnl TODO: Integrate newlib libm into RTAI build system, no math for now
-dnl FIXME: CONFIG_RTAI_MATH=n
+dnl FIXME: Lots of undefined symbols in rtai_math.ko
+CONFIG_RTAI_MATH=n
 
 AC_MSG_CHECKING(for real-time fifos support)
 AC_ARG_ENABLE(fifos,
@@ -683,7 +683,7 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MINOR,$CONFIG_RTAI_VERSION_MINOR,[Kconfig
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_REVISION_LEVEL,$CONFIG_RTAI_REVISION_LEVEL,[Kconfig])
 test \! x$CONFIG_RTAI_LINUXDIR = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_LINUXDIR,$CONFIG_RTAI_LINUXDIR,[Kconfig])
 
-dnl TODO: AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
+dnl FIXME: AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
 test \! x$CONFIG_RTAI_CPUS = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_CPUS,$CONFIG_RTAI_CPUS,[Kconfig])
 test x$CONFIG_RTAI_DIAG_TSC_SYNC = xy && AC_DEFINE(CONFIG_RTAI_DIAG_TSC_SYNC,1,[Kconfig])
 test \! x$CONFIG_RTAI_MASTER_TSC_CPU = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_MASTER_TSC_CPU,$CONFIG_RTAI_MASTER_TSC_CPU,[Kconfig])
@@ -823,7 +823,7 @@ AM_CONDITIONAL(CONFIG_X86_64,[test "$CONFIG_X86_64" = y])
 AM_CONDITIONAL(CONFIG_X86,[test "$CONFIG_X86" = y])
 AM_CONDITIONAL(CONFIG_SMP,[test "$CONFIG_SMP" = y])
 
-dnl TODO: AM_CONDITIONAL(CONFIG_RTAI_MATH,[test -n "$CONFIG_RTAI_MATH"])
+dnl FIXME: AM_CONDITIONAL(CONFIG_RTAI_MATH,[test -n "$CONFIG_RTAI_MATH"])
 AM_CONDITIONAL(CONFIG_RTAI_FIFOS,[test -n "$CONFIG_RTAI_FIFOS"])
 AM_CONDITIONAL(CONFIG_RTAI_SEM,[test -n "$CONFIG_RTAI_SEM"])
 AM_CONDITIONAL(CONFIG_RTAI_RT_POLL,[test -n "$CONFIG_RTAI_RT_POLL"])
@@ -862,7 +862,7 @@ RTAI_KBUILD_DISTCLEAN=""
 
 dnl extra arch-dependent opts to be passed to the compiler
 RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer"
-dnl TODO: RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
 RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
@@ -879,7 +879,7 @@ AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
 AC_CONFIG_LINKS(base/posix/Makefile:base/posix/Makefile.kbuild)
 AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
 AC_CONFIG_LINKS(base/tasklets/Makefile:base/tasklets/Makefile.kbuild)
-dnl TODO: AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
+dnl AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
 AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
 
 dnl
@@ -896,7 +896,7 @@ AC_SUBST(RTAI_HOST_STRING)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
 AC_SUBST(RTAI_KMOD_CFLAGS)
 AC_SUBST(RTAI_USER_CFLAGS)
-dnl TODO: AC_SUBST(RTAI_FP_CFLAGS)
+AC_SUBST(RTAI_FP_CFLAGS)
 AC_SUBST(RTAI_LINUX_DIR)
 AC_SUBST(RTAI_LINUX_VERSION)
 AC_SUBST(RTAI_MODULE_DIR)
@@ -908,7 +908,7 @@ AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
 AC_SUBST(RTAI_POSIX_WRAP)
 
-dnl TODO: base/math/GNUmakefile
+dnl FIXME: base/math/GNUmakefile 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
 	base/GNUmakefile \

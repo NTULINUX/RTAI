@@ -10,17 +10,33 @@
 
 moduledir = @RTAI_MODULE_DIR@
 
+if CONFIG_X86_64
+newlib:
+	git clone --depth=1 git://sourceware.org/git/newlib-cygwin.git newlib \
+	&& cd newlib/newlib && CFLAGS="-mcmodel=kernel -fno-PIC" ./configure \
+	--disable-shared --disable-multilib --enable-newlib-hw-fp \
+	&& $(MAKE)
+else
+newlib:
+	git clone --depth=1 git://sourceware.org/git/newlib-cygwin.git newlib \
+	&& cd newlib/newlib && CFLAGS="-fno-PIC" ./configure \
+	--disable-shared --disable-multilib --enable-newlib-hw-fp \
+	&& $(MAKE)
+endif
+
+rtai_math.ko: newlib
 rtai_math.ko: @RTAI_KBUILD_ENV@
 rtai_math.ko: libm.c export_newlib.h
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
 	@RTAI_KBUILD_BOTTOM@
 	mv $@ $@.tmp
-	$(LD) -r -static -o $@ $@.tmp @RTAI_MATH_LIBM@
+	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/base/math/newlib/newlib/libm.a
 	rm -f $@.tmp
 
 clean-local:
 	@RTAI_KBUILD_CLEAN@
+	rm -rf newlib
 
 all-local: rtai_math.ko
 	$(mkinstalldirs) $(top_srcdir)/modules

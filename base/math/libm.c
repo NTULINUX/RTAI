@@ -1,5 +1,3 @@
-#if 1
-
 /*
  *  rtai/libm/libm.c - module wrapper for SunSoft/FreeBSD/MacOX/uclibc libm
  *  RTAI - Real-Time Application Interface
@@ -25,7 +23,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -33,10 +30,6 @@
 #include "rtai_math.h"
 
 MODULE_LICENSE("GPL");
-
-#if CONFIG_RTAI_MATH_LIBM_TO_USE < 1 || CONFIG_RTAI_MATH_LIBM_TO_USE > 3
-#error "***** 0 < CONFIG_RTAI_MATH_LIBM_TO_USE < 4 *****"
-#endif
 
 /***** Begin of libc entries needed by libm *****/
 
@@ -94,96 +87,16 @@ ssize_t write(int fildes, const void *buf, size_t nbytes)
 
 /***** End of libc entries needed by libm *****/
 
-#if 1
 void __stack_chk_fail(void)
 {
 	panic("rtai_math.ko stack-protector: Kernel stack is corrupted in: %p\n",
 	__builtin_return_address(0));
 }
-#endif
 
 int signgam;
 
-#if CONFIG_RTAI_MATH_LIBM_TO_USE == 1 // NEWLIB
 #include "export_newlib.h"
 char using[] = "NEWLIB";
-#endif // NEWLIB
-
-#if CONFIG_RTAI_MATH_LIBM_TO_USE == 2 // UCLIBC-NG
-#include "export_uclibc.h"
-char using[] = "UCLIBC-NG";
-#ifdef CONFIG_RTAI_MATH_KCOMPLEX
-#ifdef CONFIG_X86_32
-#if 1
-#include "libm_cmplx.hc.gsl"
-#else
-#include "libm_cmplx.hc.musl"
-#endif
-#else
-asmlinkage double _Complex clog(double _Complex x)
-{
-	return log(cabs(x)) + I*carg(x);
-}
-asmlinkage float _Complex clogf(float _Complex x)
-{
-	return logf(cabsf(x)) + I*cargf(x);
-}
-#endif
-#endif
-#endif // UCLIBC-NG
-
-#if CONFIG_RTAI_MATH_LIBM_TO_USE == 3 // MUSL
-#include "export_musl.h"
-char using[] = "MUSL";
-#ifdef CONFIG_RTAI_MATH_KCOMPLEX
-// Hopefully a provisional fix. Till it is understood why a plain call of 
-// the ones in MUSL libc.a keeps segfaulting for X86_32 (aka i386)
-asmlinkage double _Complex cpow(double _Complex x, double _Complex y)
-{
-	return cexp(y*clog(x));
-}
-
-asmlinkage float _Complex cpowf(float _Complex x, float _Complex y)
-{
-	return cexpf(y*clogf(x));
-}
-// We have to provide them, till they are fixed in MUSL
-asmlinkage double _Complex cacosh(double _Complex z)
-{
-	z = cacos(z);
-	return cimag(z) > 0 ? __builtin_complex(cimag(z), -creal(z)) : __builtin_complex(-cimag(z), creal(z));
-}
-asmlinkage float _Complex cacoshf(float _Complex z)
-{
-	z = cacosf(z);
-	return cimagf(z) > 0 ? __builtin_complex(cimagf(z), -crealf(z)) : __builtin_complex(-cimagf(z), crealf(z));
-}
-#endif
-// Export gamma function not found in MUSL libc.a 
-double gamma(double x)
-{
-	return lgamma(x);
-}
-EXPORT_SYMBOL(gamma);
-
-double gamma_r(double x, int *signgamp)
-{
-	return lgamma_r(x, signgamp);
-}
-EXPORT_SYMBOL(gamma_r);
-
-float gammaf(float x)
-{
-	return lgammaf(x);
-}
-EXPORT_SYMBOL(gammaf);
-
-float gammaf_r(float x, int *signgamp)
-{
-	return lgammaf_r(x, signgamp);
-}
-EXPORT_SYMBOL(gammaf_r);
-#endif // MUSL
 
 int __rtai_math_init(void)
 {
@@ -257,7 +170,7 @@ char *d2str(double d, int dgt, char *str)
 }
 EXPORT_SYMBOL(d2str);
 
-#if defined(CONFIG_RTAI_MATH_KCOMPLEX) && (defined(_RTAI_EXPORT_NEWLIB_H) || defined(_RTAI_EXPORT_MUSL_H) || defined(_RTAI_EXPORT_UCLIBC_H))
+#if defined(CONFIG_RTAI_MATH_KCOMPLEX) && defined(_RTAI_EXPORT_NEWLIB_H)
 
 char *cd2str(complex double cd, int dgt, char *str)
 {
@@ -265,22 +178,13 @@ char *cd2str(complex double cd, int dgt, char *str)
 	d2str(__real__ cd, dgt, str);
 	i = strlen(str);
 	str[i] = ' ';
-#if 0 // two options to display the imaginary part
-	d2str(__imag__ cd, dgt, &str[i + 4]);
-	str[i + 1] = str[i + 4];
-	str[i + 2] = ' ';
-	str[i + 3] = 'j';
-	str[i + 4] = '*';
-#else
 	d2str(__imag__ cd, dgt, &str[i + 1]);
 	str[i = strlen(str)] = 'j';
 	str[i + 1] = 0;
-#endif
 	return str;
 }
 EXPORT_SYMBOL(cd2str);
 
-#if CONFIG_RTAI_MATH_LIBM_TO_USE == 1 || CONFIG_RTAI_MATH_LIBM_TO_USE == 2 || CONFIG_RTAI_MATH_LIBM_TO_USE == 3 // i.e. them all
 asmlinkage double _Complex clog(double _Complex x);
 asmlinkage double _Complex clog10(double _Complex x)
 {
@@ -293,7 +197,6 @@ asmlinkage float _Complex clog10f(float _Complex x)
 	const float one_over_lnof10 = 0.4342944819032518276454794132;
 	return clogf(x)*one_over_lnof10;
 }
-#endif
 
 EXPORT_SYMBOL(cabs);
 EXPORT_SYMBOL(cabsf);
@@ -305,7 +208,7 @@ EXPORT_SYMBOL(clog);
 EXPORT_SYMBOL(clogf);
 EXPORT_SYMBOL(clog10);
 EXPORT_SYMBOL(clog10f);
-#if CONFIG_RTAI_MATH_LIBM_TO_USE != 2 || defined(CONFIG_X86_32)
+#if defined(CONFIG_X86_32)
 EXPORT_SYMBOL(cacos);
 EXPORT_SYMBOL(cacosf);
 EXPORT_SYMBOL(cacosh);
@@ -609,124 +512,5 @@ __divsc3(float __a, float __b, float __c, float __d)
 }
 
 #endif
-
-#endif
-
-#else 
-
-/*
-rtai/libm/libm.c - module wrapper for SunSoft/FreeBSD/MacOX/uclibc libm
-RTAI - Real-Time Application Interface
-Copyright (C) 2001   David A. Schleef <ds@schleef.org>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 2 as
-published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
-
-
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/init.h>
-#include <rtai_math.h>
-
-MODULE_LICENSE("GPL");
-
-int libm_errno;
-
-static int verbose = 1;
-
-int __rtai_math_init(void)
-{
-	if(verbose){
-		printk(KERN_INFO "RTAI[math]: loaded.\n");
-	}
-	return 0;
-}
-
-void __rtai_math_exit(void)
-{
-	if(verbose){
-		printk(KERN_INFO "RTAI[math]: unloaded.\n");
-	}
-}
-
-#ifndef CONFIG_RTAI_MATH_BUILTIN
-module_init(__rtai_math_init);
-module_exit(__rtai_math_exit);
-#endif /* CONFIG_RTAI_MATH_BUILTIN */
-
-EXPORT_SYMBOL(acos);
-EXPORT_SYMBOL(asin);
-EXPORT_SYMBOL(atan);
-EXPORT_SYMBOL(atan2);
-EXPORT_SYMBOL(ceil);
-EXPORT_SYMBOL(copysign);
-EXPORT_SYMBOL(cos);
-EXPORT_SYMBOL(cosh);
-EXPORT_SYMBOL(exp);
-EXPORT_SYMBOL(expm1);
-EXPORT_SYMBOL(fabs);
-EXPORT_SYMBOL(floor);
-EXPORT_SYMBOL(fmod);
-EXPORT_SYMBOL(frexp);
-EXPORT_SYMBOL(log);
-EXPORT_SYMBOL(log10);
-EXPORT_SYMBOL(modf);
-EXPORT_SYMBOL(pow);
-EXPORT_SYMBOL(scalbn);
-EXPORT_SYMBOL(sin);
-EXPORT_SYMBOL(sinh);
-EXPORT_SYMBOL(sqrt);
-EXPORT_SYMBOL(tan);
-EXPORT_SYMBOL(tanh);
-
-#ifdef CONFIG_RTAI_MATH_C99
-EXPORT_SYMBOL(acosh);
-EXPORT_SYMBOL(asinh);
-EXPORT_SYMBOL(atanh);
-EXPORT_SYMBOL(cabs);
-EXPORT_SYMBOL(cbrt);
-EXPORT_SYMBOL(drem);
-EXPORT_SYMBOL(erf);
-EXPORT_SYMBOL(erfc);
-EXPORT_SYMBOL(gamma);
-EXPORT_SYMBOL(gamma_r);
-EXPORT_SYMBOL(hypot);
-EXPORT_SYMBOL(ilogb);
-EXPORT_SYMBOL(j0);
-EXPORT_SYMBOL(j1);
-EXPORT_SYMBOL(jn);
-EXPORT_SYMBOL(ldexp);
-EXPORT_SYMBOL(lgamma);
-EXPORT_SYMBOL(lgamma_r);
-EXPORT_SYMBOL(log1p);
-EXPORT_SYMBOL(logb);
-EXPORT_SYMBOL(matherr);
-EXPORT_SYMBOL(nearbyint);
-EXPORT_SYMBOL(nextafter);
-EXPORT_SYMBOL(remainder);
-EXPORT_SYMBOL(rint);
-EXPORT_SYMBOL(rinttol);
-EXPORT_SYMBOL(round);
-EXPORT_SYMBOL(roundtol);
-EXPORT_SYMBOL(scalb);
-EXPORT_SYMBOL(signgam);
-EXPORT_SYMBOL(significand);
-EXPORT_SYMBOL(trunc);
-EXPORT_SYMBOL(y0);
-EXPORT_SYMBOL(y1);
-EXPORT_SYMBOL(yn);
-EXPORT_SYMBOL(libm_errno);
-#endif /* CONFIG_RTAI_MATH_C99 */
 
 #endif
