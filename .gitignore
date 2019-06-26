@@ -29,6 +29,7 @@ bin/
 m4/*
 latency
 display
+.libm.o.d
 
 # Generated Makefiles
 GNUmakefile.in
