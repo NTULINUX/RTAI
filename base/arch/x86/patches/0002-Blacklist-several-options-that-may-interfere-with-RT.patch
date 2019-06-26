@@ -1,0 +1,628 @@
+From 09763a4d35f99bea3c4920f92162be64e38f2a27 Mon Sep 17 00:00:00 2001
+From: Alec Ari <neotheuser@ymail.com>
+Date: Wed, 26 Jun 2019 14:55:00 -0500
+Subject: Blacklist several options that may interfere with RTAI
+
+Not a complete list.
+
+Signed-off-by: Alec Ari <neotheuser@ymail.com>
+---
+ arch/Kconfig                    |  5 ++++-
+ arch/x86/Kconfig                | 11 +++++++----
+ drivers/acpi/Kconfig            | 26 +++++++++++++++++---------
+ drivers/acpi/apei/Kconfig       |  2 +-
+ drivers/acpi/dptf/Kconfig       |  2 +-
+ drivers/char/ipmi/Kconfig       |  2 +-
+ drivers/cpufreq/Kconfig         |  1 +
+ drivers/cpuidle/Kconfig         |  1 +
+ drivers/devfreq/Kconfig         |  1 +
+ drivers/gpu/drm/nouveau/Kconfig |  2 +-
+ drivers/iommu/Kconfig           |  2 +-
+ drivers/pci/Kconfig             |  9 +++++----
+ drivers/platform/x86/Kconfig    |  2 +-
+ drivers/power/avs/Kconfig       |  1 +
+ drivers/power/reset/Kconfig     |  1 +
+ drivers/powercap/Kconfig        |  1 +
+ drivers/regulator/Kconfig       |  1 +
+ drivers/thermal/Kconfig         |  1 +
+ drivers/virt/Kconfig            |  1 +
+ drivers/virtio/Kconfig          |  4 ++--
+ drivers/watchdog/Kconfig        |  1 +
+ init/Kconfig                    |  2 ++
+ kernel/power/Kconfig            |  6 ++++--
+ mm/Kconfig                      |  2 +-
+ security/Kconfig                |  2 +-
+ 25 files changed, 59 insertions(+), 30 deletions(-)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 77b3e21c4844..782589f1cb1f 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -402,7 +402,7 @@ config HAVE_GCC_PLUGINS
+ menuconfig GCC_PLUGINS
+ 	bool "GCC plugins"
+ 	depends on HAVE_GCC_PLUGINS
+-	depends on !COMPILE_TEST
++	depends on !COMPILE_TEST && !IPIPE
+ 	help
+ 	  GCC plugins are loadable modules that provide extra features to the
+ 	  compiler. They are useful for runtime instrumentation and static analysis.
+@@ -570,6 +570,7 @@ config CC_STACKPROTECTOR_REGULAR
+ 
+ config CC_STACKPROTECTOR_STRONG
+ 	bool "Strong"
++	depends on !IPIPE
+ 	select CC_STACKPROTECTOR
+ 	help
+ 	  Functions will have the stack-protector canary logic added in any
+@@ -598,6 +599,7 @@ config THIN_ARCHIVES
+ 
+ config LD_DEAD_CODE_DATA_ELIMINATION
+ 	bool
++	depends on !IPIPE
+ 	help
+ 	  Select this if the architecture wants to do dead code and
+ 	  data elimination with the linker by compiling with
+@@ -958,6 +960,7 @@ config ARCH_HAS_REFCOUNT
+ 
+ config REFCOUNT_FULL
+ 	bool "Perform full reference count validation at the expense of speed"
++	depends on !IPIPE
+ 	help
+ 	  Enabling this switches the refcounting infrastructure from a fast
+ 	  unchecked atomic_t implementation to a fully state checked
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b147b5c53af6..6c6dd373d5e8 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -438,6 +438,7 @@ config GOLDFISH
+ config RETPOLINE
+ 	bool "Avoid speculative indirect branches in kernel"
+ 	default y
++	depends on !IPIPE
+ 	select STACK_VALIDATION if HAVE_STACK_VALIDATION
+ 	help
+ 	  Compile kernel with the retpoline compiler options to guard against
+@@ -603,7 +604,7 @@ config X86_INTEL_QUARK
+ 
+ config X86_INTEL_LPSS
+ 	bool "Intel Low Power Subsystem Support"
+-	depends on X86 && ACPI
++	depends on X86 && ACPI && !IPIPE
+ 	select COMMON_CLK
+ 	select PINCTRL
+ 	select IOSF_MBI
+@@ -729,6 +730,7 @@ config SCHED_OMIT_FRAME_POINTER
+ 
+ menuconfig HYPERVISOR_GUEST
+ 	bool "Linux guest support"
++	depends on !IPIPE
+ 	---help---
+ 	  Say Y here to enable options for running Linux under various hyper-
+ 	  visors. This option enables basic hypervisor detection and platform
+@@ -961,12 +963,12 @@ config NR_CPUS
+ 	  approximately eight kilobytes to the kernel image.
+ 
+ config SCHED_SMT
+-	def_bool y if SMP
++	def_bool y if SMP && !IPIPE
+ 
+ config SCHED_MC
+ 	def_bool y
+ 	prompt "Multi-core scheduler support"
+-	depends on SMP
++	depends on SMP && !IPIPE
+ 	---help---
+ 	  Multi-core scheduler support improves the CPU scheduler's decision
+ 	  making when dealing with multi-core CPU chips at a cost of slightly
+@@ -1808,6 +1810,7 @@ config ARCH_RANDOM
+ 
+ config X86_SMAP
+ 	def_bool y
++	depends on !IPIPE
+ 	prompt "Supervisor Mode Access Prevention" if EXPERT
+ 	---help---
+ 	  Supervisor Mode Access Prevention (SMAP) is a security
+@@ -2148,7 +2151,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+ 
+ config HOTPLUG_CPU
+ 	def_bool y
+-	depends on SMP
++	depends on SMP && !IPIPE
+ 
+ config BOOTPARAM_HOTPLUG_CPU0
+ 	bool "Set default setting of cpu0_hotpluggable"
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5b1938f4b626..bc835e76ccf0 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -60,6 +60,7 @@ config ACPI_CCA_REQUIRED
+ 
+ config ACPI_DEBUGGER
+ 	bool "AML debugger interface"
++	depends on !IPIPE
+ 	select ACPI_DEBUG
+ 	help
+ 	  Enable in-kernel debugging of AML facilities: statistics,
+@@ -126,6 +127,7 @@ config ACPI_REV_OVERRIDE_POSSIBLE
+ 
+ config ACPI_EC_DEBUGFS
+ 	tristate "EC read/write access through /sys/kernel/debug/ec"
++	depends on !IPIPE
+ 	default n
+ 	help
+ 	  Say N to disable Embedded Controller /sys/kernel/debug interface
+@@ -144,7 +146,7 @@ config ACPI_EC_DEBUGFS
+ 
+ config ACPI_AC
+ 	tristate "AC Adapter"
+-	depends on X86
++	depends on X86 && !IPIPE
+ 	select POWER_SUPPLY
+ 	default y
+ 	help
+@@ -157,7 +159,7 @@ config ACPI_AC
+ 
+ config ACPI_BATTERY
+ 	tristate "Battery"
+-	depends on X86
++	depends on X86 && !IPIPE
+ 	select POWER_SUPPLY
+ 	default y
+ 	help
+@@ -170,7 +172,7 @@ config ACPI_BATTERY
+ 
+ config ACPI_BUTTON
+ 	tristate "Button"
+-	depends on INPUT
++	depends on INPUT && !IPIPE
+ 	default y
+ 	help
+ 	  This driver handles events on the power, sleep, and lid buttons.
+@@ -184,7 +186,7 @@ config ACPI_BUTTON
+ config ACPI_VIDEO
+ 	tristate "Video"
+ 	depends on X86 && BACKLIGHT_CLASS_DEVICE
+-	depends on INPUT
++	depends on INPUT && !IPIPE
+ 	select THERMAL
+ 	help
+ 	  This driver implements the ACPI Extensions For Display Adapters
+@@ -209,6 +211,7 @@ config ACPI_FAN
+ 
+ config ACPI_DOCK
+ 	bool "Dock"
++	depends on !IPIPE
+ 	help
+ 	  This driver supports ACPI-controlled docking stations and removable
+ 	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+@@ -243,6 +246,7 @@ config ACPI_CPPC_LIB
+ 
+ config ACPI_PROCESSOR
+ 	tristate "Processor"
++	depends on !IPIPE
+ 	depends on X86 || IA64 || ARM64
+ 	select ACPI_PROCESSOR_IDLE
+ 	select ACPI_CPU_FREQ_PSS if X86 || IA64
+@@ -301,7 +305,7 @@ config ACPI_THERMAL
+ config ACPI_NUMA
+ 	bool "NUMA support"
+ 	depends on NUMA
+-	depends on (X86 || IA64 || ARM64)
++	depends on (X86 || IA64 || ARM64) && !IPIPE
+ 	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
+ 
+ config ACPI_CUSTOM_DSDT_FILE
+@@ -336,6 +340,7 @@ config ACPI_TABLE_UPGRADE
+ 
+ config ACPI_DEBUG
+ 	bool "Debug Statements"
++	depends on !IPIPE
+ 	default n
+ 	help
+ 	  The ACPI subsystem can produce debug output.  Saying Y enables this
+@@ -348,7 +353,7 @@ config ACPI_DEBUG
+ 
+ config ACPI_PCI_SLOT
+ 	bool "PCI slot detection driver"
+-	depends on SYSFS
++	depends on SYSFS && !IPIPE
+ 	default n
+ 	help
+ 	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
+@@ -374,7 +379,7 @@ config X86_PM_TIMER
+ 
+ config ACPI_CONTAINER
+ 	bool "Container and Module Devices"
+-	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU)
++	depends on (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU)
+ 	help
+ 	  This driver supports ACPI Container and Module devices (IDs
+ 	  ACPI0004, PNP0A05, and PNP0A06).
+@@ -408,7 +413,7 @@ config ACPI_HOTPLUG_IOAPIC
+ 
+ config ACPI_SBS
+ 	tristate "Smart Battery System"
+-	depends on X86
++	depends on X86 && !IPIPE
+ 	select POWER_SUPPLY
+ 	help
+ 	  This driver supports the Smart Battery System, another
+@@ -419,6 +424,7 @@ config ACPI_SBS
+ 
+ config ACPI_HED
+ 	tristate "Hardware Error Device"
++	depends on !IPIPE
+ 	help
+ 	  This driver supports the Hardware Error Device (PNP0C33),
+ 	  which is used to report some hardware errors notified via
+@@ -441,7 +447,7 @@ config ACPI_CUSTOM_METHOD
+ 
+ config ACPI_BGRT
+ 	bool "Boottime Graphics Resource Table support"
+-	depends on EFI && (X86 || ARM64)
++	depends on EFI && (X86 || ARM64) && !IPIPE
+         help
+ 	  This driver adds support for exposing the ACPI Boottime Graphics
+ 	  Resource Table, which allows the operating system to obtain
+@@ -491,6 +497,7 @@ config ACPI_EXTLOG
+ 
+ menuconfig PMIC_OPREGION
+ 	bool "PMIC (Power Management Integrated Circuit) operation region support"
++	depends on !IPIPE
+ 	help
+ 	  Select this option to enable support for ACPI operation
+ 	  region of the PMIC chip. The operation region can be used
+@@ -526,6 +533,7 @@ endif
+ 
+ config ACPI_CONFIGFS
+ 	tristate "ACPI configfs support"
++	depends on !IPIPE
+ 	select CONFIGFS_FS
+ 	help
+ 	  Select this option to enable support for ACPI configuration from
+diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
+index 52ae5438edeb..a871a3f546ae 100644
+--- a/drivers/acpi/apei/Kconfig
++++ b/drivers/acpi/apei/Kconfig
+@@ -10,7 +10,7 @@ config ACPI_APEI
+ 	select MISC_FILESYSTEMS
+ 	select PSTORE
+ 	select UEFI_CPER
+-	depends on HAVE_ACPI_APEI
++	depends on HAVE_ACPI_APEI && !IPIPE
+ 	help
+ 	  APEI allows to report errors (for example from the chipset)
+ 	  to the operating system. This improves NMI handling
+diff --git a/drivers/acpi/dptf/Kconfig b/drivers/acpi/dptf/Kconfig
+index 90a2fd979282..bc4189889638 100644
+--- a/drivers/acpi/dptf/Kconfig
++++ b/drivers/acpi/dptf/Kconfig
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ config DPTF_POWER
+ 	tristate "DPTF Platform Power Participant"
+-	depends on X86
++	depends on X86 && !IPIPE
+ 	help
+ 	  This driver adds support for Dynamic Platform and Thermal Framework
+ 	  (DPTF) Platform Power Participant device (INT3407) support.
+diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
+index f6fa056a52fc..764e68bf93b8 100644
+--- a/drivers/char/ipmi/Kconfig
++++ b/drivers/char/ipmi/Kconfig
+@@ -4,7 +4,7 @@
+ 
+ menuconfig IPMI_HANDLER
+        tristate 'IPMI top-level message handler'
+-       depends on HAS_IOMEM
++       depends on HAS_IOMEM && !IPIPE
+        select IPMI_DMI_DECODE if DMI
+        help
+          This enables the central IPMI message handler, required for IPMI
+diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
+index d8addbce40bc..2ddefb18c5e1 100644
+--- a/drivers/cpufreq/Kconfig
++++ b/drivers/cpufreq/Kconfig
+@@ -2,6 +2,7 @@ menu "CPU Frequency scaling"
+ 
+ config CPU_FREQ
+ 	bool "CPU Frequency scaling"
++	depends on !IPIPE
+ 	select SRCU
+ 	help
+ 	  CPU Frequency scaling allows you to change the clock speed of 
+diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
+index 7e48eb5bf0a7..5fc81c3570fc 100644
+--- a/drivers/cpuidle/Kconfig
++++ b/drivers/cpuidle/Kconfig
+@@ -2,6 +2,7 @@ menu "CPU Idle"
+ 
+ config CPU_IDLE
+ 	bool "CPU idle PM support"
++	depends on !IPIPE
+ 	default y if ACPI || PPC_PSERIES
+ 	select CPU_IDLE_GOV_LADDER if (!NO_HZ && !NO_HZ_IDLE)
+ 	select CPU_IDLE_GOV_MENU if (NO_HZ || NO_HZ_IDLE)
+diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
+index 6a172d338f6d..a6a9466dd1f8 100644
+--- a/drivers/devfreq/Kconfig
++++ b/drivers/devfreq/Kconfig
+@@ -1,5 +1,6 @@
+ menuconfig PM_DEVFREQ
+ 	bool "Generic Dynamic Voltage and Frequency Scaling (DVFS) support"
++	depends on !IPIPE
+ 	select SRCU
+ 	select PM_OPP
+ 	help
+diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
+index a0c0630a0857..edf91194d887 100644
+--- a/drivers/gpu/drm/nouveau/Kconfig
++++ b/drivers/gpu/drm/nouveau/Kconfig
+@@ -1,6 +1,6 @@
+ config DRM_NOUVEAU
+ 	tristate "Nouveau (NVIDIA) cards"
+-	depends on DRM && PCI && MMU
++	depends on DRM && PCI && MMU && !IPIPE
+         select FW_LOADER
+ 	select DRM_KMS_HELPER
+ 	select DRM_TTM
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index f3a21343e636..1e1ec7c3f97f 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -4,7 +4,7 @@ config IOMMU_API
+ 
+ menuconfig IOMMU_SUPPORT
+ 	bool "IOMMU Hardware Support"
+-	depends on MMU
++	depends on MMU && !IPIPE
+ 	default y
+ 	---help---
+ 	  Say Y here if you want to compile device drivers for IO Memory
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index c32a77fc8b03..22d8ce2c0b45 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -41,7 +41,7 @@ config PCI_DEBUG
+ 
+ config PCI_REALLOC_ENABLE_AUTO
+ 	bool "Enable PCI resource re-allocation detection"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	help
+ 	  Say Y here if you want the PCI core to detect if PCI resource
+ 	  re-allocation needs to be enabled. You can always use pci=realloc=on
+@@ -91,7 +91,7 @@ config PCI_LOCKLESS_CONFIG
+ 
+ config PCI_IOV
+ 	bool "PCI IOV support"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	select PCI_ATS
+ 	help
+ 	  I/O Virtualization is a PCI feature supported by some devices
+@@ -102,7 +102,7 @@ config PCI_IOV
+ 
+ config PCI_PRI
+ 	bool "PCI PRI support"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	select PCI_ATS
+ 	help
+ 	  PRI is the PCI Page Request Interface. It allows PCI devices that are
+@@ -112,7 +112,7 @@ config PCI_PRI
+ 
+ config PCI_PASID
+ 	bool "PCI PASID support"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	select PCI_ATS
+ 	help
+ 	  Process Address Space Identifiers (PASIDs) can be used by PCI devices
+@@ -130,6 +130,7 @@ config PCI_LABEL
+ config PCI_HYPERV
+         tristate "Hyper-V PCI Frontend"
+         depends on PCI && X86 && HYPERV && PCI_MSI && PCI_MSI_IRQ_DOMAIN && X86_64
++	depends on !IPIPE
+         help
+           The PCI device frontend driver allows the kernel to import arbitrary
+           PCI devices from a PCI backend to support PCI driver domains.
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index 09035705d0a0..a7b3cbe24329 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -627,7 +627,7 @@ config ASUS_WIRELESS
+ 
+ config ACPI_WMI
+ 	tristate "WMI"
+-	depends on ACPI
++	depends on ACPI && !IPIPE
+ 	help
+ 	  This driver adds support for the ACPI-WMI (Windows Management
+ 	  Instrumentation) mapper device (PNP0C14) found on some systems.
+diff --git a/drivers/power/avs/Kconfig b/drivers/power/avs/Kconfig
+index a67eeace6a89..5d2d8bc3653d 100644
+--- a/drivers/power/avs/Kconfig
++++ b/drivers/power/avs/Kconfig
+@@ -1,5 +1,6 @@
+ menuconfig POWER_AVS
+ 	bool "Adaptive Voltage Scaling class support"
++	depends on !IPIPE
+ 	help
+ 	  AVS is a power management technique which finely controls the
+ 	  operating voltage of a device in order to optimize (i.e. reduce)
+diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
+index ca0de1a78e85..bd9eb5c21f83 100644
+--- a/drivers/power/reset/Kconfig
++++ b/drivers/power/reset/Kconfig
+@@ -1,4 +1,5 @@
+ menuconfig POWER_RESET
++	depends on !IPIPE
+ 	bool "Board level reset or power off"
+ 	help
+ 	  Provides a number of drivers which either reset a complete board
+diff --git a/drivers/powercap/Kconfig b/drivers/powercap/Kconfig
+index 85727ef6ce8e..196119270fde 100644
+--- a/drivers/powercap/Kconfig
++++ b/drivers/powercap/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig POWERCAP
+ 	bool "Generic powercap sysfs driver"
++	depends on !IPIPE
+ 	help
+ 	  The power capping sysfs interface allows kernel subsystems to expose power
+ 	  capping settings to user space in a consistent way.  Usually, it consists
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 0fd6195601ba..0d08d64b1718 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -1,5 +1,6 @@
+ menuconfig REGULATOR
+ 	bool "Voltage and Current Regulator Support"
++	depends on !IPIPE
+ 	help
+ 	  Generic Voltage and Current Regulator support.
+ 
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index e3f0d1fd1720..6bca6fc8e643 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig THERMAL
+ 	tristate "Generic Thermal sysfs driver"
++	depends on !IPIPE
+ 	help
+ 	  Generic Thermal Sysfs driver offers a generic mechanism for
+ 	  thermal management. Usually it's made up of one or more thermal
+diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
+index 99ebdde590f8..61e7cdb69899 100644
+--- a/drivers/virt/Kconfig
++++ b/drivers/virt/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig VIRT_DRIVERS
+ 	bool "Virtualization drivers"
++	depends on !IPIPE
+ 	---help---
+ 	  Say Y here to get to see options for device drivers that support
+ 	  virtualization environments.
+diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+index cff773f15b7e..302074aeb968 100644
+--- a/drivers/virtio/Kconfig
++++ b/drivers/virtio/Kconfig
+@@ -9,7 +9,7 @@ menu "Virtio drivers"
+ 
+ config VIRTIO_PCI
+ 	tristate "PCI driver for virtio devices"
+-	depends on PCI
++	depends on PCI && !IPIPE
+ 	select VIRTIO
+ 	---help---
+ 	  This driver provides support for virtio based paravirtual device
+@@ -60,7 +60,7 @@ config VIRTIO_INPUT
+ 
+  config VIRTIO_MMIO
+ 	tristate "Platform bus driver for memory mapped virtio devices"
+-	depends on HAS_IOMEM && HAS_DMA
++	depends on HAS_IOMEM && HAS_DMA && !IPIPE
+  	select VIRTIO
+  	---help---
+  	 This drivers provides support for memory mapped virtio
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index f55328a31629..2e3b670c3201 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -5,6 +5,7 @@
+ 
+ menuconfig WATCHDOG
+ 	bool "Watchdog Timer Support"
++	depends on !IPIPE
+ 	---help---
+ 	  If you say Y here (and to one of the following options) and create a
+ 	  character special file /dev/watchdog with major number 10 and minor
+diff --git a/init/Kconfig b/init/Kconfig
+index 33cca939377e..9919a10cf391 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -718,6 +718,7 @@ config CGROUP_WRITEBACK
+ 
+ menuconfig CGROUP_SCHED
+ 	bool "CPU controller"
++	depends on !IPIPE
+ 	default n
+ 	help
+ 	  This feature lets CPU scheduler recognize task groups and control CPU
+@@ -949,6 +950,7 @@ endif # NAMESPACES
+ 
+ config SCHED_AUTOGROUP
+ 	bool "Automatic process group scheduling"
++	depends on !IPIPE
+ 	select CGROUPS
+ 	select CGROUP_SCHED
+ 	select FAIR_GROUP_SCHED
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+index dd2b5a4d89a5..00007dd41191 100644
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -1,6 +1,6 @@
+ config SUSPEND
+ 	bool "Suspend to RAM and standby"
+-	depends on ARCH_SUSPEND_POSSIBLE
++	depends on ARCH_SUSPEND_POSSIBLE && !IPIPE
+ 	default y
+ 	---help---
+ 	  Allow the system to enter sleep states in which main memory is
+@@ -29,11 +29,12 @@ config SUSPEND_SKIP_SYNC
+ 	  user-space before invoking suspend.  Say Y if that's your case.
+ 
+ config HIBERNATE_CALLBACKS
++	depends on !IPIPE
+ 	bool
+ 
+ config HIBERNATION
+ 	bool "Hibernation (aka 'suspend to disk')"
+-	depends on SWAP && ARCH_HIBERNATION_POSSIBLE
++	depends on SWAP && ARCH_HIBERNATION_POSSIBLE && !IPIPE
+ 	select HIBERNATE_CALLBACKS
+ 	select LZO_COMPRESS
+ 	select LZO_DECOMPRESS
+@@ -143,6 +144,7 @@ config PM_WAKELOCKS_GC
+ 
+ config PM
+ 	bool "Device power management core functionality"
++	depends on !IPIPE
+ 	---help---
+ 	  Enable functionality allowing I/O devices to be put into energy-saving
+ 	  (low power) states, for example after a specified period of inactivity
+diff --git a/mm/Kconfig b/mm/Kconfig
+index cc4d633947bf..a5641711e929 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -160,7 +160,7 @@ config HAVE_BOOTMEM_INFO_NODE
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+-	depends on ARCH_ENABLE_MEMORY_HOTPLUG
++	depends on ARCH_ENABLE_MEMORY_HOTPLUG && !IPIPE
+ 
+ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
+diff --git a/security/Kconfig b/security/Kconfig
+index 87f2a6f842fd..356507b057ee 100644
+--- a/security/Kconfig
++++ b/security/Kconfig
+@@ -56,7 +56,7 @@ config SECURITY_NETWORK
+ 
+ config PAGE_TABLE_ISOLATION
+ 	bool "Remove the kernel mapping in user mode"
+-	depends on X86_64 && !UML
++	depends on X86_64 && !UML && !IPIPE
+ 	default y
+ 	help
+ 	  This feature reduces the number of hardware side channels by
+-- 
+2.20.1
+
