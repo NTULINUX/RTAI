@@ -18,15 +18,10 @@ endif
 
 OPTDIRS += sched ipc arch posix
 
-# FIXME: Undefined symbols, disable for now.
-#if CONFIG_RTAI_MATH
-#OPTDIRS += math
-#endif
-
 if CONFIG_RTAI_TASKLETS
 OPTDIRS += tasklets
 endif
 
-SUBDIRS = $(OPTDIRS) scripts
+SUBDIRS = $(OPTDIRS) math scripts
 
 EXTRA_DIST = config

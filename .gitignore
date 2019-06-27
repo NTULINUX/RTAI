@@ -74,4 +74,4 @@ base/config/kconfig/mconf
 base/config/kconfig/zconf.tab.c
 
 # Grabbed in automatically from base/math Makefile
-base/math/newlib
+base/math/musl

@@ -16,10 +16,8 @@
  *
  */
 
-#ifndef _RTAI_EXPORT_NEWLIB_H
-#define _RTAI_EXPORT_NEWLIB_H
-
-//EXPORT_SYMBOL(matherr);
+#ifndef _RTAI_EXPORT_MUSL_H
+#define _RTAI_EXPORT_MUSL_H
 
 EXPORT_SYMBOL(acos);
 EXPORT_SYMBOL(acosf);
@@ -79,12 +77,12 @@ EXPORT_SYMBOL(fmod);
 EXPORT_SYMBOL(fmodf);
 EXPORT_SYMBOL(frexp);
 EXPORT_SYMBOL(frexpf);
-EXPORT_SYMBOL(gamma);
-EXPORT_SYMBOL(gammaf);
+//EXPORT_SYMBOL(gamma);
+//EXPORT_SYMBOL(gammaf);
 EXPORT_SYMBOL(lgamma);
 EXPORT_SYMBOL(lgammaf);
-EXPORT_SYMBOL(gamma_r);
-EXPORT_SYMBOL(gammaf_r);
+//EXPORT_SYMBOL(gamma_r);
+//EXPORT_SYMBOL(gammaf_r);
 EXPORT_SYMBOL(lgamma_r);
 EXPORT_SYMBOL(lgammaf_r);
 EXPORT_SYMBOL(tgamma);
@@ -93,8 +91,6 @@ EXPORT_SYMBOL(hypot);
 EXPORT_SYMBOL(hypotf);
 EXPORT_SYMBOL(ilogb);
 EXPORT_SYMBOL(ilogbf);
-EXPORT_SYMBOL(infinity);
-EXPORT_SYMBOL(infinityf);
 EXPORT_SYMBOL(ldexp);
 EXPORT_SYMBOL(ldexpf);
 EXPORT_SYMBOL(log);
@@ -152,4 +148,4 @@ EXPORT_SYMBOL(tanhf);
 EXPORT_SYMBOL(trunc);
 EXPORT_SYMBOL(truncf);
 
-#endif /* !_RTAI_EXPORT_NEWLIB_H */
+#endif /* !_RTAI_EXPORT_MUSL_H */

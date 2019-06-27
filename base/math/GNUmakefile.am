@@ -11,32 +11,34 @@
 moduledir = @RTAI_MODULE_DIR@
 
 if CONFIG_X86_64
-newlib:
-	git clone --depth=1 git://sourceware.org/git/newlib-cygwin.git newlib \
-	&& cd newlib/newlib && CFLAGS="-mcmodel=kernel -fno-PIC" ./configure \
-	--disable-shared --disable-multilib --enable-newlib-hw-fp \
-	&& $(MAKE)
-else
-newlib:
-	git clone --depth=1 git://sourceware.org/git/newlib-cygwin.git newlib \
-	&& cd newlib/newlib && CFLAGS="-fno-PIC" ./configure \
-	--disable-shared --disable-multilib --enable-newlib-hw-fp \
-	&& $(MAKE)
-endif
+musl:
+	git clone --depth=1 git://git.musl-libc.org/musl \
+	&& cd musl && sed -i 's/-fPIC//g' Makefile \
+	&& CFLAGS="-O2 -mcmodel=kernel -fno-common -fno-pic" ./configure --disable-shared && $(MAKE) \
+	&& ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o \
+	&& ar -dv lib/libc.a cpow.o cpowf.o cpowl.o && cp lib/libc.a lib/libm.a
+else # !CONFIG_X86_64
+musl:
+	git clone --depth=1 git://git.musl-libc.org/musl \
+	&& cd musl && sed -i 's/-fPIC//g' Makefile \
+	&& CFLAGS="-O2 -mcmodel=kernel -fno-common -fno-pic" ./configure --disable-shared && $(MAKE) \
+	&& ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o \
+	&& ar -dv lib/libc.a cpow.o cpowf.o cpowl.o && cp lib/libc.a lib/libm.a
+endif # CONFIG_X86_64
 
-rtai_math.ko: newlib
+rtai_math.ko: musl
 rtai_math.ko: @RTAI_KBUILD_ENV@
-rtai_math.ko: libm.c export_newlib.h
+rtai_math.ko: libm.c export_musl.h
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
 	@RTAI_KBUILD_BOTTOM@
 	mv $@ $@.tmp
-	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/base/math/newlib/newlib/libm.a
+	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/base/math/musl/lib/libm.a
 	rm -f $@.tmp
 
 clean-local:
 	@RTAI_KBUILD_CLEAN@
-	rm -rf newlib
+	rm -rf musl
 
 all-local: rtai_math.ko
 	$(mkinstalldirs) $(top_srcdir)/modules

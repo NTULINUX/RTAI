@@ -7,7 +7,7 @@
  * so to use just the standard GPLed glibc, with the added possibility of 
  * calling both the float and double version of libm.a functions, complex
  * support included.
- *
+ * 
  * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -95,8 +96,56 @@ void __stack_chk_fail(void)
 
 int signgam;
 
-#include "export_newlib.h"
-char using[] = "NEWLIB";
+#include "export_musl.h"
+char using[] = "MUSL";
+#ifdef CONFIG_RTAI_MATH_KCOMPLEX
+// Hopefully a provisional fix. Till it is understood why a plain call of
+// the ones in MUSL libc.a keeps segfaulting for X86_32 (aka i386)
+asmlinkage double _Complex cpow(double _Complex x, double _Complex y)
+{
+	return cexp(y*clog(x));
+}
+
+asmlinkage float _Complex cpowf(float _Complex x, float _Complex y)
+{
+	return cexpf(y*clogf(x));
+}
+// We have to provide them, till they are fixed in MUSL
+asmlinkage double _Complex cacosh(double _Complex z)
+{
+	z = cacos(z);
+	return cimag(z) > 0 ? __builtin_complex(cimag(z), -creal(z)) : __builtin_complex(-cimag(z), creal(z));
+}
+asmlinkage float _Complex cacoshf(float _Complex z)
+{
+	z = cacosf(z);
+	return cimagf(z) > 0 ? __builtin_complex(cimagf(z), -crealf(z)) : __builtin_complex(-cimagf(z), crealf(z));
+}
+#endif
+// Export gamma function not found in MUSL libc.a
+double gamma(double x)
+{
+	return lgamma(x);
+}
+EXPORT_SYMBOL(gamma);
+
+double gamma_r(double x, int *signgamp)
+{
+	return lgamma_r(x, signgamp);
+}
+EXPORT_SYMBOL(gamma_r);
+
+float gammaf(float x)
+{
+	return lgammaf(x);
+}
+EXPORT_SYMBOL(gammaf);
+
+float gammaf_r(float x, int *signgamp)
+{
+	return lgammaf_r(x, signgamp);
+}
+EXPORT_SYMBOL(gammaf_r);
 
 int __rtai_math_init(void)
 {
@@ -170,7 +219,7 @@ char *d2str(double d, int dgt, char *str)
 }
 EXPORT_SYMBOL(d2str);
 
-#if defined(CONFIG_RTAI_MATH_KCOMPLEX) && defined(_RTAI_EXPORT_NEWLIB_H)
+#if defined(CONFIG_RTAI_MATH_KCOMPLEX)
 
 char *cd2str(complex double cd, int dgt, char *str)
 {
@@ -208,7 +257,6 @@ EXPORT_SYMBOL(clog);
 EXPORT_SYMBOL(clogf);
 EXPORT_SYMBOL(clog10);
 EXPORT_SYMBOL(clog10f);
-#if defined(CONFIG_X86_32)
 EXPORT_SYMBOL(cacos);
 EXPORT_SYMBOL(cacosf);
 EXPORT_SYMBOL(cacosh);
@@ -245,64 +293,13 @@ EXPORT_SYMBOL(ctan);
 EXPORT_SYMBOL(ctanf);
 EXPORT_SYMBOL(ctanh);
 EXPORT_SYMBOL(ctanhf);
-#endif
 
-#if 1
 // It is called, even if long double is not supported here; let's track it, to track what has to be done
 double _Complex __mulxc3(long double a, long double b, long double c, long double d)
 {
 	printk(KERN_WARNING "***** __mulxc3 called by %s *****\n", using);
 	return __muldc3((double)a, (double)b, (double)c, (double)d);
 }
-#endif
-
-#define USE_COMPILER_QUALITY_CODE
-
-#ifndef USE_COMPILER_QUALITY_CODE
-
-/* 
- * This is the naive, but faster, approach.
- * No checks and readjustments for NAN and INFINITE
- * results.
- * If you want something closer to what a compiler
- * does, use the LLVM compiler infrastructure below.
- */
-
-double _Complex __muldc3(double a, double b, double c, double d)
-{
-	double _Complex z;
-	__real__ z = a*c - b*d; 
-	__imag__ z = a*d + b*c; 
-	return z;
-}
-
-float _Complex __mulsc3(float a, float b, float c, float d)
-{
-	float _Complex z;
-	__real__ z = a*c - b*d; 
-	__imag__ z = a*d + b*c; 
-	return z;
-}
-
-double _Complex __divdc3(double a, double b, double c, double d)
-{
-	double _Complex z;
-	double dn = c*c + d*d;
-	__real__ z = (a*c + b*d)/dn; 
-	__imag__ z = (-a*d + b*c)/dn; 
-	return z;
-}
-
-float _Complex __divsc3(float a, float b, float c, float d)
-{
-	float _Complex z;
-	float dn = c*c + d*d;
-	__real__ z = (a*c + b*d)/dn; 
-	__imag__ z = (-a*d + b*c)/dn; 
-	return z;
-}
-
-#else
 
 /* 
  * This is the LLVM compiler infrastructure.
@@ -510,7 +507,5 @@ __divsc3(float __a, float __b, float __c, float __d)
     }
     return z;
 }
-
-#endif
 
 #endif
