@@ -1,4 +1,4 @@
-From 824a1a26a403fac42c4122db9cbcba40b9499485 Mon Sep 17 00:00:00 2001
+From 3a219b40353038ead1805bb9acf4ec98ed9a55e6 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 25 Jun 2019 18:31:37 -0500
 Subject: RTAI core release 5 for Linux 4.14.130
@@ -129,9 +129,9 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/gpio/driver.h             |    2 +-
  include/linux/hardirq.h                 |    3 +
  include/linux/interrupt.h               |   17 +
- include/linux/ipipe.h                   |  721 ++++++++
+ include/linux/ipipe.h                   |  721 +++++++++
  include/linux/ipipe_debug.h             |  100 ++
- include/linux/ipipe_domain.h            |  360 ++++
+ include/linux/ipipe_domain.h            |  360 +++++
  include/linux/ipipe_lock.h              |  329 ++++
  include/linux/ipipe_tickdev.h           |  165 ++
  include/linux/ipipe_trace.h             |   78 +
@@ -163,7 +163,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  kernel/ipipe/Kconfig                    |   47 +
  kernel/ipipe/Kconfig.debug              |  100 ++
  kernel/ipipe/Makefile                   |    2 +
- kernel/ipipe/core.c                     | 1999 +++++++++++++++++++++++
+ kernel/ipipe/core.c                     | 1956 +++++++++++++++++++++++
  kernel/ipipe/timer.c                    |  650 ++++++++
  kernel/ipipe/tracer.c                   | 1486 +++++++++++++++++
  kernel/irq/chip.c                       |  247 ++-
@@ -209,7 +209,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                        |    4 +
  mm/mprotect.c                           |   11 +-
  mm/vmalloc.c                            |    2 +
- 202 files changed, 11348 insertions(+), 878 deletions(-)
+ 202 files changed, 11305 insertions(+), 878 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -12270,10 +12270,10 @@ index 000000000000..73755150634f
 +obj-$(CONFIG_IPIPE_TRACE) += tracer.o
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
 new file mode 100644
-index 000000000000..738d6fde85ed
+index 000000000000..cdc93f5619a3
 --- /dev/null
 +++ b/kernel/ipipe/core.c
-@@ -0,0 +1,1999 @@
+@@ -0,0 +1,1956 @@
 +/* -*- linux-c -*-
 + * linux/kernel/ipipe/core.c
 + *
@@ -13566,49 +13566,6 @@ index 000000000000..738d6fde85ed
 +		vmf->handler(vmf);
 +}
 +EXPORT_SYMBOL_GPL(__ipipe_notify_vm_preemption);
-+
-+static void Dispatch_irq_head(unsigned int irq) /* hw interrupts off */
-+{
-+	struct ipipe_percpu_domain_data *p = ipipe_this_cpu_head_context(), *old;
-+	struct ipipe_domain *head = p->domain;
-+
-+	if (unlikely(test_bit(IPIPE_STALL_FLAG, &p->status))) {
-+		__ipipe_set_irq_pending(head, irq);
-+		return;
-+	}
-+
-+	/* Switch to the head domain if not current. */
-+	old = __ipipe_current_context;
-+	if (old != p)
-+		__ipipe_set_current_context(p);
-+
-+	p->irqall[irq]++;
-+	__set_bit(IPIPE_STALL_FLAG, &p->status);
-+	barrier();
-+	head->irqs[irq].handler(irq, head->irqs[irq].cookie);
-+	__ipipe_run_irqtail(irq);
-+	hard_local_irq_disable();
-+	p = ipipe_this_cpu_head_context();
-+	__clear_bit(IPIPE_STALL_FLAG, &p->status);
-+
-+	/* Are we still running in the head domain? */
-+	if (likely(__ipipe_current_context == p)) {
-+		/* Did we enter this code over the head domain? */
-+		if (old->domain == head) {
-+			/* Yes, do immediate synchronization. */
-+			if (__ipipe_ipending_p(p))
-+				__ipipe_sync_stage();
-+			return;
-+		}
-+		__ipipe_set_current_context(ipipe_this_cpu_root_context());
-+	}
-+
-+	/*
-+	 * We must be running over the root domain, synchronize
-+	 * the pipeline for high priority IRQs (slow path).
-+	 */
-+	__ipipe_do_sync_pipeline(head);
-+}
 +
 +void __ipipe_dispatch_irq(unsigned int irq, int flags) /* hw interrupts off */
 +{
