@@ -15,12 +15,7 @@ of its native addons, as listed below.
 
 Those already used by modules found in this distributions are:
 0  - RTAI itself (hardwired),
-1  - tasklets    (hardwired),
-2  - watchdog    (hardwired),
-9  - comedi,
-10 - fifos,
-14 - serial,
-15 - rtdm.
+10 - fifos
 
 So you can reuse the above slots only if you are not using the related modules
 found in this distribution. In any case check the value returned by: 

@@ -268,7 +268,6 @@ EXPORT_SYMBOL(__task_init);
 static int __task_delete(RT_TASK *rt_task)
 {
 	struct task_struct *lnxtsk;
-	RT_TASK *server;
 
 	if (current != (lnxtsk = rt_task->lnxtsk)) {
 		return -EPERM;
@@ -277,14 +276,6 @@ static int __task_delete(RT_TASK *rt_task)
 	if (rt_task->is_hard > 0) {
 		give_back_to_linux(rt_task, 0);
 	}
-#if 0
-	if ((server = rt_task->linux_syscall_server)) {
-		server->suspdepth = -RTE_HIGERR;
-		rt_task_masked_unblock(server, ~RT_SCHED_READY);
-       		lnxtsk->state = TASK_INTERRUPTIBLE;
-	        msleep(100);
-	}
-#endif
 	if (clr_rtext(rt_task)) {
 		return -EFAULT;
 	}

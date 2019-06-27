@@ -11,7 +11,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
-AC_INIT([RTAI], [5.2.0], [neotheuser@ymail.com])
+AC_INIT([RTAI], [5.2.1], [neotheuser@ymail.com])
 AC_CONFIG_AUX_DIR(base/scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
@@ -20,7 +20,7 @@ AC_CONFIG_HEADERS(rtai_config.h)
 
 CONFIG_RTAI_VERSION_MAJOR=5
 CONFIG_RTAI_VERSION_MINOR=2
-CONFIG_RTAI_REVISION_LEVEL=0
+CONFIG_RTAI_REVISION_LEVEL=1
 
 AC_PROG_INSTALL
 LT_INIT
@@ -84,23 +84,12 @@ AC_MSG_RESULT([$KCONFIG_RESULT])
 
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
-CONFIG_RTAI_MODULE_DIR=$RTAI_MODULE_DIR
 
 dnl
 dnl Process the Linux kernel configuration
 dnl
 
 AC_MSG_CHECKING([for Linux source tree])
-
-dnl FIXME: All of this CONFIG_MODULES madness should be re-written
-dnl so we can load the Linux kernel configuration at any time. Use
-dnl CONFIG_MODULE_UNLOAD instead and bypass CONFIG_MODULES entirely.
-dnl You need module unloading support anyway otherwise you're stuck.
-
-dnl CONFIG_MODULES has been forcibly set in RTAI's configuration
-dnl file, therefore we must unset it before later checking if the kernel
-dnl actually defined it as required too.
-unset CONFIG_MODULES
 
 dnl safe default
 if test x$CONFIG_RTAI_LINUXDIR != x ; then
@@ -144,8 +133,7 @@ eval linux_`grep '^PATCHLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 eval linux_`grep '^SUBLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 eval linux_`grep '^VERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 
-dnl FIXME: This isn't the right way to do this.
-dnl Load Linux kernel configuration now, before config symbols are tested.
+dnl Load Linux kernel configuration
 if test \! -r ${RTAI_LINUX_DIR}/.config; then
 	AC_MSG_RESULT([invalid])
 	AC_MSG_ERROR([$RTAI_LINUX_DIR is not configured -- --with-linux-dir sets linux-dir])
@@ -166,10 +154,8 @@ AC_MSG_CHECKING([for kernel architecture])
 KERNEL_ARCH="`uname -m`"
 AC_MSG_RESULT([$KERNEL_ARCH])
 
-dnl FIXME: This part too, replace with CONFIG_MODULE_UNLOAD and clean
-dnl this entire section up so it's easier to work on. Big mess right now.
-if test x${CONFIG_MODULES} = x ; then
-	AC_MSG_ERROR([Please set CONFIG_MODULES for $RTAI_LINUX_DIR and rebuild your kernel])
+if test x${CONFIG_MODULE_UNLOAD} = x ; then
+	AC_MSG_ERROR([Please set CONFIG_MODULE_UNLOAD for $RTAI_LINUX_DIR and rebuild your kernel])
 fi
 
 if test \! -r $LINUX_KERNELSRC/include/linux/ipipe.h; then
@@ -299,20 +285,6 @@ AC_MSG_RESULT(${CONFIG_RTAI_MALLOC:-no})
 
 if test x$CONFIG_RTAI_MALLOC = xy ; then
 	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST malloc"
-fi
-
-AC_MSG_CHECKING(for tasklets support)
-AC_ARG_ENABLE(tasklets,
-	[ --enable-tasklets		Enable tasklets support],
-	[case "$enableval" in
-	y | yes | b | builtin | built-in) CONFIG_RTAI_TASKLETS=y ;;
-	m | mod | module) CONFIG_RTAI_TASKLETS=m ;;
-	*) unset CONFIG_RTAI_TASKLETS ;;
-	esac])
-AC_MSG_RESULT(${CONFIG_RTAI_TASKLETS:-no})
-
-if test x$CONFIG_RTAI_TASKLETS = xy ; then
-	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST tasklets"
 fi
 
 AC_MSG_CHECKING(whether LXRT wraps service calls through Linux syscalls)
@@ -699,7 +671,6 @@ test \! x$CONFIG_RTAI_SHM = x && AC_DEFINE(CONFIG_RTAI_SHM,1,[Kconfig])
 test \! x$CONFIG_RTAI_MALLOC = x && AC_DEFINE(CONFIG_RTAI_MALLOC,1,[Kconfig])
 test \! x$CONFIG_RTAI_USE_TLSF = x && AC_DEFINE(CONFIG_RTAI_USE_TLSF,1,[Kconfig])
 test \! x$CONFIG_RTAI_MALLOC_VMALLOC = x && AC_DEFINE(CONFIG_RTAI_MALLOC_VMALLOC,1,[Kconfig])
-test \! x$CONFIG_RTAI_TASKLETS = x && AC_DEFINE(CONFIG_RTAI_TASKLETS,1,[Kconfig])
 test \! x$CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL = x && AC_DEFINE(CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL,1,[Kconfig])
 test \! x$CONFIG_RTAI_ALIGN_LINUX_PRIORITY = x && AC_DEFINE(CONFIG_RTAI_ALIGN_LINUX_PRIORITY,1,[Kconfig])
 test \! x$CONFIG_RTAI_TASK_SWITCH_SIGNAL = x && AC_DEFINE(CONFIG_RTAI_TASK_SWITCH_SIGNAL,1,[Kconfig])
@@ -712,7 +683,6 @@ test x$CONFIG_RTAI_MBX = xy && AC_DEFINE(CONFIG_RTAI_MBX_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_MQ = xy && AC_DEFINE(CONFIG_RTAI_MQ_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_SHM = xy && AC_DEFINE(CONFIG_RTAI_SHM_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_MALLOC = xy && AC_DEFINE(CONFIG_RTAI_MALLOC_BUILTIN,1,[Kconfig])
-test x$CONFIG_RTAI_TASKLETS = xy && AC_DEFINE(CONFIG_RTAI_TASKLETS_BUILTIN,1,[Kconfig])
 
 test x$CONFIG_RTAI_SCHED_ISR_LOCK = xy && AC_DEFINE(CONFIG_RTAI_SCHED_ISR_LOCK,1,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_RTC_FREQ,$CONFIG_RTAI_RTC_FREQ,[Kconfig])
@@ -833,7 +803,6 @@ AM_CONDITIONAL(CONFIG_RTAI_MBX,[test -n "$CONFIG_RTAI_MBX"])
 AM_CONDITIONAL(CONFIG_RTAI_MQ,[test -n "$CONFIG_RTAI_MQ"])
 AM_CONDITIONAL(CONFIG_RTAI_SHM,[test -n "$CONFIG_RTAI_SHM"])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC,[test -n "$CONFIG_RTAI_MALLOC"])
-AM_CONDITIONAL(CONFIG_RTAI_TASKLETS,[test -n "$CONFIG_RTAI_TASKLETS"])
 AM_CONDITIONAL(CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL,[test -n "$CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL"])
 
 AM_CONDITIONAL(CONFIG_RTAI_FIFOS_BUILTIN,[test x$CONFIG_RTAI_FIFOS = xy])
@@ -843,7 +812,6 @@ AM_CONDITIONAL(CONFIG_RTAI_MBX_BUILTIN,[test x$CONFIG_RTAI_MBX = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MQ_BUILTIN,[test x$CONFIG_RTAI_MQ = xy])
 AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
-AM_CONDITIONAL(CONFIG_RTAI_TASKLETS_BUILTIN,[test x$CONFIG_RTAI_TASKLETS = xy])
 
 dnl
 dnl Define arch-specific CFLAGS and links
@@ -861,7 +829,7 @@ RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers m
 RTAI_KBUILD_DISTCLEAN=""
 
 dnl extra arch-dependent opts to be passed to the compiler
-RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer"
+RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
 RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
@@ -878,7 +846,6 @@ AC_CONFIG_LINKS(base/ipc/sem/Makefile:base/ipc/sem/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
 AC_CONFIG_LINKS(base/posix/Makefile:base/posix/Makefile.kbuild)
 AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
-AC_CONFIG_LINKS(base/tasklets/Makefile:base/tasklets/Makefile.kbuild)
 AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
 AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
 
@@ -932,7 +899,6 @@ AC_CONFIG_FILES([ \
 	base/ipc/mq/GNUmakefile \
 	base/malloc/GNUmakefile \
 	base/math/GNUmakefile \
-	base/tasklets/GNUmakefile \
 	base/posix/GNUmakefile \
 	testsuite/GNUmakefile
 	])

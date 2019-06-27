@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -16,7 +17,7 @@ config MODULES
 
 config RTAI_VERSION
 	string
-	default "5.2 (vulcano)"
+	default "5.2.1 (Beta)"
 
 menu "General"
 
@@ -476,48 +477,6 @@ config RTAI_MBX
 	principle and on Last In First Out (LIFO) for urgent delivery.
 	Mailboxes depend on semaphores.
 	The module will be called rtai_mbx.o.
-
-config RTAI_TASKLETS
-	tristate "Tasklets"
-	default m
-	help
-
-	The tasklets module adds an interesting new feature along the
-	line, pioneered by RTAI, of a symmetric usage of all its
-	services inter-intra kernel and user space for both soft and
-	hard real-time. The new services provided can be useful when
-	you have many tasks, both in kernel and user space, needing to
-	execute specific functions. Such functions are called tasklets 
-	and can be of two kinds:
-	- a simple tasklet;
-	- timed tasklets (timers).
-	The tasklets implementation of timed tasklets relies on a
-	server support task that executes the related timer functions,
-	either in oneshot or periodic mode, on the base of their time
-	deadline and according to their user assigned priority.
-	As explained above, plain tasklets are just functions executed
-	depending on user defined events. Their execution needs no server 
-	and is simply triggered by calling the user specified tasklet
-	function at due time, either from a kernel task or interrupt
-	handler in charge of their execution when they are needed.
-	The module will be called rtai_tasklets.o.
-
-	There are special signals tasklets also, natively built in always.
-	They are much the same as tasklets and execute their handler
-	function whenever they are triggered by any task, including their
-	parent task. The notable difference against tasklets is that the
-	task they serve is blocked till any of its signal handler is 
-	executing. So they behave as standard signal handlers but without
-	the need to restart a blocked signalled task, since there is no
-	need to have it resumed to catch a signal. In fact signals can be 
-	seen as much as software generated interrupts. See their APIs
-	documentation in the code.
-	The module will be called rtai_signal.o.
-
-	Notice that, if the module version is chosen, this option activates
-	the making of two different modules. At the moment the related
-	services from user space are seen as LXRT expansions using slots
-	1 and 2 respectively.
 
 config RTAI_MQ
 	tristate "POSIX-like message queues"

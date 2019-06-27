@@ -77,10 +77,10 @@ Before configuring and making, execute the following script lines, from
 within its base directory:
 - $ sed -i 's/-fPIC/""/' Makefile
   needed  to disable -fPIC, set by default in the MUSL Makefile
-For i386-i686 32-bit systems:
-- $ ./configure --disable-shared CFLAGS="-fno-common -fno-pic"
-For 64 bits:
-- $ ./configure --disable-shared CFLAGS="-mcmodel=kernel -fno-common -fno-pic"
+For x86 32-bit systems:
+- $ CFLAGS="-O2 -fno-common -fno-pic" ./configure --disable-shared
+For amd64 systems:
+- $ CFLAGS="-O2 -mcmodel=kernel -fno-common -fno-pic" ./configure --disable-shared
 - $ make
 RTAI rtai_math.ko does not support any "long double". It is thus strange that
 it could happen, but there have been instances in which a few long double

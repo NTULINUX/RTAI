@@ -1,349 +1,45 @@
-# Copyright (C) 2005-2017 The RTAI project
-# This [file] is free software; the RTAI project
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
-# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE.
+=== Installing RTAI ===
 
-Installing RTAI-3.x
-===================
+Commands marked with # specify root, commands marked with $ are user commands.
 
-0. RTAI 3.6
-================================
+1.) Download the RTAI source
 
-RTAI uses only the leanest and fastest RTAI+Linux combination now, i.e. it 
-dispatches real time interrupts immediately. Moreover within such a scheme 
-i386 has the possibility of completely avoiding the dispatching of critical 
-internal timers and interprocessor scheduling interrupts by vectoring them 
-directly to their handlers. Such an option strongly enhances performances
-on low end machines and comes by default. You can disable it while configuring 
-RTAI though. See the related configuration helper.
-What above requires you to patch Linux just with patches found wihin this 
-distribution. 
-Notice also that this release is for use with:
-- i386,
-- x86_64,
-- PPC.
+$ git clone -b for-next https://github.com/NTULINUX/RTAI.git
 
-On recent distributions, managing udev/sysfs, devices created by following 
-this installation procedure will disappear at each machine halting. Then they 
-will be available nomore at the next reboot. RTAI should manage udev/sysfs 
-support but in case something weird will impede it you can solve your problem
-quickly by restoring RTAI devices before running your application. For that
-the following short script containing:
------------------------------- cut here -------------------------------------
-if test \! -c /dev/rtai_shm; then
-        mknod -m 666 /dev/rtai_shm c 10 254
-fi
-for n in `seq 0 9`; do
-        f=/dev/rtf$n
-        if test \! -c $f; then
-                mknod -m 666 $f c 150 $n
-        fi
-done
------------------------------- cut here -------------------------------------
-should suffice.
+2.) Patch kernel with IPIPE, in this case we use 4.14.130
 
-1. How to build
-===============
+# rm -rf /usr/src/000*.patch /usr/src/linux
+# cd /usr/src
+# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.130.tar.xz
+# tar xf linux-4.14.130.tar.xz
+# ln -sfv linux-4.14.130 linux
+# cp -aLv /path/to/this/RTAI-git-tree/base/arch/x86/patches/v4.14.130/*.patch /usr/src/
+# cd linux
+# patch -p1 < ../0001-RTAI-core-release-5-for-Linux-4.14.130.patch
+# patch -p1 < ../0002-Countless-Kconfig-tweaks-for-IPIPE.patch
+# make olddefconfig
+# make menuconfig
 
-1.1 Standard procedure
-----------------------
+Configure to your needs
 
-The RTAI build system is a merge of Linux's Kconfig with
-autoconf/automake/libtool. Therefore, you can either build RTAI:
+# make
+# make install && make modules_install
 
-1.1.1 Interactive configuration
--------------------------------
+3.) Update grub
 
-1) Into the source tree like with 24.1.x (your_source_dir ==
-your_build_dir). Just run either:
+Refer to your distribution documentation to do this. Generally for newer distros:
 
-$ make xconfig # (Qt-based)
-$ make gconfig # (GTK-based)
-$ make menuconfig (dialog-based as in 24.1.x)
+# grub-mkconfig -o /boot/grub/grub.cfg
 
-Save your configuration, wait for the shell prompt to come back after
-the configuration script has fully finished, then run "make".
+4.) Compile, configure and install RTAI (MUST BE BOOTED INTO YOUR NEW RTAI KERNEL)
 
-2) Outside the source tree. From your fresh build directory, 
-either run:
+$ cd ~/RTAI
+$ ./autogen.sh
+$ make menuconfig
 
-$ make -f $source_tree/makefile srctree=$source_tree xconfig
-$ make -f $source_tree/makefile srctree=$source_tree gconfig
-$ make -f $source_tree/makefile srctree=$source_tree menuconfig
+Configure to your needs
 
-If you are using a version of make >= 3.80, then you can even get rid
-of the "srctree=$source_tree" setting. The makefile will infere its
-value properly.
+$ make
+$ sudo make install
 
-1.1.2 Non-interactive configuration
------------------------------------
-
-Since RTAI 3.x has autoconf inside, people needing automatic
-non-interactive configuration can directly use the provided GNU
-configure script for this purpose. The available configuration
-switches can be listed by running ./configure --help. The
-RTAI-specific switches are:
-
- --enable-trace		Enable trace support
- --enable-bits		Enable bits IPC support
- --enable-fifos		Enable fifo IPC support
- --enable-netrpc	Enable netrpc support
- --enable-netrpc-rtnet	Enable use of RTNet
- --enable-sem		Enable semaphore support
- --enable-msg		Enable messaging support
- --enable-mbx		Enable mailbox support
- --enable-tbx		Enable typed mailbox support
- --enable-mq		Enable POSIX-like message queue support
- --enable-shm		Enable shared memory support
- --enable-malloc	Enable real-time malloc support
- --enable-tasklets	Enable tasklets support
- --enable-usi		Enable user-space interrupt support
- --enable-watchdog	Enable watchdog support
- --enable-leds		Enable leds-based debugging support
- --enable-sched-lxrt	Enable scheduler support without RTAI own ktasks
- --enable-ktasks-sched-lxrt     Enable scheduler support with RTAI own ktasks
- --enable-sched-lock-isr	Enable scheduler lock in ISRs
- --enable-sched-8254-latency=	Set 8254 tuning latency
- --enable-sched-apic-latency=	Set APIC tuning latency
- --enable-sched-lxrt-numslots=	Set number of LXRT slots
- --enable-cplusplus	Build in-kernel C++ support
- --enable-comedi-lxrt	Enable comedi/LXRT support
- --enable-serial	Build real-time serial driver
- --enable-testsuite	Build RTAI testsuite
- --enable-rtailab	Build RTAI-Lab
- --enable-malloc-vmalloc	Enable vmalloc support in malloc
- --enable-malloc-heap-size	Set size of real-time malloc heap
- --enable-cpus		Enable CPUs
- --enable-dox-doc       Build Doxygen documentation
- --enable-dbx           Build Docbook XML documentation.
- --enable-dbx-network   Try to access Docbook DTD and XSL stylesheets through 
-                        network.
- --enable-latex-doc     Build LaTeX documentation
- --enable-verbose-latex Uses LaTeX non-stop mode
- --enable-compat	Enable compatibility mode
- --enable-module-debug	Enable debug information in kernel modules
- --enable-user-debug	Enable debug information in user-space programs
-
-Some configuration targets in base/ can either produce a module,
-or be statically linked to the RTAI schedulers. Either pass "m" for
-the modular build to their respective --enable-xxx switch, or "y" for
-selecting the built-in mode.
-
-1.1.3 Recycling a configuration file
-------------------------------------
-
-You can also recycle an existing .rtai_config file from a previous
-build by running:
-
-$ cp -rp $old_builddir/.rtai_config \
-         $new_builddir/.rtai_config
-$ cd $new_builddir
-$ make -f $source_tree/makefile srctree=$source_tree oldconfig
-
-1.1.4 Selecting alternate compilers
------------------------------------
-
-Compiler selection must be done at _configuration_ time. One only
-needs to pass the right values for the standard environment variables
-CC and CXX, respectively for compiling C and C++ source files. In any
-case, using a GCC toolchain is mandatory. When unspecified, these
-variables's values respectively default to "gcc" and "g++".
-
-WARNING: this selection is not aimed at toggling the cross-compilation
-mode on. In order to do so, please refer to 1.2.
-
-Examples:
-
-# Start configuring using the Qt-based GUI with alternate compilers
-$ make xconfig CC=/my/favourite/c/compiler CXX=/my/favourite/c++/compiler
-
-# Reconfiguring a previous build tree, changing the compilers on-the-fly.
-$ make reconfig CC=/my/favourite/c/compiler CXX=/my/favourite/c++/compiler
-
-# Rebuild all [and optionally install]
-$ make [all [install]]
-
-CAVEAT: Since the autoconf-based engine needs to analyze the
-compilers's features and crams the CC and CXX values into the
-Makefiles it produces, passing CC and CXX variables at build time
-simply does _not_ work for the purpose of selecting alternate compiler
-toolchains. Again, you need to let the configuration engine know about
-these new settings as explained above.
-
-1.2 Cross-compilation support
------------------------------
-
-Simply add ARCH and CROSS_COMPILE variables as usual to the standard
-command lines, e.g.
-
-$ make -f $source_tree/makefile ARCH=arm CROSS_COMPILE=arm-linux-
-
-Names of available architectures can be found under base/arch/*.
-
-1.3 Installing the software
----------------------------
-
-When the standard (or cross-) compilation has finished:
-
-$ cd $builddir
-$ make install
-
-Everything needed to use the RTAI distribution will be copied there
-out of the build tree. From now on, you should be able to refer to the
-installation directory as the root of a complete standalone binary
-RTAI distribution.
-
-One may also choose to install the RTAI programs under a temporary
-staging tree by passing the standard DESTDIR variable to "make" while
-installing. e.g.
-
-$ make install DESTDIR=/mnt/target
-
-will create a standard RTAI hierarchy under /mnt/target, keeping the
-original prefix information unmodified. If the installation directory
-selected at configuration time was "/usr/realtime", then the command
-above will put the RTAI binary distribution under
-/mnt/target/usr/realtime.
-
-WARNING: running "make install" is required to run several standard
-RTAI programs correctly. RTAI 3.x enforces the actual split between
-the source distribution tree, the build tree where RTAI is going to be
-compiled, and the final installation directory where RTAI programs can
-be run eventually. In any case, you should only rely on the
-installation directory contents to run RTAI programs.
-
-NOTE: Do not pay attention to the "*** Warning" messages appearing on
-module compilation output. They are harmless and will be fixed later.
-
-1.4 Compiling parts of the tree
--------------------------------
-
-RTAI developers may want to recompile parts of the tree from times to
-times. This automake-based build system allows it: just go to the
-proper directory level, then issue "make", as usual. This process will
-recurse as needed.
-
-The "makefile" (small caps) found in the root source directory is used
-to bootstrap the build system when it is about to be configured for
-the first time. After the first configuration has been successful, one
-just need to run "make xconfig|gconfig|menuconfig|..." as usual.
-
-1.5 Changing the configuration
-------------------------------
-
-Each time you want to change your configuration, just run "make
-xconfig|gconfig|menuconfig" in your build dir, then "make" (or "make
-all").
-
-If you only want to rerun the "configure" script using the current
-RTAI configuration, just run "make reconfig", there is no need to
-restart any GUI for that.
-
-When invoked for the first time in an empty build directory, the
-default "make" goal is "menuconfig" in a regular terminal, or
-"xconfig" in an emacs-term.
-
-1.6 Modifying the autotool template files
------------------------------------------
-
-If you have to change some template files used by any of the autotools
-(i.e. Makefile.am, configure.in, acinclude.m4), then you will need the
-following pack to rebuild the derived files:
-
-o autoconf 2.59
-o automake 1.9.2
-o aclocal 1.9.2
-o libtool 1.5.8
-
-1.7 Using the integrated calibration tool
------------------------------------------
-
-RTAI 3.x comes with a brand new calibration tool which should help you
-determining if your hardware platform is up to the hard real-time
-duties. You can find this tool under $installdir/calibration. Here is
-the output of this tool's help message for x86-based platforms:
-
-$ ./calibration --help
-
-OPTIONS:
-  -h, --help
-      print usage
-  -r, --r8254
-      calibrate 8254 oneshot programming type
-  -k, --kernel
-      oneshot latency calibrated for scheduling kernel space tasks
-  -u, --user
-      oneshot latency calibrated for scheduling user space tasks
-  -p <period (us)>, --period <period (us)>
-      the period of the underlying hard real time task/intr, default 100 (us)
-  -t <duration (s)>, --time <duration (s)>
-      set the duration of the requested calibration, default 5 (s)
-  -c, --cpufreq
-      calibrate cpu frequency
-  -a, --apic
-      calibrate apic frequency
-  -b, --both
-      calibrate both apic and cpu frequency
-  -i, --interrupt
-      check worst case interrupt locking/contention on your PC
-  -s<y/n>, --scope<y/n>
-      toggle parport bit to monitor scheduling on a scope, default y(es)
-
-2. Bootstrapping with vulcano in 7 steps
-========================================
-
->1. patch and build a vanilla Linux kernel tree with the RTAI support as
-    usual. Patches for x86 are available from
-    vulcano/base/arch/i386/patches/. Apply only one of them
-    that matches the Linux kernel version, like this:
-    $ cd $linux-src-dir
-    $ patch -p1 < base/arch/$arch/patches/patchfile
-
->2. $ mkdir $builddir && cd $builddir
-
->3. $ make -f ../vulcano/makefile srctree=../vulcano
-
->4. a GUI should pop up, allowing you to configure RTAI:
-    o default settings should be ok for most platforms
-    o in the "General" section, set your site values for the RTAI
-      installation directory (defaults to /usr/realtime) and
-      Linux kernel tree (defaults to /usr/src/linux).
-    o save and exit.
-
---
-
-At this point, you should see the typical output of a GNU configure
-script. Your RTAI settings are being used to setup the
-autoconf/automake-based build system.
-
---
-
->5. $ make install
-
-RTAI will be compiled then installed under the directory you specified
-at configuration time (ensure that your shell can write to the
-destination directory).
-
-Remember to add $installdir/bin to your shell PATH variable, where
-$installdir is your site value for the RTAI installation directory.
-
---
-
->6. $ cd $installdir/testsuite/kern/latency
-
->7. $ ./run
-
-If "sudo" is installed on your box, the application loader script
-(rtai-load) will attempt to use it for running privileged commands
-(e.g. insmod, rmmod et al.) If sudo is not available, just "su"
-manually before running the run script. You should then see the
-typical output of the latency calibration program running in kernel
-space.  Hit ^C to stop it.
-
---
-<rpm@xenomai.org>
-12/5/2004
+5.) Go get LinuxCNC and compile that.
