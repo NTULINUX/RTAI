@@ -89,7 +89,6 @@ switches can be listed by running ./configure --help. The
 RTAI-specific switches are:
 
  --enable-trace		Enable trace support
- --enable-math		Enable math support
  --enable-bits		Enable bits IPC support
  --enable-fifos		Enable fifo IPC support
  --enable-netrpc	Enable netrpc support
@@ -116,8 +115,6 @@ RTAI-specific switches are:
  --enable-serial	Build real-time serial driver
  --enable-testsuite	Build RTAI testsuite
  --enable-rtailab	Build RTAI-Lab
- --enable-fpu		Enable FPU support
- --enable-math-c99	Enable math C99 support
  --enable-malloc-vmalloc	Enable vmalloc support in malloc
  --enable-malloc-heap-size	Set size of real-time malloc heap
  --enable-cpus		Enable CPUs

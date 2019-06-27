@@ -569,17 +569,8 @@ config RTAI_USE_NEWERR
 	to choose what to do, without forcing any adaption for already 
 	existing working applications.
 
-config RTAI_MATH
-	bool "Mathfuns support in kernel"
-	default n
-	help
-	This parameter allows building a module containing math support 
-	functions for kernel space. It might be useful to avoid fighting
-	for the use of libc within the kernel.
-
 config RTAI_MATH_KCOMPLEX
 	bool "Include complex support"
-	depends on RTAI_MATH
 	default n
 	help
 	This parameter allows the inclusion of complex support functions.

@@ -183,8 +183,7 @@ dnl
 
 RTAI_BUILTIN_MODLIST=""
 
-dnl FIXME: Lots of undefined symbols in rtai_math.ko
-CONFIG_RTAI_MATH=n
+CONFIG_RTAI_MATH=m
 
 AC_MSG_CHECKING(for real-time fifos support)
 AC_ARG_ENABLE(fifos,
@@ -683,7 +682,8 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MINOR,$CONFIG_RTAI_VERSION_MINOR,[Kconfig
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_REVISION_LEVEL,$CONFIG_RTAI_REVISION_LEVEL,[Kconfig])
 test \! x$CONFIG_RTAI_LINUXDIR = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_LINUXDIR,$CONFIG_RTAI_LINUXDIR,[Kconfig])
 
-dnl FIXME: AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
+AC_DEFINE(CONFIG_RTAI_MATH,1,[Kconfig])
+test x$CONFIG_RTAI_MATH_KCOMPLEX = xy && AC_DEFINE(CONFIG_RTAI_MATH_KCOMPLEX,1,[Kconfig])
 test \! x$CONFIG_RTAI_CPUS = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_CPUS,$CONFIG_RTAI_CPUS,[Kconfig])
 test x$CONFIG_RTAI_DIAG_TSC_SYNC = xy && AC_DEFINE(CONFIG_RTAI_DIAG_TSC_SYNC,1,[Kconfig])
 test \! x$CONFIG_RTAI_MASTER_TSC_CPU = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_MASTER_TSC_CPU,$CONFIG_RTAI_MASTER_TSC_CPU,[Kconfig])
@@ -823,7 +823,7 @@ AM_CONDITIONAL(CONFIG_X86_64,[test "$CONFIG_X86_64" = y])
 AM_CONDITIONAL(CONFIG_X86,[test "$CONFIG_X86" = y])
 AM_CONDITIONAL(CONFIG_SMP,[test "$CONFIG_SMP" = y])
 
-dnl FIXME: AM_CONDITIONAL(CONFIG_RTAI_MATH,[test -n "$CONFIG_RTAI_MATH"])
+AM_CONDITIONAL(CONFIG_RTAI_MATH,[test -n "$CONFIG_RTAI_MATH"])
 AM_CONDITIONAL(CONFIG_RTAI_FIFOS,[test -n "$CONFIG_RTAI_FIFOS"])
 AM_CONDITIONAL(CONFIG_RTAI_SEM,[test -n "$CONFIG_RTAI_SEM"])
 AM_CONDITIONAL(CONFIG_RTAI_RT_POLL,[test -n "$CONFIG_RTAI_RT_POLL"])
@@ -879,7 +879,7 @@ AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
 AC_CONFIG_LINKS(base/posix/Makefile:base/posix/Makefile.kbuild)
 AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
 AC_CONFIG_LINKS(base/tasklets/Makefile:base/tasklets/Makefile.kbuild)
-dnl AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
+AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
 AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
 
 dnl
@@ -908,7 +908,6 @@ AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
 AC_SUBST(RTAI_POSIX_WRAP)
 
-dnl FIXME: base/math/GNUmakefile 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
 	base/GNUmakefile \
@@ -932,6 +931,7 @@ AC_CONFIG_FILES([ \
 	base/ipc/mbx/GNUmakefile \
 	base/ipc/mq/GNUmakefile \
 	base/malloc/GNUmakefile \
+	base/math/GNUmakefile \
 	base/tasklets/GNUmakefile \
 	base/posix/GNUmakefile \
 	testsuite/GNUmakefile

@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -6,7 +7,6 @@
 # but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
-
 
 ************************ LIBM SUPPORT IN KERNEL SPACE ************************
 
@@ -70,93 +70,30 @@ build/host/target architectures appropriately. The following configuration
 suggestions are the basic ones to be used for having libm.a work in kernel 
 space with RTAI.
 
-NEWLIB, http://sourceware.org/newlib/.
-Get its tarball and expand it, or clone its git; have a look at its README. 
-For 32 bits:
-- ./configure --disable-shared --disable-multilib
-  Newlib does not activate the -fPIC option so --disable-shared should be
-  the only thing more to care.
-- make
-For 64 bits:
-- ./configure --disable-shared --disable-multilib CFLAGS="-mcmodel=kernel"
-  Newlib does not activate the -fPIC option so --disable-shared and 
-  mcmodel=kernel should be the only things more to care.
-- make
-- ar -dv libm.a lib_a-cacoshl.o lib_a-catanhl.o lib_a-casinhl.o lib_a-casinl.o
-  RTAI rtai_math.ko does not support any "long double". It is thus strange that
-  it could happen, but there have been instances in which a few long double 
-  complex functions, e.g. __mulxc3, got statically linked in rtai_math.ko, or
-  could be grepped somewhere through "grep -r __mulxc3", likely as a compiler
-  decision to improve precision.
-  Thus, it is a cautious attitude, after experiencing cases in which the above
-  entries appeared in libm.a, while they did not with other Linux installations.
-NEWLIB is a collection of software from several sources. So it mixes different 
-licenses, some of which cannot be qualified as strictly compatible with FREE(dom)
-SOFTWARE. So is up to you to decide to link it into RTAI libm.a support.
-
-uClibc-ng, http://www.uclibc-ng.org/. (a substitute of uClibc)
-Get a tarball and expand it, or clone its git and have a look at its INSTALL.
-In particular, care of installing the headers of the kernel with which you will
-use uClibc-ng, doing:
-- cd to the kernel version you want to match;
-- do: "make INSTALL_HDR_PATH=/tmp/linux-headers headers_install".
-uClibc-ng has a handy menuconfig which makes its configuration setting somewhat friendlier.
-So "make menuconfig" being sure to:
-In Target Architecture Features and Options:
-- Enable full C99 math library support
-- disable long double support
-- Linux kernel header location must be set to: /tmp/linux-headers/include
-General Library Settings:
-- disable Generate only Position Independent Code (PIC)
-- disable Enable shared libraries
-For 32 bits:
-Development/debugging options
-- Extra CFLAGS (--fno-pic)
-For 64 bits:
-Development/debugging options
-- Extra CFLAGS (-mcmodel=kernel -fno-pic)
-(REMARK - In practice, provided the above configuration points are satisfied, if you
-          want to reduce the size of libm.a, as well as its compilation time, you can
-	  disable anything else).
-- make.
-- do not care if 'lib/crti.o' failed.
-- ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o
-  needed to avoid having the above functions linked in kernel space, so using those
-  provided by the kernel and to avoid a linking conflict; it is a uClib-ng specific item, 
-  due to the fact that its libm.a is embedded in libc.a.
-- cp lib/libc.a lib/libm.a.
-  because of what said above.
-UCLIBC-NG seems to be released under FREE(DOM) SOFTWARE, plain LGPL, linceses.
-
 MUSL, http://www.musl-libc.org/.
 Get a tarball and expand it, or clone its git; have a look at its 
 README-INSTALL. 
 Before configuring and making, execute the following script lines, from 
 within its base directory:
-- cp Makefile Makefile.saved, for a following possible non RTAI reuse
-- sed 's/-fPIC//' <Makefile >Makefile.tmp; mv Makefile.tmp Makefile;
+- $ sed -i 's/-fPIC/""/' Makefile
   needed  to disable -fPIC, set by default in the MUSL Makefile
-For 32 bits:
-- ./configure --disable-shared CFLAGS="-fno-common -fno-pic", 
+For i386-i686 32-bit systems:
+- $ ./configure --disable-shared CFLAGS="-fno-common -fno-pic"
 For 64 bits:
-- ./configure --disable-shared CFLAGS="-mcmodel=kernel -fno-common -fno-pic", 
-- make,
-- ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o
-  needed to avoid having the above functions linked in kernel space, so using those
-  provided by the kernel and to avoid a linking conflict. It is a MUSL specific item, 
-  due to the fact that its libm.a is embedded in libc.a, leaving libm.a as just a
-  link containing nothing.
-- ar -dv lib/libc.a cpow.o cpowf.o cpowl.o
-  RTAI rtai_math.ko does not support any "long double". It is thus strange that
-  it could happen, but there have been instances in which a few long double 
-  complex functions, e.g. __mulxc3, got statically linked in rtai_math.ko, or
-  could be grepped somewhere through "grep -r __mulxc3", likely as a compiler
-  decision to improve precision. The abovr functions will be anyhow provided in
-  rtai_math.ko.
-  Thus, it is a cautious attitude, after experiencing cases in which the above
-  entry appeared in libm.a, while they did not with other Linux installations.
-- cp lib/libc.a lib/libm.a.
-as previously said, to have a non empty libm.a link, as required by RTAI make.
+- $ ./configure --disable-shared CFLAGS="-mcmodel=kernel -fno-common -fno-pic"
+- $ make
+RTAI rtai_math.ko does not support any "long double". It is thus strange that
+it could happen, but there have been instances in which a few long double
+complex functions, e.g. __mulxc3, got statically linked in rtai_math.ko, or
+could be grepped somewhere through "grep -r __mulxc3", likely as a compiler
+decision to improve precision. The above functions will be anyhow provided in
+rtai_math.ko.
+The following commands avoid having certain math functions linked in kernel space.
+- $ ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o
+- $ ar -dv lib/libc.a cpow.o cpowf.o cpowl.o
+libm.a is a MUSL specific item due to the fact that its libm.a is embedded in libc.a,
+leaving libm.a as just a link containing nothing.
+- $ cp lib/libc.a lib/libm.a
 MUSL states that it is released under a (two close) standard permissive MIT license,
 which should qualify as FREE(dom) SOFTWARE compatible, so GPL compatible.
 
@@ -170,4 +107,4 @@ and what functions of rtai_math.ko are being used eventually, you have just to i
 application module without insmoding rtai_math.ko. You will then be able to see, just by
 using dmesg, the missing functions, if any, that will be provided by rtai_math.ko.
 
-Marco Morandini and Paolo Mantegazza.
+Marco Morandini, Paolo Mantegazza, and Alec Ari.
