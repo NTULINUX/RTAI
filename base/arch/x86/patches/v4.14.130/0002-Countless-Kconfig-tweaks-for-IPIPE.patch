@@ -1,4 +1,4 @@
-From 135d0fe4bc6ed2178a7c7cfd6807e1ee72533f56 Mon Sep 17 00:00:00 2001
+From 4e990051ad5c6ea0d4f5d712bfe21a5b33ae3064 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -6,12 +6,15 @@ Subject: Countless Kconfig tweaks for IPIPE
 Disables every problematic option I can think of and enables
 verbose BUG() PANIC_ON_OOPS and KALLSYMS so we always have a
 decent stack trace. RTAI tends to cause panics on some systems
-so it is a good idea to always have this on.
+so it is a good idea to always have these on. Limit max CPUs to
+16 as larger values always have problems.
+
+Other optimizations have been enabled as well.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/Kconfig                        |   5 +-
- arch/x86/Kconfig                    |  43 ++++----
+ arch/x86/Kconfig                    |  46 +++++----
  arch/x86/Kconfig.debug              |  32 +++---
  arch/x86/kvm/Kconfig                |   1 +
  drivers/acpi/Kconfig                |  28 ++++--
@@ -58,11 +61,11 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/virtio/Kconfig              |   7 +-
  drivers/watchdog/Kconfig            |   1 +
  init/Kconfig                        |  33 +++---
- kernel/ipipe/Kconfig                |   5 +-
+ kernel/ipipe/Kconfig                |   6 +-
  kernel/irq/Kconfig                  |   4 +-
  kernel/power/Kconfig                |   6 +-
  kernel/rcu/Kconfig.debug            |   8 +-
- kernel/trace/Kconfig                |   2 +-
+ kernel/trace/Kconfig                |   3 +-
  lib/Kconfig.debug                   | 150 ++++++++++++++++------------
  lib/Kconfig.kasan                   |   1 +
  lib/Kconfig.kgdb                    |   2 +-
@@ -71,7 +74,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 61 files changed, 248 insertions(+), 177 deletions(-)
+ 61 files changed, 254 insertions(+), 176 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -111,7 +114,7 @@ index 77b3e21c4844..782589f1cb1f 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b147b5c53af6..f8ce42795af3 100644
+index b147b5c53af6..48b9c3e6d7b6 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -438,6 +438,7 @@ config GOLDFISH
@@ -139,12 +142,27 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -961,12 +963,12 @@ config NR_CPUS
+@@ -943,6 +945,7 @@ config MAXSMP
+ config NR_CPUS
+ 	int "Maximum number of CPUs" if SMP && !MAXSMP
+ 	range 2 8 if SMP && X86_32 && !X86_BIGSMP
++	range 2 16 if IPIPE
+ 	range 2 64 if SMP && X86_32 && X86_BIGSMP
+ 	range 2 512 if SMP && !MAXSMP && !CPUMASK_OFFSTACK && X86_64
+ 	range 2 8192 if SMP && !MAXSMP && CPUMASK_OFFSTACK && X86_64
+@@ -957,16 +960,20 @@ config NR_CPUS
+ 	  supported value is 8192, otherwise the maximum value is 512.  The
+ 	  minimum value which makes sense is 2.
+ 
++	  For IPIPE-enabled platforms, large values causes serious problems.
++	  The max limit in this case is 16.
++
+ 	  This is purely to save memory - each supported CPU adds
  	  approximately eight kilobytes to the kernel image.
  
  config SCHED_SMT
--	def_bool y if SMP
-+	def_bool y if SMP && !IPIPE
+ 	def_bool y if SMP
++	depends on !IPIPE
  
  config SCHED_MC
  	def_bool y
@@ -154,7 +172,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1123,7 +1125,7 @@ source "arch/x86/events/Kconfig"
+@@ -1123,7 +1130,7 @@ source "arch/x86/events/Kconfig"
  config X86_LEGACY_VM86
  	bool "Legacy VM86 support"
  	default n
@@ -163,7 +181,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  This option allows user programs to put the CPU into V8086
  	  mode, which is an 80286-era approximation of 16-bit real mode.
-@@ -1155,7 +1157,7 @@ config VM86
+@@ -1155,7 +1162,7 @@ config VM86
  config X86_16BIT
  	bool "Enable support for 16-bit segments" if EXPERT
  	default y
@@ -172,7 +190,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  This option is required by programs like Wine to run 16-bit
  	  protected mode legacy code on x86 processors.  Disabling
-@@ -1173,7 +1175,7 @@ config X86_ESPFIX64
+@@ -1173,7 +1180,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -181,7 +199,7 @@ index b147b5c53af6..f8ce42795af3 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1190,7 +1192,7 @@ config X86_VSYSCALL_EMULATION
+@@ -1190,7 +1197,7 @@ config X86_VSYSCALL_EMULATION
  
  config TOSHIBA
  	tristate "Toshiba Laptop support"
@@ -190,7 +208,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  This adds a driver to safely access the System Management Mode of
  	  the CPU on Toshiba portables with a genuine Toshiba BIOS. It does
-@@ -1206,6 +1208,7 @@ config TOSHIBA
+@@ -1206,6 +1213,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -198,7 +216,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1484,6 +1487,7 @@ config NUMA
+@@ -1484,6 +1492,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -206,7 +224,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1605,8 +1609,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1605,8 +1614,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -216,7 +234,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1808,6 +1811,7 @@ config ARCH_RANDOM
+@@ -1808,6 +1816,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -224,7 +242,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1821,7 +1825,7 @@ config X86_INTEL_MPX
+@@ -1821,7 +1830,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -233,7 +251,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1849,7 +1853,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1849,7 +1858,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -242,7 +260,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1863,7 +1867,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1863,7 +1872,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  
  config EFI
  	bool "EFI runtime service support"
@@ -251,7 +269,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	---help---
-@@ -1921,6 +1925,7 @@ source kernel/Kconfig.hz
+@@ -1921,6 +1930,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -259,7 +277,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -1940,9 +1945,8 @@ config KEXEC_FILE
+@@ -1940,9 +1950,8 @@ config KEXEC_FILE
  	bool "kexec file based system call"
  	select KEXEC_CORE
  	select BUILD_BIN2C
@@ -271,7 +289,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -1971,6 +1975,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -1971,6 +1980,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -279,7 +297,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2032,6 +2037,7 @@ config PHYSICAL_START
+@@ -2032,6 +2042,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -287,7 +305,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2148,7 +2154,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2148,7 +2159,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -296,7 +314,7 @@ index b147b5c53af6..f8ce42795af3 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2313,6 +2319,7 @@ config CMDLINE_OVERRIDE
+@@ -2313,6 +2324,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -304,7 +322,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2806,7 +2813,7 @@ source "fs/Kconfig.binfmt"
+@@ -2806,7 +2818,7 @@ source "fs/Kconfig.binfmt"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -313,7 +331,7 @@ index b147b5c53af6..f8ce42795af3 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2824,7 +2831,7 @@ config IA32_AOUT
+@@ -2824,7 +2836,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"
@@ -1403,10 +1421,10 @@ index 33cca939377e..a94cbc0bf838 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f1f5..50449a0cb044 100644
+index d17edb89f1f5..b5e35090554e 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -6,7 +6,10 @@ config HAVE_IPIPE_SUPPORT
+@@ -6,7 +6,11 @@ config HAVE_IPIPE_SUPPORT
  config IPIPE
  	bool "Interrupt pipeline"
  	depends on HAVE_IPIPE_SUPPORT
@@ -1415,6 +1433,7 @@ index d17edb89f1f5..50449a0cb044 100644
 +	select KALLSYMS
 +	select PANIC_ON_OOPS
 +	select DEBUG_BUGVERBOSE
++	select SCHED_OMIT_FRAME_POINTER
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
@@ -1515,14 +1534,15 @@ index 2034d02e8ee3..bd33c2767fe2 100644
  	  This option provides consistency checks in RCU's handling of
  	  NO_HZ.  These checks have proven quite helpful in detecting
 diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index 5f93356dd495..d90e6917654f 100644
+index 5f93356dd495..5af0e1637403 100644
 --- a/kernel/trace/Kconfig
 +++ b/kernel/trace/Kconfig
-@@ -122,7 +122,7 @@ if TRACING_SUPPORT
+@@ -122,7 +122,8 @@ if TRACING_SUPPORT
  
  menuconfig FTRACE
  	bool "Tracers"
 -	default y if DEBUG_KERNEL
++	depends on !IPIPE || IPIPE_TRACE
 +	default n if DEBUG_KERNEL
  	help
  	  Enable the kernel tracing infrastructure.
