@@ -21,7 +21,7 @@ else # !CONFIG_X86_64
 musl:
 	git clone --depth=1 git://git.musl-libc.org/musl \
 	&& cd musl && sed -i 's/-fPIC//g' Makefile \
-	&& CFLAGS="-O2 -mcmodel=kernel -fno-common -fno-pic" ./configure --disable-shared && $(MAKE) \
+	&& CFLAGS="-O2 -fno-common -fno-pic" ./configure --disable-shared && $(MAKE) \
 	&& ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o \
 	&& ar -dv lib/libc.a cpow.o cpowf.o cpowl.o && cp lib/libc.a lib/libm.a
 endif # CONFIG_X86_64
