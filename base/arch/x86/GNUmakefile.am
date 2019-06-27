@@ -7,7 +7,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
 SUBDIRS = hal calibration
 
 EXTRA_DIST = Kconfig defconfig patches
