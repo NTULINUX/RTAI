@@ -1,10 +1,10 @@
-From 4502ec00f7c30562b99a19f8951eec17572a0f94 Mon Sep 17 00:00:00 2001
+From 135d0fe4bc6ed2178a7c7cfd6807e1ee72533f56 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
-verbose BUG() BUG_ON_OOPS and KALLSYMS so we always have a
+verbose BUG() PANIC_ON_OOPS and KALLSYMS so we always have a
 decent stack trace. RTAI tends to cause panics on some systems
 so it is a good idea to always have this on.
 
@@ -1074,15 +1074,16 @@ index a67eeace6a89..5d2d8bc3653d 100644
  	  AVS is a power management technique which finely controls the
  	  operating voltage of a device in order to optimize (i.e. reduce)
 diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
-index ca0de1a78e85..bd9eb5c21f83 100644
+index ca0de1a78e85..6b1312d9d1f9 100644
 --- a/drivers/power/reset/Kconfig
 +++ b/drivers/power/reset/Kconfig
-@@ -1,4 +1,5 @@
+@@ -1,5 +1,6 @@
  menuconfig POWER_RESET
-+	depends on !IPIPE
  	bool "Board level reset or power off"
++	depends on !IPIPE
  	help
  	  Provides a number of drivers which either reset a complete board
+ 	  or shut it down, by manipulating the main power supply on the board.
 diff --git a/drivers/powercap/Kconfig b/drivers/powercap/Kconfig
 index 85727ef6ce8e..196119270fde 100644
 --- a/drivers/powercap/Kconfig
@@ -1147,14 +1148,14 @@ index e2baecbb9dd3..8f5c51c2e30a 100644
  	  Generic Reset Controller support.
  
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-index 0fe6eac46512..827dda33e684 100644
+index 0fe6eac46512..2a54818008bc 100644
 --- a/drivers/rpmsg/Kconfig
 +++ b/drivers/rpmsg/Kconfig
 @@ -48,7 +48,7 @@ config RPMSG_QCOM_SMD
  
  config RPMSG_VIRTIO
  	tristate
-+	default y if VIRTIO
++	depends on VIRTIO
  	select RPMSG
 -	select VIRTIO
  
