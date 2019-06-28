@@ -50,8 +50,7 @@ struct rt_registry_entry {
 #define IS_SPL   3
 #define IS_MBX   4
 #define IS_PRX   5
-#define IS_BIT   6
-#define IS_HPCK  7
+#define IS_HPCK  6
 
 #ifdef __KERNEL__
 
