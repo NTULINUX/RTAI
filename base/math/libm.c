@@ -302,17 +302,15 @@ double _Complex __mulxc3(long double a, long double b, long double c, long doubl
 }
 
 /* 
- * This is the LLVM compiler infrastructure.
- * It is an undeniably more serious, compiler quality, 
- * code, though it has some more overhead.
+ * This is the LLVM compiler-rt infrastructure that has been taken from:
+ * compiler-rt/lib/builtins/{muldc3.c,mulsc3.c,divdc3.c,divsc3.c}
+ * before commit bfbb8bbc8e4a4fce3538aa85b095543fee291df7
  */
 
 /*
- *                     The LLVM Compiler Infrastructure
- *
- * This file is dual licensed under the MIT and the University of Illinois Open
- * Source Licenses. See LICENSE.TXT for details.
- *
+ * Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+ * See https://llvm.org/LICENSE.txt for license information.
+ * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  */
 
 /* Returns: the product of a + ib and c + id */
