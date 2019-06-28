@@ -22,7 +22,7 @@
  *
  *
  * 2005, cleaned and revised Paolo Mantegazza <mantegazza@aero.polimi.it>.
- *
+ * 2019, cleaned and revised further by Alec Ari <neotheuser@ymail.com>.
  */
 
 #ifndef _RTAI_MQ_H
@@ -62,10 +62,6 @@ typedef struct mq_attr {
 #ifdef __KERNEL__
 
 #include <linux/types.h>
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,6)
-typedef int mqd_t;
-#endif
 
 #ifndef __cplusplus
 

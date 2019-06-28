@@ -98,16 +98,6 @@ typedef struct _trace_rtai_global_irq_entry
            rt_trace_event(TRACE_RTAI_EV_GLOBAL_IRQ_ENTRY, &irq_entry);\
            } while(0)
 #endif
-#if CONFIG_PPC
-#define TRACE_RTAI_GLOBAL_IRQ_ENTRY(ID, KERNEL) \
-           do \
-           {\
-           trace_rtai_global_irq_entry irq_entry;\
-           irq_entry.irq_id = ID;\
-           irq_entry.kernel = KERNEL;\
-           rt_trace_event(TRACE_RTAI_EV_GLOBAL_IRQ_ENTRY, &irq_entry);\
-           } while(0)
-#endif
 
 /*  TRACE_RTAI_GLOBAL_IRQ_EXIT */
 #define TRACE_RTAI_GLOBAL_IRQ_EXIT() rt_trace_event(TRACE_RTAI_EV_GLOBAL_IRQ_EXIT, NULL)
@@ -128,16 +118,6 @@ typedef struct _trace_rtai_own_irq_entry
            __asm__ __volatile__("pushfl; pop %0": "=g" (eflags)); \
            __asm__ __volatile__("pushl %%cs; pop %0": "=g" (xcs)); \
            irq_entry.kernel = !((VM_MASK & eflags) || (3 & xcs));\
-           rt_trace_event(TRACE_RTAI_EV_OWN_IRQ_ENTRY, &irq_entry);\
-           } while(0)
-#endif
-#if CONFIG_PPC
-#define TRACE_RTAI_OWN_IRQ_ENTRY(ID, KERNEL) \
-           do \
-           {\
-           trace_rtai_own_irq_entry irq_entry;\
-           irq_entry.irq_id = ID;\
-           irq_entry.kernel = KERNEL;\
            rt_trace_event(TRACE_RTAI_EV_OWN_IRQ_ENTRY, &irq_entry);\
            } while(0)
 #endif
@@ -184,16 +164,6 @@ typedef struct _trace_rtai_srq_entry
            __asm__ __volatile__("pushfl; pop %0": "=g" (eflags)); \
            __asm__ __volatile__("pushl %%cs; pop %0": "=g" (xcs)); \
            srq_entry.kernel = !((VM_MASK & eflags) || (3 & xcs));\
-           rt_trace_event(TRACE_RTAI_EV_SRQ_ENTRY, &srq_entry);\
-           } while(0)
-#endif
-#if CONFIG_PPC || CONFIG_ARM
-#define TRACE_RTAI_SRQ_ENTRY(ID,KERNEL) \
-           do \
-           {\
-           trace_rtai_srq_entry srq_entry;\
-           srq_entry.srq_id = ID;\
-           srq_entry.kernel = KERNEL;\
            rt_trace_event(TRACE_RTAI_EV_SRQ_ENTRY, &srq_entry);\
            } while(0)
 #endif
@@ -593,11 +563,7 @@ typedef struct _trace_rtai_lxrti
 #define TRACE_RTAI_OWN_IRQ_EXIT()
 #define TRACE_RTAI_TRAP_ENTRY(ID,ADDR)
 #define TRACE_RTAI_TRAP_EXIT()
-#if defined(CONFIG_PPC) && defined(CONFIG_ARM) && (CONFIG_PPC || CONFIG_ARM)
-#define TRACE_RTAI_SRQ_ENTRY(ID,KERNEL)
-#else
 #define TRACE_RTAI_SRQ_ENTRY(a)
-#endif
 #define TRACE_RTAI_SRQ_EXIT()
 #define TRACE_RTAI_SWITCHTO_LINUX(ID)
 #define TRACE_RTAI_SWITCHTO_RT(ID)

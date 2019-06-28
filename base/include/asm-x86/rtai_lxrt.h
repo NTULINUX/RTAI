@@ -52,23 +52,6 @@ union rtai_lxrt_t { RTIME rt; long i[2]; void *v[2]; };
 static inline void _lxrt_context_switch (struct task_struct *prev, struct task_struct *next, int cpuid)
 {
 	extern void *context_switch(void *, void *, void *); // from LINUX
-/*
- *	if (__thread_has_fpu(prev)) clts(); is not needed, it is done already
- */
-
-//#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,162)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,162)
-// Do nothing, no more needed since lazy fpu managment has gone.
-// REMARK: it is likely that for lower x 4.4.x and 4.9.x behaved 
-// as shown below, while 4.4.162 and 4.9.135 inheredited the more
-// recent approach. 
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,2,0)
-        prev->thread.fpu.counter = 0;
-#elif LINUX_VERSION_CODE > KERNEL_VERSION(3,13,0)
-        prev->thread.fpu_counter = 0;
-#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,19)
-        prev->fpu_counter = 0;
-#endif
         context_switch(NULL, prev, next);
 }
 

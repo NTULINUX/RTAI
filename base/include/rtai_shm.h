@@ -100,12 +100,10 @@ extern "C" {
 
 #define UVIRT_TO_KVA(adr)  uvirt_to_kva(pgd_offset_k(adr), (adr))
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,10)
 static inline int remap_page_range(struct vm_area_struct *vma, unsigned long uvaddr, unsigned long paddr, unsigned long size, pgprot_t prot)
 {
 	return remap_pfn_range(vma, uvaddr, paddr >> PAGE_SHIFT, size, prot);
 }
-#endif
 
 #include <rtai.h>
 

@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -16,10 +17,9 @@ they had to work symmetrically in user space also.
 Their structuring within RTAI is eased in the new experimental layout, which 
 much eases features expansions, without bloating the core code of the 
 schedulers.
-Message queues have the advantage of allowing fully prioritised send/receives,
-TBX has just the possibility of urging ahead of anything already sent, MBX none.
-However to avoid the nightmare of managing etherougeneously fragmented buffers,
-under hard real time constraints, they require that a maximum per message size 
+Message queues have the advantage of allowing fully prioritised send/receives.
+To avoid the nightmare of managing etherougeneously fragmented buffers under
+hard real time constraints, they require that a maximum per message size 
 is assigned at their creation. So once more the RTAI user is provided another 
 tool for its programming APIs toolbox, within which he/she can chose any objects
 that suites his/her needs, or a combination thereof.

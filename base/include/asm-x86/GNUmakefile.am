@@ -17,7 +17,6 @@ include_HEADERS = \
 		rtai_hal.h \
 		rtai_lxrt.h \
 		rtai_sched.h \
-		rtai_shm.h \
 		rtai_srq.h \
 		rtai_vectors.h
 
