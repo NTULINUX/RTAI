@@ -28,28 +28,21 @@
  * Copyright (C)     Pierre Cloutier <pcloutier@PoseidonControls.com>, 2000.
  * Following RTAI rewrites:
  * Copyright (C)     Paolo Mantegazza <mantegazza@aero.polimi.it>, 2005-2017.
+ * Minor cleanups:
+ * Copyright (C)     Alec Ari <neotheuser@ymail.com>, 2019.
  */
 
 
 #ifndef _RTAI_ASM_X86_FPU_H
 #define _RTAI_ASM_X86_FPU_H
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,2,0)
-typedef union thread_xstate FPU_ENV;
-#define TASK_FPENV(tsk)  ((tsk)->thread.fpu.state)
-#else
 typedef union fpregs_state FPU_ENV;
 #define TASK_FPENV(tsk)  (&(tsk)->thread.fpu.state)
-#endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,5,0)
 extern unsigned int fpu_kernel_xstate_size;
 #define xstate_size  (fpu_kernel_xstate_size)
 #define cpu_has_xmm  (boot_cpu_has(X86_FEATURE_XMM))
 #define cpu_has_fxsr (boot_cpu_has(X86_FEATURE_FXSR))
-#else
-extern unsigned int xstate_size;
-#endif
 
 // RAW FPU MANAGEMENT FOR USAGE FROM WHAT/WHEREVER RTAI DOES IN KERNEL
 
@@ -118,8 +111,6 @@ extern unsigned int xstate_size;
 
 #else
 
-#if 1 // macros, as reworked from the previous RTAI inlined funs
-
 #define __save_fpenv(fpenv) \
 ({ \
 	int err; \
@@ -160,16 +151,6 @@ extern unsigned int xstate_size;
         err; \
 })
 
-#else // possible compacted new rewrite
-
-#define __save_fpenv(fpenv)  do { \
-	__asm__ __volatile__("rex64/fxsave (%[fx])" : "=m" ((fpenv)->fxsave) : [fx] "R" (&(fpenv)->fxsave)); \
-} while (0)
-#define __restore_fpenv(fpenv)  do { \
-	__asm__ __volatile__("rex64/fxrstor (%0)" : : "R" (&(fpenv)->fxsave), "m" ((fpenv)->fxsave)); \
-} while (0)
-
-#endif
 #endif
 
 // Macros used for RTAI own kernel space tasks, where it uses the FPU env union
@@ -209,42 +190,11 @@ DEFINE_PER_CPU(struct fpu *, fpu_fpregs_owner_ctx);
 	do { clear_stopped_child_used_math(lnxtsk); } while(0)
 #define lnxtsk_uses_fpu(lnxtsk)  (tsk_used_math(lnxtsk))
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,2,0)
-
 #include <asm/fpu/internal.h>
-#if 0 //def CONFIG_TRACEPOINTS
-// Taken from Linux <asm/fpu/internal.h> and cleaned from warning and tracing
-// Yet to be enabled, removing "#undef CONFIG_TRACEPOINTS" in sched,c and hal.c
-/* Must be paired with a 'clts' before! */
-DECLARE_PER_CPU(struct fpu *, fpu_fpregs_owner_ctx);
-static inline void rtai_fpregs_activate(struct fpu *fpu)
-{
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,14,71)
-	fpu->fpregs_active = 1;
-#endif
-	this_cpu_write(fpu_fpregs_owner_ctx, fpu);
-}
-#else
 #define rtai_fpregs_activate fpregs_activate
-#endif
 
 #define rtai_set_fpu_used(lnxtsk) \
 	do { rtai_fpregs_activate(&lnxtsk->thread.fpu); } while(0)
-
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
-
-#undef init_fpu
-#include <asm/i387.h>
-#include <asm/fpu-internal.h>
-#define rtai_set_fpu_used(lnxtsk) \
-	do { __thread_set_has_fpu(lnxtsk); } while(0)
-
-#else
-
-#define rtai_set_fpu_used(lnxtsk) \
-	do { task_thread_info(lnxtsk)->status |= TS_USEDFPU; } while(0)
-
-#endif
 
 #define set_lnxtsk_using_fpu(lnxtsk) \
 	do { rtai_set_fpu_used(lnxtsk); } while(0)

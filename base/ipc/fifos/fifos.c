@@ -160,10 +160,8 @@ ACKNOWLEDGEMENTS:
 
 MODULE_LICENSE("GPL");
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,71)
 #include <linux/sched/signal.h>
 #define CURRENT_TIME current_time(inode)
-#endif
 
 /* these are copied from <rt/rt_compat.h> */
 #define rtf_save_flags_and_cli(x)	do{x=rt_spin_lock_irqsave(&rtf_lock);}while(0)
@@ -173,15 +171,10 @@ MODULE_LICENSE("GPL");
 #define rtf_request_srq(x)		rt_request_srq(0, (x), 0)
 #define rtf_free_srq(x)			rt_free_srq((x))
 #define rtf_pend_srq(x)			rt_pend_linux_srq((x))
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,0,0)
 #define f_dentry  f_path.dentry
-#endif
 
-#ifdef CONFIG_PROC_FS
 static int rtai_proc_fifo_register(void);
 static void rtai_proc_fifo_unregister(void);
-#endif
 
 typedef struct lx_queue {
 	struct lx_queue *prev;
@@ -1817,9 +1810,7 @@ int __rtai_fifos_init(void)
 		fifo[minor].asynq = 0;;
 		mbx_sem_init(&(fifo[minor].sem), 0);
 	}
-#ifdef CONFIG_PROC_FS
 	rtai_proc_fifo_register();
-#endif
 	return register_lxrt_fifos_support();
 }
 
@@ -1841,9 +1832,7 @@ void __rtai_fifos_exit(void)
 	if (rtf_free_srq(fifo_srq) < 0) {
 		printk("RTAI-FIFO: rtai srq %d illegal or already free.\n", fifo_srq);
 	}
-#ifdef CONFIG_PROC_FS
         rtai_proc_fifo_unregister();
-#endif
 	kfree(fifo);
 }
 
@@ -1852,7 +1841,6 @@ module_init(__rtai_fifos_init);
 module_exit(__rtai_fifos_exit);
 #endif /* !CONFIG_RTAI_FIFOS_BUILTIN */
 
-#ifdef CONFIG_PROC_FS
 /* ----------------------< proc filesystem section >----------------------*/
 
 static int PROC_READ_FUN(rtai_read_fifos) 
@@ -1903,7 +1891,6 @@ static void rtai_proc_fifo_unregister(void)
 }
 
 /* ------------------< end of proc filesystem section >------------------*/
-#endif /* CONFIG_PROC_FS */
 
 /* 
  * Support for named FIFOS : Ian Soanes (ians@zentropix.com)

@@ -24,7 +24,7 @@
  * Timed services extension and user space integration for RTAI by
  * Paolo Mantegazza <mantegazza@aero.polimi.it>.
  * 2005, cleaned and revised Paolo Mantegazza <mantegazza@aero.polimi.it>.
- *
+ * 2019, cleaned and revised further by Alec Ari <neotheuser@ymail.com>.
  */
 
 #include <linux/module.h>
@@ -34,10 +34,8 @@
 #include <linux/stat.h>
 #include <linux/sched.h>
 #include <asm/uaccess.h>
-#ifdef CONFIG_PROC_FS
 #include <linux/proc_fs.h>
 extern struct proc_dir_entry *rtai_proc_root;
-#endif
 #include <rtai_schedcore.h>
 #include <rtai_proc_fs.h>
 #include <rtai_signal.h>
@@ -913,8 +911,6 @@ EXPORT_SYMBOL(mq_unlink);
 //      PROC FILESYSTEM SECTION
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef CONFIG_PROC_FS
-
 static int PROC_READ_FUN(pqueue_read_proc)
 {
 int ind;
@@ -965,7 +961,6 @@ static int pqueue_proc_unregister(void)
     remove_proc_entry("pqueue", rtai_proc_root);
     return 0;
 }
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //      MODULE CONTROL
@@ -993,9 +988,7 @@ int __rtai_mq_init(void)
 {
 	num_pqueues = 0;
 	mq_mutex_init(&pqueue_mutex, NULL);
-#ifdef CONFIG_PROC_FS
 	pqueue_proc_register();
-#endif
 	printk(KERN_INFO "RTAI[mq]: loaded.\n");
 	return set_rt_fun_entries(rt_pqueue_entries);
 	return OK;
@@ -1005,9 +998,7 @@ void __rtai_mq_exit(void)
 {
 	mq_mutex_destroy(&pqueue_mutex);
 	reset_rt_fun_entries(rt_pqueue_entries);
-#ifdef CONFIG_PROC_FS
 	pqueue_proc_unregister();
-#endif
 	printk(KERN_INFO "RTAI[mq]: unloaded.\n");
 }
 

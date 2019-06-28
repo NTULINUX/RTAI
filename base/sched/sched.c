@@ -39,30 +39,21 @@ ACKNOWLEDGMENTS:
 #include <linux/irq.h>
 #include <linux/reboot.h>
 #include <linux/sys.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,71)
 #include <linux/sched/mm.h>  // for mmdrop
-#endif
-
 #include <asm/param.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,4,0)
-#include <asm/system.h>
-#endif
 #include <asm/io.h>
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
-
 #define __KERNEL_SYSCALLS__
 #include <linux/unistd.h>
-
-#ifdef CONFIG_PROC_FS
 #include <linux/stat.h>
 #include <linux/proc_fs.h>
 #include <rtai_proc_fs.h>
+
 static int rtai_proc_sched_register(void);
 static void rtai_proc_sched_unregister(void);
 int rtai_proc_lxrt_register(void);
 void rtai_proc_lxrt_unregister(void);
-#endif
 
 #include <rtai.h>
 #include <rtai_defs.h>
@@ -2024,8 +2015,6 @@ static int lxrt_intercept_fastcall(struct pt_regs *regs)
 
 
 /* ++++++++++++++++++++++++++ SCHEDULER PROC FILE +++++++++++++++++++++++++++ */
-
-#ifdef CONFIG_PROC_FS
 /* -----------------------< proc filesystem section >-------------------------*/
 
 extern int rtai_global_heap_size;
@@ -2140,7 +2129,6 @@ static void rtai_proc_sched_unregister(void)
 }  /* End function - rtai_proc_sched_unregister */
 
 /* --------------------< end of proc filesystem section >---------------------*/
-#endif /* CONFIG_PROC_FS */
 
 /* ++++++++++++++ SCHEDULER ENTRIES AND RELATED INITIALISATION ++++++++++++++ */
 
@@ -2187,15 +2175,6 @@ static struct rt_native_fun_entry rt_sched_entries[] = {
 	{ { 1, rt_task_suspend_timed },		    SUSPEND_TIMED },
 	{ { 1, rt_task_resume },		    RESUME },
 	{ { 1, rt_set_linux_syscall_mode },	    SET_LINUX_SYSCALL_MODE },
-#ifdef CONFIG_RTAI_USI
-	{ { 1, rt_irq_wait },			    IRQ_WAIT },
-	{ { 1, rt_irq_wait_if },		    IRQ_WAIT_IF },
-	{ { 1, rt_irq_wait_until },		    IRQ_WAIT_UNTIL },
-	{ { 1, rt_irq_wait_timed },		    IRQ_WAIT_TIMED },
-	{ { 0, rt_irq_signal },			    IRQ_SIGNAL },
-	{ { 0, rt_request_irq_task },		    REQUEST_IRQ_TASK },
-	{ { 0, rt_release_irq_task },		    RELEASE_IRQ_TASK },
-#endif
 	{ { 1, rt_task_make_periodic_relative_ns }, MAKE_PERIODIC_NS },
 	{ { 1, rt_task_make_periodic },		    MAKE_PERIODIC },
 	{ { 1, rt_task_set_resume_end_times },	    SET_RESUME_END },
@@ -2288,11 +2267,7 @@ static int lxrt_init(void)
 	set_rt_fun_entries(rt_sched_entries);
 
 	lxrt_old_trap_handler = rt_set_trap_handler(lxrt_handle_trap);
-
-#ifdef CONFIG_PROC_FS
 	rtai_proc_lxrt_register();
-#endif
-	
 	rtai_init_sthsems();
 	saved_rtai_syscall_hook = rtai_syscall_hook;
 	rtai_fastcall_hook = lxrt_intercept_fastcall;
@@ -2310,10 +2285,7 @@ static int lxrt_init(void)
 
 static void lxrt_exit(void)
 {
-#ifdef CONFIG_PROC_FS
 	rtai_proc_lxrt_unregister();
-#endif
-
 	rt_set_trap_handler(lxrt_old_trap_handler);
 
 	RELEASE_RESUME_SRQs_STUFF();
@@ -2327,7 +2299,6 @@ static void lxrt_exit(void)
     
 	reset_rt_fun_entries(rt_sched_entries);
 	rtai_drop_active_mm();
-
 }
 
 #include <linux/delay.h>
@@ -2575,12 +2546,10 @@ static int __rtai_lxrt_init(void)
 	tuned.timers_tol[0] = 0;
 	oneshot_span = ONESHOT_SPAN;
 	satdelay = oneshot_span - tuned.sched_latency;
-#ifdef CONFIG_PROC_FS
 	if (rtai_proc_sched_register()) {
 		retval = 1;
 		goto mem_end;
 	}
-#endif
 
 // 0x7dd763ad == nam2num("MEMSRQ").
 	if ((frstk_srq.srq = rt_request_srq(0x7dd763ad, frstk_srq_handler, 0)) < 0) {
@@ -2631,9 +2600,7 @@ free_sched_ipi:
 free_srq:
 	rt_free_srq(frstk_srq.srq);
 proc_unregister:
-#ifdef CONFIG_PROC_FS
 	rtai_proc_sched_unregister();
-#endif
 mem_end:
 	sched_mem_end();
 #ifdef CONFIG_RTAI_MALLOC
@@ -2663,9 +2630,8 @@ static void __rtai_lxrt_exit(void)
 
 	rtai_cleanup_features();
 
-#ifdef CONFIG_PROC_FS
         rtai_proc_sched_unregister();
-#endif
+
 	while (frstk_srq.out != frstk_srq.in);
 	if (rt_free_srq(frstk_srq.srq) < 0) {
 		printk("MEM SRQ: frstk_srq %d illegal or already free.\n", frstk_srq.srq);

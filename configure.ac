@@ -75,6 +75,8 @@ if test \! -r $RTAI_DEFCONFIG; then
 	AC_MSG_ERROR([Kconfig-file $RTAI_DEFCONFIG not found])
 elif test -r $RTAI_USER_CONFIG; then
 	KCONFIG_RESULT=$RTAI_USER_CONFIG
+	sed -i '/TRUE/d' $RTAI_USER_CONFIG
+	sed -i '/FALSE/d' $RTAI_USER_CONFIG
 	source $RTAI_USER_CONFIG
 else
 	KCONFIG_RESULT=$RTAI_DEFCONFIG
@@ -530,7 +532,7 @@ AC_MSG_CHECKING(for number of CPUs)
 AC_ARG_ENABLE(cpus,
 	[ --enable-cpus			Number of physical CPU cores],
 	[case "$enableval" in
- changequote(,)dnl
+ changequote(,)dnl FIXME: 1-16 is broken here
 	[1-16]) CONFIG_RTAI_CPUS=$enableval ;;
  changequote([,])dnl
 	*) AC_MSG_ERROR([Bad argument to option: --enable-cpus=<number-of-CPUs>]) ;;
@@ -554,7 +556,7 @@ AC_ARG_ENABLE(master-tsc-cpu,
 	[ --enable-master-tsc-cpu	Enable master TSC CPU],
 	[case "$enableval" in
  changequote(,)dnl
-	[0-15])
+	[0-15])dnl FIXME: This is probably broken too.
  changequote([,])dnl
 		if test x$CONFIG_RTAI_CPUS = x ; then
 			AC_MSG_ERROR([Option --enable-cpus must be defined before --enable-master-tsc-cpu])

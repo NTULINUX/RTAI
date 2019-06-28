@@ -1915,84 +1915,7 @@ void krtai_objects_release(void)
 	}
 }
 
-/* +++++++++++++++++++++++++ SUPPORT FOR IRQ TASKS ++++++++++++++++++++++++++ */
-
-#ifdef CONFIG_RTAI_USI
-
-#include <rtai_tasklets.h>
-
-extern struct rtai_realtime_irq_s rtai_realtime_irq[];
-
-RTAI_SYSCALL_MODE int rt_irq_wait(unsigned irq)
-{	
-	int retval;
-	retval = rt_task_suspend(0);
-	return rtai_domain.irqs[irq].handler ? -retval : RT_IRQ_TASK_ERR;
-}
-
-RTAI_SYSCALL_MODE int rt_irq_wait_if(unsigned irq)
-{
-	int retval;
-	retval = rt_task_suspend_if(0);
-	return rtai_domain.irqs[irq].handler ? -retval : RT_IRQ_TASK_ERR;
-}
-
-RTAI_SYSCALL_MODE int rt_irq_wait_until(unsigned irq, RTIME time)
-{
-	int retval;
-	retval = rt_task_suspend_until(0, time);
-	return rtai_domain.irqs[irq].handler ? -retval : RT_IRQ_TASK_ERR;
-}
-
-RTAI_SYSCALL_MODE int rt_irq_wait_timed(unsigned irq, RTIME delay)
-{
-	return rt_irq_wait_until(irq, get_time() + delay);
-}
-
-RTAI_SYSCALL_MODE void rt_irq_signal(unsigned irq)
-{
-	if (rtai_domain.irqs[irq].handler) {
-		rt_task_resume((void *)rtai_domain.irqs[irq].cookie);
-	}
-}
-EXPORT_SYMBOL(rt_irq_signal);
-
-static int rt_irq_task_handler(unsigned irq, RT_TASK *irq_task)
-{
-	rt_task_resume(irq_task);
-	return 0;
-}
-
-RTAI_SYSCALL_MODE int rt_request_irq_task (unsigned irq, void *handler, int type, int affine2task)
-{
-	RT_TASK *task;
-	if (!handler) {
-		task = _rt_whoami();
-	} else {
-		task = type == RT_IRQ_TASKLET ? ((struct rt_tasklet_struct *)handler)->task : handler;
-	}
-	if (affine2task) {
-		rt_assign_irq_to_cpu(irq, (1 << task->runnable_on_cpus));
-	}
-	return rt_request_irq(irq, (void *)rt_irq_task_handler, task, 0);
-}
-
-RTAI_SYSCALL_MODE int rt_release_irq_task (unsigned irq)
-{
-	int retval;
-	RT_TASK *task;
-	task = (void *)rtai_domain.irqs[irq].cookie;
-	if (!(retval = rt_release_irq(irq))) {
-		rt_task_resume(task);
-		rt_reset_irq_to_sym_mode(irq);
-	}
-	return retval;
-}
-
-#endif
-
 /* +++++++++++++++++ SUPPORT FOR THE LINUX SYSCALL SERVER +++++++++++++++++++ */
-
 
 RTAI_SYSCALL_MODE int rt_set_linux_syscall_mode(long mode, void (*cbfun)(long, long))
 {
@@ -2131,7 +2054,6 @@ void rt_exec_linux_syscall(RT_TASK *rt_current, struct linux_syscalls_list *sysc
 
 /* ++++++++++++++++++++ END OF COMMON FUNCTIONALITIES +++++++++++++++++++++++ */
 
-#ifdef CONFIG_PROC_FS
 #include <linux/stat.h>
 #include <linux/proc_fs.h>
 #include <rtai_proc_fs.h>
@@ -2144,16 +2066,13 @@ extern struct proc_dir_entry *rtai_proc_root;
 static int PROC_READ_FUN(rtai_read_lxrt)
 {
 	struct rt_registry_entry entry;
-	char *type_name[] = { "TASK", "SEM", "RWL", "SPL", "MBX", "PRX", "BITS", "TBX", "HPCK" };
+	char *type_name[] = { "TASK", "SEM", "RWL", "SPL", "MBX", "PRX", "HPCK" };
 	unsigned int i = 1;
 	char name[8];
 	PROC_PRINT_VARS;
 
 	PROC_PRINT("\nRTAI LXRT Information.\n\n");
 	PROC_PRINT("    MAX_SLOTS = %d\n\n", MAX_SLOTS);
-
-//                  1234 123456 0x12345678 ALIEN  0x12345678 0x12345678   1234567      1234567
-
 	PROC_PRINT("                                         Linux_Owner         Parent PID\n");
 	PROC_PRINT("Slot Name   ID         Type   RT_Handle    Pointer   Tsk_PID   MEM_Sz   USG Cnt\n");
 	PROC_PRINT("-------------------------------------------------------------------------------\n");
@@ -2199,7 +2118,6 @@ void rtai_proc_lxrt_unregister(void)
 }  /* End function - rtai_proc_lxrt_unregister */
 
 /* ------------------< end of proc filesystem section >------------------*/
-#endif /* CONFIG_PROC_FS */
 
 EXPORT_SYMBOL(rt_set_sched_policy);
 EXPORT_SYMBOL(rt_get_prio);

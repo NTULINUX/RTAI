@@ -63,10 +63,6 @@ typedef struct mq_attr {
 
 #include <linux/types.h>
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,6)
-typedef int mqd_t;
-#endif
-
 #ifndef __cplusplus
 
 typedef int mq_bool_t;

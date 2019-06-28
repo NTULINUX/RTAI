@@ -335,9 +335,7 @@ static inline unsigned long rt_global_save_flags_and_cli(void)
 
 #endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,26)
 #define apic_write_around apic_write
-#endif
 
 #ifdef CONFIG_SMP
 

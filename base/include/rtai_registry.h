@@ -5,6 +5,7 @@
  * @author Paolo Mantegazza
  *
  * @note Copyright &copy; 1999  Paolo Mantegazza <mantegazza@aero.polimi.it>,
+ * @note Copyright &copy; 2019  Alec Ari <neotheuser@ymail.com,
  * extensions for user space modules are jointly copyrighted (2000) with:
  *            Pierre Cloutier <pcloutier@poseidoncontrols.com>,
  *     	      Steve Papacharalambous <stevep@zentropix.com>.
@@ -50,8 +51,7 @@ struct rt_registry_entry {
 #define IS_MBX   4
 #define IS_PRX   5
 #define IS_BIT   6
-#define IS_TBX   7
-#define IS_HPCK  8
+#define IS_HPCK  7
 
 #ifdef __KERNEL__
 
@@ -84,9 +84,7 @@ void *rt_get_adr_cnt(unsigned long name);
 
 int rt_get_type(unsigned long name);
 
-#ifdef CONFIG_PROC_FS
 int rt_get_registry_slot(int slot, struct rt_registry_entry *entry);
-#endif /* CONFIG_PROC_FS */
 
 #ifdef __cplusplus
 }

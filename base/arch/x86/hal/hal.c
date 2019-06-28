@@ -68,25 +68,17 @@ MODULE_LICENSE("GPL");
 #include <asm/mpspec.h>
 #include <asm/io_apic.h>
 #include <asm/apic.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,71)
 #include <linux/sched/types.h>
-#endif
 
 #define __RTAI_HAL__
 #define DEFINE_FPU_FPREGS_OWNER_CTX
 #include <rtai.h>
 #include <asm/rtai_hal.h>
 #include <asm/rtai_lxrt.h>
-#ifdef CONFIG_PROC_FS
 #include <linux/stat.h>
 #include <linux/proc_fs.h>
 #include <rtai_proc_fs.h>
-#endif /* CONFIG_PROC_FS */
 #include <stdarg.h>
-
-#ifndef MODULE_LICENSE
-MODULE_LICENSE("GPL");
-#endif
 
 #ifdef CONFIG_IPIPE_LEGACY
 #error "CONFIG_IPIPE_LEGACY MUST NOT BE ENABLED, RECONFIGURE LINUX AND REMAKE BOTH KERNEL AND RTAI."
@@ -219,11 +211,7 @@ void rt_set_irq_retmode (unsigned irq, int retmode)
 #define rtai_irq_endis_fun(fun, irq) irq_##fun(&(rtai_irq_desc(irq).irq_data)) 
 
 // 4 - IRQs affinity
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,4,0)
-#define rtai_irq_affinity(irq) (irq_to_desc(irq)->irq_data.affinity)
-#else
 #define rtai_irq_affinity(irq) (irq_to_desc(irq)->irq_common_data.affinity)
-#endif
 
 unsigned rt_startup_irq (unsigned irq)
 {
@@ -684,8 +672,6 @@ void rtai_set_linux_task_priority (struct task_struct *task, int policy, int pri
 	}
 }
 
-#ifdef CONFIG_PROC_FS
-
 struct proc_dir_entry *rtai_proc_root = NULL;
 
 long long rtai_tsc_ofst[RTAI_NR_CPUS];
@@ -782,15 +768,8 @@ static void rtai_proc_unregister (void)
 	remove_proc_entry("rtai", 0);
 }
 
-#endif /* CONFIG_PROC_FS */
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,0,0)
-#define CPU_ISOLATED_MAP (&cpu_isolated_map)
-	extern unsigned long cpu_isolated_map; 
-#else
 #define CPU_ISOLATED_MAP (cpu_isolated_map)
 	extern cpumask_var_t cpu_isolated_map;
-#endif
 
 extern struct ipipe_domain ipipe_root;
 extern void (*dispatch_irq_head)(unsigned int);
@@ -837,24 +816,17 @@ int __rtai_hal_init (void)
 	rtai_tunables.timer_irq       = sysinfo.sys_hrtimer_irq;
 	rtai_tunables.linux_timer_irq = __ipipe_hrtimer_irq;
 
-#ifdef CONFIG_PROC_FS
 	rtai_proc_register();
-#endif
-
 	ipipe_register_head(&rtai_domain, "RTAI");
 	rtai_trap_hook = rtai_trap_fault;
 
 #ifdef CONFIG_SMP
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,0,0)
-	CpuIsolatedMap = cpu_isolated_map;
-#else
 	CpuIsolatedMap = 0;
 	for (i = 0; i < RTAI_NR_CPUS; i++) {
 		if (cpumask_test_cpu(i, CPU_ISOLATED_MAP)) {
 			set_bit(i, &CpuIsolatedMap);
 		}
 	}
-#endif
 	if (IsolCpusMask && (IsolCpusMask != CpuIsolatedMap)) {
 		printk("\nWARNING: IsolCpusMask (%lx) does not match cpu_isolated_map (%lx) set at boot time.\n", IsolCpusMask, CpuIsolatedMap);
 	}
@@ -889,9 +861,7 @@ int __rtai_hal_init (void)
 void __rtai_hal_exit (void)
 {
 	int i;
-#ifdef CONFIG_PROC_FS
 	rtai_proc_unregister();
-#endif
 	ipipe_unregister_head(&rtai_domain);
 	dispatch_irq_head = NULL;
 	rtai_trap_hook = NULL;
