@@ -1,4 +1,4 @@
-From d480ec3f5523b3a6f95b4f5b047f73d384d87cd0 Mon Sep 17 00:00:00 2001
+From 1da64869162d528c60ab3d8020b0ae29fb54e53f Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -6,15 +6,16 @@ Subject: Countless Kconfig tweaks for IPIPE
 Disables every problematic option I can think of and enables
 several very important options for debugging. RTAI may cause
 kernel panics on some systems so it is a good idea to always
-have these on. Limit max CPUs to 16 as larger values will cause
-problems. BIGSMP and related options should also be disabled.
+have these on. BIGSMP and related options are also disabled.
 
-Other optimizations have been enabled as well.
+Various other fixes and optimizations are included as well.
+
+Make it easy to hack in native 32-bit support for testing.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/Kconfig                        |   5 +-
- arch/x86/Kconfig                    |  50 ++++++----
+ arch/x86/Kconfig                    |  62 +++++++-----
  arch/x86/Kconfig.debug              |  32 +++---
  arch/x86/kvm/Kconfig                |   1 +
  drivers/acpi/Kconfig                |  28 ++++--
@@ -28,6 +29,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/crypto/Kconfig              |   1 +
  drivers/crypto/qat/Kconfig          |   6 +-
  drivers/devfreq/Kconfig             |   1 +
+ drivers/firmware/Kconfig            |   2 +-
  drivers/fsi/Kconfig                 |   1 +
  drivers/gpu/drm/Kconfig             |   2 +-
  drivers/gpu/drm/gma500/Kconfig      |   2 +-
@@ -60,8 +62,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/virt/Kconfig                |   1 +
  drivers/virtio/Kconfig              |   7 +-
  drivers/watchdog/Kconfig            |   1 +
+ fs/Kconfig.binfmt                   |   1 +
+ include/linux/ipipe.h               |   2 +-
  init/Kconfig                        |  33 +++---
- kernel/ipipe/Kconfig                |   9 +-
+ kernel/ipipe/Kconfig                |  19 ++--
  kernel/irq/Kconfig                  |   4 +-
  kernel/power/Kconfig                |   6 +-
  kernel/rcu/Kconfig.debug            |   8 +-
@@ -74,7 +78,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 61 files changed, 260 insertions(+), 177 deletions(-)
+ 64 files changed, 274 insertions(+), 190 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -114,10 +118,21 @@ index 77b3e21c4844..782589f1cb1f 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b147b5c53af6..ffc927ed2f0d 100644
+index b147b5c53af6..8f259be4671a 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -427,7 +427,7 @@ config X86_MPPARSE
+@@ -145,8 +145,9 @@ config X86
+ 	select HAVE_IOREMAP_PROT
+ 	select HAVE_IRQ_EXIT_ON_IRQ_STACK	if X86_64
+ 	select HAVE_IRQ_TIME_ACCOUNTING
+-	select HAVE_IPIPE_SUPPORT		if X86_64
+ 	select HAVE_IPIPE_TRACER_SUPPORT
++	# Disabling IPIPE is broken right now (Xenomai mainline)
++	select IPIPE				if X86_64
+ 	select IPIPE_HAVE_SAFE_THREAD_INFO if IPIPE
+ 	select IPIPE_WANT_PTE_PINNING if IPIPE
+ 	select IPIPE_HAVE_VM_NOTIFIER if IPIPE
+@@ -427,7 +428,7 @@ config X86_MPPARSE
  
  config X86_BIGSMP
  	bool "Support for big SMP systems with more than 8 CPUs"
@@ -126,7 +141,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	---help---
  	  This option is needed for the systems that have more than 8 CPUs
  
-@@ -438,6 +438,7 @@ config GOLDFISH
+@@ -438,6 +439,7 @@ config GOLDFISH
  config RETPOLINE
  	bool "Avoid speculative indirect branches in kernel"
  	default y
@@ -134,7 +149,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	select STACK_VALIDATION if HAVE_STACK_VALIDATION
  	help
  	  Compile kernel with the retpoline compiler options to guard against
-@@ -461,6 +462,7 @@ config INTEL_RDT
+@@ -461,6 +463,7 @@ config INTEL_RDT
  if X86_32
  config X86_EXTENDED_PLATFORM
  	bool "Support for extended (non-PC) x86 platforms"
@@ -142,7 +157,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -483,6 +485,7 @@ endif
+@@ -483,6 +486,7 @@ endif
  if X86_64
  config X86_EXTENDED_PLATFORM
  	bool "Support for extended (non-PC) x86 platforms"
@@ -150,7 +165,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -603,7 +606,7 @@ config X86_INTEL_QUARK
+@@ -603,7 +607,7 @@ config X86_INTEL_QUARK
  
  config X86_INTEL_LPSS
  	bool "Intel Low Power Subsystem Support"
@@ -159,7 +174,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
-@@ -729,6 +732,7 @@ config SCHED_OMIT_FRAME_POINTER
+@@ -729,6 +733,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
  	bool "Linux guest support"
@@ -167,23 +182,24 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -943,6 +947,7 @@ config MAXSMP
+@@ -943,6 +948,7 @@ config MAXSMP
  config NR_CPUS
  	int "Maximum number of CPUs" if SMP && !MAXSMP
  	range 2 8 if SMP && X86_32 && !X86_BIGSMP
-+	range 2 16 if IPIPE
++	range 2 16 if X86_64 && IPIPE
  	range 2 64 if SMP && X86_32 && X86_BIGSMP
  	range 2 512 if SMP && !MAXSMP && !CPUMASK_OFFSTACK && X86_64
  	range 2 8192 if SMP && !MAXSMP && CPUMASK_OFFSTACK && X86_64
-@@ -957,16 +962,20 @@ config NR_CPUS
+@@ -957,16 +963,19 @@ config NR_CPUS
  	  supported value is 8192, otherwise the maximum value is 512.  The
  	  minimum value which makes sense is 2.
  
+-	  This is purely to save memory - each supported CPU adds
+-	  approximately eight kilobytes to the kernel image.
 +	  For IPIPE-enabled platforms, large values causes serious problems.
 +	  The max limit in this case is 16.
 +
- 	  This is purely to save memory - each supported CPU adds
- 	  approximately eight kilobytes to the kernel image.
++	  Each supported CPU adds approximately 8KB to the kernel image.
  
  config SCHED_SMT
  	def_bool y if SMP
@@ -339,7 +355,37 @@ index b147b5c53af6..ffc927ed2f0d 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2313,6 +2326,7 @@ config CMDLINE_OVERRIDE
+@@ -2222,7 +2235,7 @@ config COMPAT_VDSO
+ choice
+ 	prompt "vsyscall table for legacy applications"
+ 	depends on X86_64
+-	default LEGACY_VSYSCALL_EMULATE
++	default LEGACY_VSYSCALL_NONE
+ 	help
+ 	  Legacy user code that does not know how to find the vDSO expects
+ 	  to be able to issue three syscalls by calling fixed addresses in
+@@ -2236,10 +2249,11 @@ choice
+ 	  static binaries, you can say None without a performance penalty
+ 	  to improve security.
+ 
+-	  If unsure, select "Emulate".
++	  If unsure, select "None".
+ 
+ 	config LEGACY_VSYSCALL_NATIVE
+ 		bool "Native"
++		depends on !IPIPE
+ 		help
+ 		  Actual executable code is located in the fixed vsyscall
+ 		  address mapping, implementing time() efficiently. Since
+@@ -2249,6 +2263,7 @@ choice
+ 
+ 	config LEGACY_VSYSCALL_EMULATE
+ 		bool "Emulate"
++		depends on !IPIPE
+ 		help
+ 		  The kernel traps and emulates calls into the fixed
+ 		  vsyscall address mapping. This makes the mapping
+@@ -2313,6 +2328,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -347,7 +393,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2806,7 +2820,7 @@ source "fs/Kconfig.binfmt"
+@@ -2806,7 +2822,7 @@ source "fs/Kconfig.binfmt"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -356,7 +402,7 @@ index b147b5c53af6..ffc927ed2f0d 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2824,7 +2838,7 @@ config IA32_AOUT
+@@ -2824,7 +2840,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"
@@ -818,6 +864,19 @@ index 6a172d338f6d..a6a9466dd1f8 100644
  	select SRCU
  	select PM_OPP
  	help
+diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
+index 6e4ed5a9c6fd..149640820c44 100644
+--- a/drivers/firmware/Kconfig
++++ b/drivers/firmware/Kconfig
+@@ -185,7 +185,7 @@ config RASPBERRYPI_FIRMWARE
+ config FW_CFG_SYSFS
+ 	tristate "QEMU fw_cfg device support in sysfs"
+ 	depends on SYSFS && (ARM || ARM64 || PPC_PMAC || SPARC || X86)
+-	depends on HAS_IOPORT_MAP
++	depends on HAS_IOPORT_MAP && !IPIPE
+ 	default n
+ 	help
+ 	  Say Y or M here to enable the exporting of the QEMU firmware
 diff --git a/drivers/fsi/Kconfig b/drivers/fsi/Kconfig
 index 6821ed0cd5e8..77fc81e47875 100644
 --- a/drivers/fsi/Kconfig
@@ -1283,6 +1342,31 @@ index f55328a31629..2e3b670c3201 100644
  	---help---
  	  If you say Y here (and to one of the following options) and create a
  	  character special file /dev/watchdog with major number 10 and minor
+diff --git a/fs/Kconfig.binfmt b/fs/Kconfig.binfmt
+index b2f82cf6bf86..2debf2a84334 100644
+--- a/fs/Kconfig.binfmt
++++ b/fs/Kconfig.binfmt
+@@ -157,6 +157,7 @@ config BINFMT_EM86
+ 
+ config BINFMT_MISC
+ 	tristate "Kernel support for MISC binaries"
++	depends on !IPIPE
+ 	---help---
+ 	  If you say Y here, it will be possible to plug wrapper-driven binary
+ 	  formats into the kernel. You will like this especially when you use
+diff --git a/include/linux/ipipe.h b/include/linux/ipipe.h
+index b8a80eeade4f..523ff646853a 100644
+--- a/include/linux/ipipe.h
++++ b/include/linux/ipipe.h
+@@ -30,7 +30,7 @@
+ #include <linux/thread_info.h>
+ #include <linux/ipipe_debug.h>
+ #include <asm/ptrace.h>
+-#ifdef CONFIG_HAVE_IPIPE_SUPPORT
++#ifdef CONFIG_IPIPE
+ #include <asm/ipipe.h>
+ #endif
+ 
 diff --git a/init/Kconfig b/init/Kconfig
 index 33cca939377e..a94cbc0bf838 100644
 --- a/init/Kconfig
@@ -1446,14 +1530,20 @@ index 33cca939377e..a94cbc0bf838 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f1f5..797b8b821640 100644
+index d17edb89f1f5..c77f2255e175 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -6,7 +6,14 @@ config HAVE_IPIPE_SUPPORT
+@@ -1,12 +1,17 @@
+-
+-config HAVE_IPIPE_SUPPORT
+-       depends on GENERIC_CLOCKEVENTS
+-       bool
+-
  config IPIPE
  	bool "Interrupt pipeline"
- 	depends on HAVE_IPIPE_SUPPORT
+-	depends on HAVE_IPIPE_SUPPORT
 -	default n
++	depends on X86_64
 +	default y
 +	select BUG
 +	select PRINTK
@@ -1462,6 +1552,9 @@ index d17edb89f1f5..797b8b821640 100644
 +	select DEBUG_BUGVERBOSE
 +	select PROC_FS
 +	select SCHED_OMIT_FRAME_POINTER
++	select HIGH_RES_TIMERS
++	select X86_IO_APIC
++	select X86_UP_IOAPIC if !SMP
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
