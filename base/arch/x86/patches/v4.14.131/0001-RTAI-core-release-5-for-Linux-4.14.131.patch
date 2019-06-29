@@ -1,7 +1,7 @@
-From 3a219b40353038ead1805bb9acf4ec98ed9a55e6 Mon Sep 17 00:00:00 2001
+From f824dcc1829cf4152b3b5a1228516fdafff76590 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 25 Jun 2019 18:31:37 -0500
-Subject: RTAI core release 5 for Linux 4.14.130
+Subject: RTAI core release 5 for Linux 4.14.131
 
 Based off of ipipe-core-4.14.128-x86-5
 
@@ -18911,5 +18911,5 @@ index 6c906f6f16cc..3fd28bb97256 100644
  }
  
 -- 
-2.20.1
+2.22.0
 
