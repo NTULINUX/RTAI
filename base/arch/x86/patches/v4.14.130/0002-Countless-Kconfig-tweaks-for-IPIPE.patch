@@ -1,14 +1,13 @@
-From 8089d09eade1bd0993e2489968111db4d39d9b1e Mon Sep 17 00:00:00 2001
+From 0c0dd625f277c9755957d83abbb669e642168354 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
-verbose BUG() PANIC_ON_OOPS and KALLSYMS so we always have a
-decent stack trace. RTAI tends to cause panics on some systems
-so it is a good idea to always have these on. Limit max CPUs to
-16 as larger values always have problems. BIGSMP and the
-options that want it should also be disabled.
+several very important options for debugging. RTAI may cause
+kernel panics on some systems so it is a good idea to always
+have these on. Limit max CPUs to 16 as larger values will cause
+problems. BIGSMP and related options should also be disabled.
 
 Other optimizations have been enabled as well.
 
@@ -62,7 +61,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/virtio/Kconfig              |   7 +-
  drivers/watchdog/Kconfig            |   1 +
  init/Kconfig                        |  33 +++---
- kernel/ipipe/Kconfig                |   6 +-
+ kernel/ipipe/Kconfig                |   9 +-
  kernel/irq/Kconfig                  |   4 +-
  kernel/power/Kconfig                |   6 +-
  kernel/rcu/Kconfig.debug            |   8 +-
@@ -75,7 +74,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 61 files changed, 257 insertions(+), 177 deletions(-)
+ 61 files changed, 260 insertions(+), 177 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -1447,18 +1446,21 @@ index 33cca939377e..a94cbc0bf838 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f1f5..b5e35090554e 100644
+index d17edb89f1f5..797b8b821640 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -6,7 +6,11 @@ config HAVE_IPIPE_SUPPORT
+@@ -6,7 +6,14 @@ config HAVE_IPIPE_SUPPORT
  config IPIPE
  	bool "Interrupt pipeline"
  	depends on HAVE_IPIPE_SUPPORT
 -	default n
 +	default y
++	select BUG
++	select PRINTK
 +	select KALLSYMS
 +	select PANIC_ON_OOPS
 +	select DEBUG_BUGVERBOSE
++	select PROC_FS
 +	select SCHED_OMIT_FRAME_POINTER
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
@@ -2429,5 +2431,5 @@ index 87f2a6f842fd..1dd3ec658282 100644
  	imply STRICT_DEVMEM
  	help
 -- 
-2.20.1
+2.22.0
 
