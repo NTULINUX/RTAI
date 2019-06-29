@@ -532,10 +532,13 @@ AC_MSG_CHECKING(for number of CPUs)
 AC_ARG_ENABLE(cpus,
 	[ --enable-cpus			Number of physical CPU cores],
 	[case "$enableval" in
- changequote(,)dnl FIXME: 1-16 is broken here
-	[1-16]) CONFIG_RTAI_CPUS=$enableval ;;
+ changequote(,)dnl
+	[1-16]*)
  changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-cpus=<number-of-CPUs>]) ;;
+		if test $enableval -lt 1 -o $enableval -gt 16 ; then
+			AC_MSG_ERROR([Invalid value to option: --enable-cpus=<number-of-CPUs> (must be between 1 and 16)])
+		fi
+		CONFIG_RTAI_CPUS=$enableval ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
 
@@ -556,7 +559,7 @@ AC_ARG_ENABLE(master-tsc-cpu,
 	[ --enable-master-tsc-cpu	Enable master TSC CPU],
 	[case "$enableval" in
  changequote(,)dnl
-	[0-15])dnl FIXME: This is probably broken too.
+	[0-15]*)
  changequote([,])dnl
 		if test x$CONFIG_RTAI_CPUS = x ; then
 			AC_MSG_ERROR([Option --enable-cpus must be defined before --enable-master-tsc-cpu])
@@ -565,7 +568,6 @@ AC_ARG_ENABLE(master-tsc-cpu,
 			AC_MSG_ERROR([Invalid value to option: --enable-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
 		fi
 		CONFIG_RTAI_MASTER_TSC_CPU=$enableval ;;
-	*) AC_MSG_ERROR([Bad argument to option: --enable-master-tsc-cpu=<master-CPU-number>]) ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_MASTER_TSC_CPU:0})
 
