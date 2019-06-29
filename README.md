@@ -11,4 +11,4 @@ IA32 emulation and X32 ABI has been disabled due to build errors.
 If you are willing to test 32-bit support with IPIPE, patch the kernel source with all of the
 available patches for that kernel version, then inside the kernel source directory, run:
 
-`sed -i 's/HAVE_IPIPE_SUPPORT/X86/g' kernel/ipipe/Kconfig`
+`sed -i 's/depends on X86_64/depends on X86/g' kernel/ipipe/Kconfig`
