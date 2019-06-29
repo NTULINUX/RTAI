@@ -93,14 +93,14 @@ config RTAI_SCHED_ISR_LOCK
 	bool "Disable immediate rescheduling from within ISRs"
 	default n
 	help
-	RTAI schedules as soon as a higher priority task is awaken in an 
+	RTAI schedules as soon as a higher priority task is awaken in an
 	interrupt handler, i.e. it does not wait to exit the handler itself.
-	This is believed to be the best way, since a user that does not want 
-	it has just to care calling any scheduling API at the very end of 
+	This is believed to be the best way, since a user that does not want
+	it has just to care calling any scheduling API at the very end of
 	her/his handler.
 	Those wanting to have any awaken higher priority task scheduled only
 	after exiting the ISR, regardless from where a scheduling API is
-	called within the handler, should disable immediate rescheduling 
+	called within the handler, should disable immediate rescheduling
 	from ISRs by enabling this configuration option.
 
 config RTAI_LONG_TIMED_LIST
@@ -108,13 +108,13 @@ config RTAI_LONG_TIMED_LIST
 	default n
 	help
 	RTAI schedulers use a simple ordered linear list for suspended timed
-	tasks by default. By enabling this option a binary sort type ordering 
-	is used. Such a scheme requires far less, albeit far more complex, 
-	operations to set up a time ordered list of wake up times. So when 
-	one has not so many tasks on the timed lists this option might not 
+	tasks by default. By enabling this option a binary sort type ordering
+	is used. Such a scheme requires far less, albeit far more complex,
+	operations to set up a time ordered list of wake up times. So when
+	one has not so many tasks on the timed lists this option might not
 	be worth having. The actual threshold value depends on many factors,
 	CPU power being the main one. So it is up to you to make a choice.
-	If you have many tens or even hundred(s) of timed tasks then it is 
+	If you have many tens or even hundred(s) of timed tasks then it is
 	likely that it might be worth enabling this option.
 
 config RTAI_USE_STACK_ARGS
@@ -122,11 +122,11 @@ config RTAI_USE_STACK_ARGS
 	default n
 	help
 	When it is sure that RTAI syscalls args, to be copied between user-kernel
-	space, are on the stack, RTAI uses kernel space memcopy, instead of the 
-	various canonical copy from-to user. Such a scheme, quite simple and 
-	effective, has worked for almost two decades without any glitch. 
-	Unfortunately, recent CPUs, likely from Ix-6xxx onward, segfault with it, 
-	forcing RTAI to comply with the canonical way. 
+	space, are on the stack, RTAI uses kernel space memcopy, instead of the
+	various canonical copy from-to user. Such a scheme, quite simple and
+	effective, has worked for almost two decades without any glitch.
+	Unfortunately, recent CPUs, likely from Ix-6xxx onward, segfault with it,
+	forcing RTAI to comply with the canonical way.
 	The related trouble can be easily spotted at the very first rtai_sched.ko
 	usage, i.e. when the very first latency calibration is carried out (see
 	the related parameter helps), when the core dump summary, as read with dmesg,
@@ -152,18 +152,18 @@ config RTAI_LATENCY_SELF_CALIBRATION_FREQ
 	string "Latency self calibration frequency (Hz)."
 	default 10000
 	help
-	In order to be on time, as finely as possible, RTAI anticipates the 
-	next scheduling shot of the hard timer clock interrupt by an amount 
-	of time aimed at compensating the programming overhead spent in 
+	In order to be on time, as finely as possible, RTAI anticipates the
+	next scheduling shot of the hard timer clock interrupt by an amount
+	of time aimed at compensating the programming overhead spent in
 	the context switch and to set the right firing time.
-	Such an amount is determined with the calibration support provided 
+	Such an amount is determined with the calibration support provided
 	by RTAI itself, both for kernel and user space tasks.
-	The calibration procedure is applied on the fly the first time 
-	rtai_sched.ko is insmoded, by launching, in series, a calibrating 
+	The calibration procedure is applied on the fly the first time
+	rtai_sched.ko is insmoded, by launching, in series, a calibrating
 	kernel and user space task. That will, typically, happen when any
 	latency test, of the the testsuite which comes with RTAI, is used
 	to verify its installation.
-	The present parameter sets the calibration frequency, while another 
+	The present parameter sets the calibration frequency, while another
 	one defines the number of loops to be spent for calibrating.
 	The calibration results are saved in
 	"rtai-installdir/calibration/latencies", where "rtai-installdir" is
@@ -171,20 +171,20 @@ config RTAI_LATENCY_SELF_CALIBRATION_FREQ
 	Such a file is used in any following insmod of the RTAI scheduler, so
 	that no further recalibration will be carried out.
 	Nevertheless, new recalibrations can be forced anyhow, either through
-	"rm rtai-installdir/calibration/latencies" or through 
+	"rm rtai-installdir/calibration/latencies" or through
 	"insmod rtai-installdir/modules/rtai_sched.ko recalibrate=1".
-	At the very first rtai_sched.ko insmoding, after delating the 
+	At the very first rtai_sched.ko insmoding, after delating the
 	latencies file or after insmoding rtai_sched.ko with "recalibrate=1",
 	you should be prepared to wait for approximately twice the calibration
 	time required to carry out the number of requested calibrated loops.
 	Such a procedure should allow appropriate latency calibrations also
 	when cross development and embedding is needed.
-	Use a frequency that is close to your range of interest. Because of 
+	Use a frequency that is close to your range of interest. Because of
 	cache warming, lower frequencies will tend to anticipate the scheduling
 	when higher ones are used and viceversa.
 	If valuable calibrated values are available, they can be used to
 	substitute those obtained by calibrating, through rtai_sched.ko
-	parameters "kernel_latency" and "user_latency", in nanos, either any 
+	parameters "kernel_latency" and "user_latency", in nanos, either any
 	single one or both, e.g: "insmod rtai_sched.ko user_latency=4000".
 	A further way to modify the scheduling latencies is to edit the first
 	two fields of "rtai-installdir/calibration/latencies", kernel and
@@ -194,26 +194,26 @@ config RTAI_LATENCY_SELF_CALIBRATION_CYCLES
 	string "Number of latency self calibration cycles."
 	default RTAI_LATENCY_SELF_CALIBRATION_FREQ
 	help
-	In order to be on time, as finely as possible, RTAI anticipates the 
-	next scheduling shot of the hard timer clock interrupt by an amount 
-	of time aimed at compensating the programming overhead spent in 
+	In order to be on time, as finely as possible, RTAI anticipates the
+	next scheduling shot of the hard timer clock interrupt by an amount
+	of time aimed at compensating the programming overhead spent in
 	the context switch and to set the right firing time.
-	Such an amount is determined with the calibration support provided 
+	Such an amount is determined with the calibration support provided
 	by RTAI itself, both for kernel and user space tasks.
-	The calibration procedure is applied on the fly the first time 
-	rtai_sched.ko is insmoded, by launching, in series, a calibrating 
+	The calibration procedure is applied on the fly the first time
+	rtai_sched.ko is insmoded, by launching, in series, a calibrating
 	kernel and user space task. That will, typically, happen when any
 	latency test, of the the testsuite which comes with RTAI, is used
 	to verify its installation.
-	The present parameter sets the number of calibration cycles needed 
+	The present parameter sets the number of calibration cycles needed
 	for obtaining a stabilized results, while another one defines the
 	calibration frequency.
-	Use a number of cycles appropriate to allow an adequate number of 
+	Use a number of cycles appropriate to allow an adequate number of
 	reschedules. If the calibration is carried out in a "calm" environment,
-	strongly suggested, there is no need to exceed a few seconds. In any 
+	strongly suggested, there is no need to exceed a few seconds. In any
 	case, it is done just once, or when you will force it again.
-	Nonetheless, it should be remarked that the calibration precedure, 
-	based on a Kalman filter, checks its convergence, exiting at once 
+	Nonetheless, it should be remarked that the calibration precedure,
+	based on a Kalman filter, checks its convergence, exiting at once
 	when the calibration tolerances are met. Therefore it is quite
 	possible that the related procedure will be faster than expected,
 	i.e. it will use less that the requested cycles.
@@ -223,20 +223,20 @@ config RTAI_LATENCY_SELF_CALIBRATION_CYCLES
 	Such a file is used in any following insmod of the RTAI scheduler, so
 	that no further recalibration will be carried out.
 	Nevertheless, new recalibrations can be forced anyhow, either through
-	"rm rtai-installdir/calibration/latencies" or through 
+	"rm rtai-installdir/calibration/latencies" or through
 	"insmod rtai-installdir/modules/rtai_sched.ko recalibrate=1".
-	At the very first rtai_sched.ko insmoding, after delating the 
+	At the very first rtai_sched.ko insmoding, after delating the
 	latencies file or after insmoding rtai_sched.ko with "recalibrate=1",
 	you should be prepared to wait for approximately twice the calibration
 	time required to carry out the number of requested calibrated loops.
 	Such a procedure should allow appropriate latency calibrations also
 	when cross development and embedding is needed.
-	Use a frequency that is close to your range of interest. Because of 
+	Use a frequency that is close to your range of interest. Because of
 	cache warming, lower frequencies will tend to anticipate the scheduling
 	when higher ones are used and viceversa.
 	If valuable calibrated values are available, they can be used to
 	substitute those obtained by calibrating, through the rtai_sched.ko
-	parameters "kernel_latency" and "user_latency", in nanos, either any 
+	parameters "kernel_latency" and "user_latency", in nanos, either any
 	single one or both, e.g: "insmod rtai_sched.ko user_latency=4000".
 	A further way to modify the scheduling latencies is to edit the first
 	two fields of "rtai-installdir/calibration/latencies", kernel and
@@ -246,44 +246,46 @@ config RTAI_KERN_BUSY_ALIGN_RET_DELAY
 	string "Delay to return to a switched in timed kernel task (ns)"
 	default 0
 	help
-	The average time to return to the timed calling function after 
-	switching back to a kernel space task. 
-	It is subtracted from the resume time of a timed task to avoid 
-	a delayed return when a busy wait to align to the resume time is 
+	The average time to return to the timed calling function after
+	switching back to a kernel space task.
+	It is subtracted from the resume time of a timed task to avoid
+	a delayed return when a busy wait to align to the resume time is
 	assigned by setting this parameter to a value > 0.
-	A <= 0 value will skip the busy alignment. 
-	Useful to allow the alignment application just for kernel tasks. 
-	For example when a precise calibration for user space is used, a 
-	kernel task will anticipate its timed resumption; so setting a 
-	positive value here and a <= 0 busy wait time for the corresponding 
-	user space option will allow applying the busy wait just to kernel 
+	A <= 0 value will skip the busy alignment.
+	Useful to allow the alignment application just for kernel tasks.
+	For example when a precise calibration for user space is used, a
+	kernel task will anticipate its timed resumption; so setting a
+	positive value here and a <= 0 busy wait time for the corresponding
+	user space option will allow applying the busy wait just to kernel
 	tasks.
 
 config RTAI_USER_BUSY_ALIGN_RET_DELAY
 	string "Delay to return to a switched in timed user task (ns)"
 	default 0
 	help
-	The average time to return to the timed call function after switching 
-	back to a user space task. 
-	It is subtracted from the resume time of a timed task to avoid 
+	The average time to return to the timed call function after switching
+	back to a user space task.
+	It is subtracted from the resume time of a timed task to avoid
 	a delayed return when a busy wait to align to the resume time is
 	assigned by setting this parameter to a value > 0.
 	A <= 0 value will skip the busy alignment.
 	Usually it is not needed if the RTAI_SCHED_LATENCY has been calibrated
-	in user space. 
+	in user space.
 
 config RTAI_SCHED_LXRT_NUMSLOTS
 	string "Number of registrable RTAI objects"
-	default 150
+	default 256
 	help
 	The maximum number of registrable objects in RTAI.
+
+	The default is 256.
 
 config RTAI_MONITOR_EXECTIME
 	bool "Display RTAI task execution time (in per thousand)"
 	default y
 	help
 	If this option is enabled it is possible to see the time consumed by
-	hard real time tasks, in per thousand of the total time available, 
+	hard real time tasks, in per thousand of the total time available,
 	by using the RTAI scheduler proc file, e.g. "cat /proc/rtai/scheduler".
 	Since this option uses the TSC it is better to avoid it in production
 	for x86 CPUs not having TSCs, i.e. 486s and some untrue 586s.
@@ -301,11 +303,11 @@ config RTAI_FULL_PRINHER
 	default n
 	help
 	In RTAI resource semaphores, aka mutexes, support two ways to
-	manage priority inheritance, both for resource semaphores and 
+	manage priority inheritance, both for resource semaphores and
 	intertask messages, blocked sent or rpced, to a task owning any
 	resource semaphore already. Notice in fact that the task itself
 	becomes a kind of "de facto" resource when any task blocks on it
-	to exchange messages. 
+	to exchange messages.
 	Without enabling this option a task owning any resource will
 	recover its base priority only when it releases the very last
 	resource it owns. So full priority inheritance will work as
@@ -326,7 +328,7 @@ config RTAI_FULL_PRINHER
 	task, either waiting on any resource semaphore that it is still
 	owned by the task or blocked send/rpcing to it.
 	The choice is dependent on your needs mostly. Just take into account
-	that the default dynamic priority ceiling is simpler, a bit more 
+	that the default dynamic priority ceiling is simpler, a bit more
 	effective and less deadlock prone than full priority inheritance.
 
 config RTAI_ALIGN_LINUX_PRIORITY
@@ -336,43 +338,30 @@ config RTAI_ALIGN_LINUX_PRIORITY
 
 	By enabling this option the RTAI scheduler will keep Linux tasks
 	execution priority aligned to its. Naturally this makes sense
-	either for Linux soft real time tasks enabled to use RTAI APIs, 
-	i.e. they issued rt_task_init/rt_task_init_schmod, or when RTAI 
-	hard real time tasks are given back to Linux. 
-
-config RTAI_ONE_SHOT
-	bool "One-shot timer mode"
-	default n
-	help
-	Set to enable one-shot timer mode as the default. If not set, the 
-	hard timer will run in periodic mode according to the period used 
-	in start_rt_timer().
-	Notice that whatever the default setting chosen it is possible to
-	override it by specifically calling either rt_set_oneshot_mode() or 
-	rt_set_periodic_mode() at run time.
+	either for Linux soft real time tasks enabled to use RTAI APIs,
+	i.e. they issued rt_task_init/rt_task_init_schmod, or when RTAI
+	hard real time tasks are given back to Linux.
 
 config RTAI_CAL_FREQS_FACT
 	string "Cure loosely calibrated frequencies - see help"
 	default 0
 	help
-	This configuration parameter is meaningful for the oneshot mode only
-	where it has two effects:
-	1 - in oneshot mode using the APIC timer, i.e. always for SMP, a 
-	precise scheduling time depends also on the ratio cpu_freq/apic_freq. 
-	The best results can be achieved by using the RTAI calibration tool. 
-	If no calibration is run one will rely on what Linux makes available 
-	by default, which could be not precise enough, especially for not so 
+	This configuration parameter is meaningful where it has two effects:
+	1 - A precise scheduling time depends on the ratio cpu_freq/apic_freq.
+	The best results can be achieved by using the RTAI calibration tool.
+	If no calibration is run one will rely on what Linux makes available
+	by default, which could be not precise enough, especially for not so
 	short timed intervals.
  	That leads to large and systematic latencies, especially in the case
 	of low frequency schedules. By setting this option to a suitable
-	value one can be sure that a certain firing frequency is granted 
+	value one can be sure that a certain firing frequency is granted
 	even when relatively large idle periods are encountered, thus
 	limiting the overall latency with which long sleeping tasks might
 	be awaken in case of imprecise calibrations of the above cited
 	frequencies;
-	2 - in the case of very long timed list it will limit the search 
-	for the next firing time of widely scattered tasks with lowest 
-	priorities, thus avoiding useless scheduling delays. The granted 
+	2 - in the case of very long timed list it will limit the search
+	for the next firing time of widely scattered tasks with lowest
+	priorities, thus avoiding useless scheduling delays. The granted
 	firing interval will be roughly equal to:
 	1.0/(RTAI_CAL_FREQS_FACT + 2.0) (seconds).
 
@@ -382,20 +371,22 @@ menu "Supported services"
 
 config RTAI_FIFOS
 	tristate "Fifo"
-	default m
+	default y
 	help
-	Originally fifos were used to allow communication between 
-	kernel-space modules and user-space application. Even if fifos are 
-	strictly no more required in RTAI, because of the native availability 
-	of symmetric inter/intra kernel RTAI services, fifos are kept both 
+	Originally fifos were used to allow communication between
+	kernel-space modules and user-space application. Even if fifos are
+	strictly no more required in RTAI, because of the native availability
+	of symmetric inter/intra kernel RTAI services, fifos are kept both
 	for compatibility reasons and because they are very useful tools to be
 	used to communicate with interrupt handlers only based applications,
 	since they do not require any scheduler to be installed.
-	The module will be called rtai_fifos.o.
+	The module will be called: rtai_fifos.ko
+
+	Must be enabled as a built-in (Y) for LinuxCNC.
 
 config RTAI_SHM
 	tristate "Shared memory"
-	default m
+	default y
 	help
 	This RTAI specific module allows sharing memory inter-intra
 	real-time tasks and Linux processes. In fact it can be an
@@ -403,11 +394,13 @@ config RTAI_SHM
 	noticed that the services are symmetrical, i.e. the same calls
 	can be used both in real-time tasks (within the kernel) and
 	Linux processes.
-	The module will be called rtai_shm.o.
+	The module will be called: rtai_shm.ko
+
+	Must be enabled as a built-in (Y) for LinuxCNC.
 
 config RTAI_SEM
 	tristate "Semaphores"
-	default m
+	default y
 	help
 	A semaphore is a protocol mechanism offered to:
 	- control access to a shared resource (mutual exclusion);
@@ -422,15 +415,17 @@ config RTAI_SEM
 	Both binary and counting semaphores are able to queue tasks
 	either in FIFO or priority order and this can be chosen
 	dynamically at run time.
-	The module will be called rtai_sem.o.
+	The module will be called: rtai_sem.ko
+
+	Must be enabled as a built-in (Y) for LinuxCNC.
 
 config RTAI_RT_POLL
 	bool "Enable IPCs polling"
 	depends on RTAI_SEM
 	default n
 	help
-	This enable polling support for RTAI services. At the moment only 
-	MBXes and SEMs are supported. The related service is embedded in 
+	This enable polling support for RTAI services. At the moment only
+	MBXes and SEMs are supported. The related service is embedded in
 	the semaphores module.
 
 config RTAI_RT_POLL_ON_STACK
@@ -456,10 +451,10 @@ config RTAI_MSG
 	Direct synchronization by direct intertask messaging, either as fast
 	single unsigned long messages or as extended arbitrarily sized
 	messages. Both async and sync messages with replies can be used.
-	QNX styled APIs are also available. Blocking messages exploit priority 
-	inheritance, which becomes a dynamic ceiling when inheritances are 
+	QNX styled APIs are also available. Blocking messages exploit priority
+	inheritance, which becomes a dynamic ceiling when inheritances are
 	mixed with resource sems.
-	The module will be called rtai_msg.o.
+	The module will be called: rtai_msg.ko
 
 config RTAI_MBX
 	tristate "Mailboxes"
@@ -476,7 +471,7 @@ config RTAI_MBX
 	size. They are based on the First In First Out (FIFO)
 	principle and on Last In First Out (LIFO) for urgent delivery.
 	Mailboxes depend on semaphores.
-	The module will be called rtai_mbx.o.
+	The module will be called: rtai_mbx.ko
 
 config RTAI_MQ
 	tristate "POSIX-like message queues"
@@ -484,22 +479,22 @@ config RTAI_MQ
 	default y if RTAI_SEM=y
 	default m if RTAI_SEM=m
 	help
-	RTAI pqueues implements the message queues section of Posix 1003.1d. 
-	They provide kernel-safe message queues. Message queues depend on 
+	RTAI pqueues implements the message queues section of Posix 1003.1d.
+	They provide kernel-safe message queues. Message queues depend on
 	semaphores.
-	The module will be called rtai_mq.o.
+	The module will be called: rtai_mq.ko
 
 config RTAI_CLOCK_REALTIME
 	bool "Support for Posix CLOCK_REALTIME APIs"
 	default y
 	help
-	The purpose here is mainly to activate the CLOCK_REALTIME timing 
+	The purpose here is mainly to activate the CLOCK_REALTIME timing
 	support in a few RTAI native services used behind POSIX APIs.
 	CLOCK_REALTIME is the default POSIX timing option so it should be
-	enabled for a full POSIX support but, if you are either not using 
-	POSIX or can work with it using just the CLOCK_MONOTONIC timing, 
-	it would be better to avoid enabling this option. It will save you 
-	a test on a long long. Not too much of an overhead indeed, but why 
+	enabled for a full POSIX support but, if you are either not using
+	POSIX or can work with it using just the CLOCK_MONOTONIC timing,
+	it would be better to avoid enabling this option. It will save you
+	a test on a long long. Not too much of an overhead indeed, but why
 	paying for it if not needed?
 	It is defaulted to "yes" just to stay on the safe side.
 
@@ -511,12 +506,12 @@ config RTAI_USE_NEWERR
 	bool "New return values of blocking RTAI APIs"
 	default y
 	help
-	Return values for RTAI blocking APIs are a bit sketchy. That 
+	Return values for RTAI blocking APIs are a bit sketchy. That
 	is due to a long standing legacy dating back to DOS and 8 bits PCs,
-	when saving a few "if"s might have been important. Whatever one's 
+	when saving a few "if"s might have been important. Whatever one's
 	opinion such a legacy has now been likely inherited by many well
-	working existing RTAI applications, that might break with a new 
-	error return scheme. In any case a better set of error return values 
+	working existing RTAI applications, that might break with a new
+	error return scheme. In any case a better set of error return values
 	might be useful nowadays, so it has been added. With it one will be
 	able to correctly infer more detailed reasons for error returns i.e.:
 	- invalid requests (RTE_OBJINV),
@@ -525,7 +520,7 @@ config RTAI_USE_NEWERR
 	- timer overruns (RTE_TMROVRN),
 	- deletion of blocking objects (RTE_OBJREM).
 	Thus the new scheme has been made configurable to allow RTAI users
-	to choose what to do, without forcing any adaption for already 
+	to choose what to do, without forcing any adaption for already
 	existing working applications.
 
 config RTAI_MATH_KCOMPLEX
@@ -538,13 +533,13 @@ config RTAI_MALLOC
 	tristate "Real-time malloc support"
 	default y
 	help
-	RTAI provides a real-time implementation of malloc(). This allows 
+	RTAI provides a real-time implementation of malloc(). This allows
 	real-time tasks to allocate and free memory safely while executing
 	in the real-time domain. If it is not enabled kernel's kmalloc will
-	be used. So disabling this option is acceptable if you'll care 
+	be used. So disabling this option is acceptable if you'll care
 	to do any allocation while in Linux context only, i.e. at modules
 	initialisation.
-	The module will be called rtai_malloc.o.
+	The module will be called: rtai_malloc.ko
 
 config RTAI_USE_TLSF
 	bool "Allocate memory using TLSF in place of BSD one"
@@ -552,10 +547,10 @@ config RTAI_USE_TLSF
 	default n
 	help
 	RTAI dynamic memory allocation support offers two different methods
-	to allocate memory chunks. The default one is along the lines 
+	to allocate memory chunks. The default one is along the lines
 	illustrated in:
 	"Design of a General Purpose Memory Allocator for the 4.3BSD Unix
-	 Kernel" by Marshall K. McKusick. 
+	 Kernel" by Marshall K. McKusick.
 	By enabling this option the:
 	"Two Levels Segregated Lists (TLSF)" as found at:
 	http://rtportal.upv.es/rtmalloc/allocators/tlsf/
@@ -571,14 +566,14 @@ config RTAI_MALLOC_VMALLOC
 	depends on RTAI_MALLOC
 	default y
 	help
-	RTAI's malloc support offers two different ways to allocate memory 
+	RTAI's malloc support offers two different ways to allocate memory
 	chunks, i.e. kmalloc and vmalloc.
 	The reasons for using vmalloc:
 	- it is simpler to share allocated buffers with user space;
 	- it doesn't have the size restrictions of kmalloc.
 	The reasons for using kmalloc:
 	- it is faster (not important since it as to be used in soft real time);
-	- it exhibits contiguous buffer addressing needed for DMA controllers 
+	- it exhibits contiguous buffer addressing needed for DMA controllers
 	which don't have scattering/gathering capability.
 	The default is using kmalloc()
 
@@ -589,7 +584,9 @@ config RTAI_MALLOC_HEAPSZ
 	help
 	RTAI pre-allocates a global heap as part of its initialization
 	chores. This parameter allows to define its size (in
-	kilobytes).
+	kilobytes.)
+
+	The default value is 2048.
 
 config RTAI_KSTACK_HEAPSZ
 	string "Size of stacks heap for RTAI own kernel tasks (Kbytes)"
@@ -597,7 +594,9 @@ config RTAI_KSTACK_HEAPSZ
 	default 512
 	help
 	RTAI pre-allocates a heap for the stacks of its own kernel tasks.
-	This parameter allows to define its size (in kilobytes).
+	This parameter allows to define its size (in kilobytes.)
+
+	The default value is 512.
 
 config RTAI_TASK_SWITCH_SIGNAL
 	bool "task switches specific signal"
@@ -608,7 +607,7 @@ config RTAI_TASK_SWITCH_SIGNAL
 	- kernel: execute a function assigned at rt_task_init or by calling
 		rt_task_signal_handler;
 	- user: install an RTAI own signal handler and have it called at any
-		task switch through its number, assigned by calling 
+		task switch through its number, assigned by calling
 		rt_task_signal_handler.
 	The default is to not make available this feature, so you must enable
 	it explicitly if it is useful for your application.

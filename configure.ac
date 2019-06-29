@@ -179,6 +179,10 @@ AC_ARG_ENABLE(fifos,
 	m | mod | module) CONFIG_RTAI_FIFOS=m ;;
 	*) unset CONFIG_RTAI_FIFOS ;;
 	esac])
+if test x$CONFIG_RTAI_FIFOS = x ; then
+	# Enable by default for LinuxCNC
+	CONFIG_RTAI_FIFOS=y
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_FIFOS:-no})
 
 if test x$CONFIG_RTAI_FIFOS = xy ; then
@@ -193,6 +197,10 @@ AC_ARG_ENABLE(sem,
 	m | mod | module) CONFIG_RTAI_SEM=m ;;
 	*) unset CONFIG_RTAI_SEM ;;
 	esac])
+if test x$CONFIG_RTAI_SEM = x ; then
+	# Enable by default for LinuxCNC
+	CONFIG_RTAI_SEM=y
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_SEM:-no})
 
 if test x$CONFIG_RTAI_SEM = xy ; then
@@ -267,6 +275,10 @@ AC_ARG_ENABLE(shm,
 	m | mod | module) CONFIG_RTAI_SHM=m ;;
 	*) unset CONFIG_RTAI_SHM ;;
 	esac])
+if test x$CONFIG_RTAI_SHM = x ; then
+	# Enable by default for LinuxCNC
+	CONFIG_RTAI_SHM=y
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_SHM:-no})
 
 if test x$CONFIG_RTAI_SHM = xy ; then
@@ -295,14 +307,6 @@ AC_ARG_ENABLE(lxrt-use-linux-syscall,
 	*) unset CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL ;;
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL:-no})
-
-dnl CONFIG_RTAI_KTASKS_SCHED_LXRT has to be forced
-AC_ARG_ENABLE(ktasks-sched-lxrt,
-	[ --enable-ktasks-sched-lxrt	Enable LXRT scheduler with kernel tasks support],
-	[case "$enableval" in
-	y | yes | m | mod | module) CONFIG_RTAI_KTASKS_SCHED_LXRT_=y ;;
-	*) echo "--enable-ktasks-sched-lxrt forced to \"yes\"" ; CONFIG_RTAI_KTASKS_SCHED_LXRT_=y ;;
-	esac])
 
 AC_MSG_CHECKING(for scheduler lock in ISRs)
 AC_ARG_ENABLE(sched-lock-isr,
@@ -432,7 +436,7 @@ AC_ARG_ENABLE(lxrt-numslots,
 	esac])
 if test x$CONFIG_RTAI_SCHED_LXRT_NUMSLOTS = x ; then
 	# Use a reasonable default if unset
-	CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=1024
+	CONFIG_RTAI_SCHED_LXRT_NUMSLOTS=256
 fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_LXRT_NUMSLOTS)
 
@@ -730,12 +734,6 @@ case $CONFIG_RTAI_IMMEDIATE_LINUX_SYSCALL in
 	n|*) CONFIG_RTAI_IMMEDIATE_LINUX_SYSCALL=0 ;;
 esac
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_IMMEDIATE_LINUX_SYSCALL,$CONFIG_RTAI_IMMEDIATE_LINUX_SYSCALL,[Kconfig])
-
-case $CONFIG_RTAI_ONE_SHOT in
-	y) CONFIG_RTAI_ONE_SHOT=1 ;;
-	n|*) CONFIG_RTAI_ONE_SHOT=0 ;;
-esac
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_ONE_SHOT,$CONFIG_RTAI_ONE_SHOT,[Kconfig])
 
 case $CONFIG_RTAI_BUSY_TIME_ALIGN in
 	y) CONFIG_RTAI_BUSY_TIME_ALIGN=1 ;;
