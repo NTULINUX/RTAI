@@ -12,3 +12,5 @@ If you are willing to test 32-bit support with IPIPE, patch the kernel source wi
 available patches for that kernel version, then inside the kernel source directory, run:
 
 `sed -i 's/depends on X86_64/depends on X86/g' kernel/ipipe/Kconfig`
+
+Please note that 32-bit support is not even compile tested!
