@@ -11,8 +11,10 @@ CVS
 *.la
 *.swp
 *~
+base/sched/fifos.c
 base/sched/kvmem.c
 base/sched/malloc.c
+base/sched/sem.c
 base/sched/shm.c
 Module.symvers
 modules.order
