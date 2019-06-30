@@ -6,16 +6,16 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 $ git clone -b for-next https://github.com/NTULINUX/RTAI.git
 
-2.) Patch kernel with IPIPE, in this case we use 4.14.130
+2.) Patch kernel with IPIPE, in this case we use 4.14.131
 
 # rm -rf /usr/src/000*.patch /usr/src/linux
 # cd /usr/src
-# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.130.tar.xz
-# tar xf linux-4.14.130.tar.xz
-# ln -sfv linux-4.14.130 linux
-# cp -aLv /path/to/this/RTAI-git-tree/base/arch/x86/patches/v4.14.130/*.patch /usr/src/
+# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.131.tar.xz
+# tar xf linux-4.14.131.tar.xz
+# ln -sfv linux-4.14.131 linux
+# cp -aLv /path/to/this/RTAI-git-tree/base/arch/x86/patches/v4.14.131/*.patch /usr/src/
 # cd linux
-# patch -p1 < ../0001-RTAI-core-release-5-for-Linux-4.14.130.patch
+# patch -p1 < ../0001-RTAI-core-release-5-for-Linux-4.14.131.patch
 # patch -p1 < ../0002-Countless-Kconfig-tweaks-for-IPIPE.patch
 # make olddefconfig
 # make menuconfig
@@ -31,15 +31,22 @@ Refer to your distribution documentation to do this. Generally for newer distros
 
 # grub-mkconfig -o /boot/grub/grub.cfg
 
-4.) Compile, configure and install RTAI (MUST BE BOOTED INTO YOUR NEW RTAI KERNEL)
+4.) Configure, build and install RTAI (MUST BE BOOTED INTO YOUR NEW RTAI KERNEL)
 
 $ cd ~/RTAI
 $ ./autogen.sh
 $ make menuconfig
 
-Configure to your needs
+Configure to your needs. You may also use ./configure instead.
+
+For a full list of possible options:
+
+$ ./configure --help
+
+To build and install RTAI:
 
 $ make
-$ sudo make install
+
+# make install
 
 5.) Go get LinuxCNC and compile that.
