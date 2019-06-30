@@ -689,26 +689,8 @@ struct rt_native_fun_entry rt_shm_entries[] = {
 extern int set_rt_fun_entries(struct rt_native_fun_entry *entry);
 extern void reset_rt_fun_entries(struct rt_native_fun_entry *entry);
 
-#define USE_UDEV_CLASS 0
-
-#if USE_UDEV_CLASS
-static class_t *shm_class = NULL;
-#endif
-
 int __rtai_shm_init (void)
 {
-#if USE_UDEV_CLASS
-	if ((shm_class = class_create(THIS_MODULE, "rtai_shm")) == NULL) {
-		printk("RTAI-SHM: cannot create class.\n");
-		return -EBUSY;
-	}
-	if (CLASS_DEVICE_CREATE(shm_class, MKDEV(MISC_MAJOR, RTAI_SHM_MISC_MINOR), NULL, "rtai_shm") == NULL) {
-		printk("RTAI-SHM: cannot attach class.\n");
-		class_destroy(shm_class);
-		return -EBUSY;
-	}
-#endif
-
 	if (misc_register(&rtai_shm_dev) < 0) {
 		printk("***** UNABLE TO REGISTER THE SHARED MEMORY DEVICE (miscdev minor: %d) *****\n", RTAI_SHM_MISC_MINOR);
 		return -EBUSY;
@@ -747,10 +729,6 @@ void __rtai_shm_exit (void)
 	}
 	reset_rt_fun_entries(rt_shm_entries);
 	misc_deregister(&rtai_shm_dev);
-#if USE_UDEV_CLASS
-	class_device_destroy(shm_class, MKDEV(MISC_MAJOR, RTAI_SHM_MISC_MINOR));
-	class_destroy(shm_class);
-#endif
 	return;
 }
 
