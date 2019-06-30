@@ -52,15 +52,12 @@ RTAI_HOST_STRING="$host"
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_COMPILER,"`gcc -v 2>&1 | tail -n 1`",[Compiler])
 
 dnl Only support X86 and AMD64
-
 case "$host" in
 	i*86*-*)
-		RTAI_TARGET_ARCH=x86
-		wanted_kernel_arch=CONFIG_X86_32
+		RTAI_TARGET_SUBARCH="32-bit"
 		;;
 	x86_64*-*)
-		RTAI_TARGET_ARCH=x86
-		wanted_kernel_arch=CONFIG_X86_64
+		RTAI_TARGET_SUBARCH="64-bit"
 		;;
 	*)
 		echo "Only x86 and amd64 platforms are supported."
@@ -593,22 +590,12 @@ AC_ARG_ENABLE(complex-math,
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_MATH_KCOMPLEX:-no})
 
-dnl add arch specific tests
+dnl Test for TSC if 32-bit is forced and too old of CPU type
+AC_MSG_CHECKING(if kernel has TSC enabled)
 if test x$CONFIG_X86_TSC = x ; then
-	AC_MSG_ERROR([Missing TSC support.])
+	AC_MSG_ERROR([Missing TSC support: Please select a newer CPU type in kernel options.])
 fi
-
-if test x$CONFIG_X86_LOCAL_APIC = x ; then
-	AC_MSG_ERROR([Missing local APIC support.])
-fi
-
-if test x$CONFIG_X86_IO_APIC = x ; then
-	AC_MSG_ERROR([Missing I/O APIC support.])
-fi
-
-if test x$CONFIG_GENERIC_CLOCKEVENTS = x ; then
-	AC_MSG_ERROR([CONFIG_GENERIC_CLOCKEVENTS is disabled.])
-fi
+AC_MSG_RESULT([yes])
 
 dnl
 dnl Check for invalid combinations

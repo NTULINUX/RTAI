@@ -11,8 +11,6 @@ includedir="@includedir@"
 RTAI_VERSION="@PACKAGE_VERSION@"
 RTAI_PREFIX="${staging}${prefix}"
 RTAI_CC="@CC@"
-RTAI_CXX="@CXX@"
-RTAI_TARGET_ARCH="@RTAI_TARGET_ARCH@"
 RTAI_TARGET_SUBARCH="@RTAI_TARGET_SUBARCH@"
 RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
 RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
@@ -30,17 +28,11 @@ unset prefix libdir datadir pkgdatadir includedir
 while [[ "${#}" -gt "0" ]] ; do
 	argument="${1}"
 	case "${argument}" in
-		--version)
-			echo "${RTAI_VERSION}"
-			;;
 		--cc)
 			echo "${RTAI_CC}"
 			;;
-		--cxx)
-			echo "${RTAI_CXX}"
-			;;
 		--arch)
-			echo "${RTAI_TARGET_ARCH}"
+			echo "x86"
 			;;
 		--subarch)
 			echo "${RTAI_TARGET_SUBARCH}"
@@ -84,13 +76,14 @@ while [[ "${#}" -gt "0" ]] ; do
 		--posix-wrap)
 			echo "${RTAI_POSIX_WRAP}"
 			;;
+		--version)
+			echo "${RTAI_VERSION}"
+			;;
 		*)
 			echo "rtai-config
 	Options:
 	--help
-	--version
 	--cc
-	--cxx
 	--arch
 	--subarch
 	--prefix
@@ -104,7 +97,8 @@ while [[ "${#}" -gt "0" ]] ; do
 	--linux-version
 	--module-dir
 	--library-dir
-	--posix-wrap"
+	--posix-wrap
+	--version"
 			exit 0
 			;;
 	esac
