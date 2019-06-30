@@ -10,7 +10,7 @@
 
 lib_LTLIBRARIES = liblxrt.la
 
-liblxrt_la_SOURCES = services.c touchall.c
+liblxrt_la_SOURCES = services.c
 
 liblxrt_la_LDFLAGS = -module -version-info 1:0:0
 
