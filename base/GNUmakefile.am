@@ -16,6 +16,6 @@ if CONFIG_RTAI_MALLOC
 OPTDIRS += malloc
 endif
 
-OPTDIRS += sched ipc arch posix
+OPTDIRS += sched ipc arch
 
 SUBDIRS = $(OPTDIRS) math scripts

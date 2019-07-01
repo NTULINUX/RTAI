@@ -835,15 +835,9 @@ AC_CONFIG_LINKS(base/ipc/mq/Makefile:base/ipc/mq/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/msg/Makefile:base/ipc/msg/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/sem/Makefile:base/ipc/sem/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
-AC_CONFIG_LINKS(base/posix/Makefile:base/posix/Makefile.kbuild)
 AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
 AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
 AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
-
-dnl
-dnl POSIX wraps
-dnl
-RTAI_POSIX_WRAP=`for f in \`cat "${srcdir}/base/posix/POSIX_WRAPS"\`; do echo -n " -Wl,--wrap -Wl,$f" ; done`
 
 dnl
 dnl Build the Makefiles
@@ -864,7 +858,6 @@ AC_SUBST(RTAI_KBUILD_BOTTOM)
 AC_SUBST(RTAI_KBUILD_CMD)
 AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
-AC_SUBST(RTAI_POSIX_WRAP)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
@@ -890,7 +883,6 @@ AC_CONFIG_FILES([ \
 	base/ipc/mq/GNUmakefile \
 	base/malloc/GNUmakefile \
 	base/math/GNUmakefile \
-	base/posix/GNUmakefile \
 	testsuite/GNUmakefile
 	])
 
