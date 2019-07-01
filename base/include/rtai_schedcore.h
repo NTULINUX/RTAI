@@ -87,6 +87,27 @@ extern RTIME rt_smp_time_h[];
 
 extern volatile int rt_sched_timed;
 
+RT_TASK *rt_get_base_linux_task(RT_TASK **base_linux_task);
+
+RT_TASK *rt_alloc_dynamic_task(void);
+
+void rt_enq_ready_edf_task(RT_TASK *ready_task);
+
+void rt_enq_ready_task(RT_TASK *ready_task);
+
+int rt_renq_ready_task(RT_TASK *ready_task,
+		       int priority);
+
+void rt_rem_ready_task(RT_TASK *task);
+
+void rt_rem_ready_current(RT_TASK *rt_current);
+
+void rt_enq_timed_task(RT_TASK *timed_task);
+
+void rt_rem_timed_task(RT_TASK *task);
+
+void rt_dequeue_blocked(RT_TASK *task);
+
 #ifdef CONFIG_RTAI_MALLOC
 #ifdef CONFIG_RTAI_MALLOC_BUILTIN
 #define sched_mem_init() \
