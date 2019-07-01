@@ -49,4 +49,5 @@ $ make
 
 # make install
 
-5.) Go get LinuxCNC and compile that.
+5.) To build LinuxCNC, you must first apply all patches to it located
+in the linuxcnc_patches directory before you run ./autogen.sh inside it's source tree.
