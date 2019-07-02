@@ -250,20 +250,6 @@ if test x$CONFIG_RTAI_MBX = xy ; then
 	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mbx"
 fi
 
-AC_MSG_CHECKING(for POSIX-like message queue support)
-AC_ARG_ENABLE(mq,
-	[ --enable-mq			Enable POSIX-like message queue support],
-	[case "$enableval" in
-	y | yes | b | builtin | built-in) CONFIG_RTAI_MQ=y ;;
-	m | mod | module) CONFIG_RTAI_MQ=m ;;
-	*) unset CONFIG_RTAI_MQ ;;
-	esac])
-AC_MSG_RESULT(${CONFIG_RTAI_MQ:-no})
-
-if test x$CONFIG_RTAI_MQ = xy ; then
-	RTAI_BUILTIN_MODLIST="$RTAI_BUILTIN_MODLIST ipc/mq"
-fi
-
 AC_MSG_CHECKING(for shared memory support)
 AC_ARG_ENABLE(shm,
 	[ --enable-shm			Enable shared memory support],
@@ -625,18 +611,6 @@ if test x$CONFIG_RTAI_MBX = xy ; then
 	fi
 fi
 
-if test x$CONFIG_RTAI_MQ = xy -o x$CONFIG_RTAI_MQ = xm ; then
-	if test x$CONFIG_RTAI_SEM = x ; then
-	AC_MSG_ERROR([--enable-mq requires --enable-sem])
-	fi
-fi
-
-if test x$CONFIG_RTAI_MQ = xy ; then
-	if test x$CONFIG_RTAI_SEM = xm ; then
-	AC_MSG_ERROR([--enable-mq=y requires --enable-sem=y])
-	fi
-fi
-
 dnl
 dnl Build a Kconfig file corresponding to the current configuration
 dnl if none exists.
@@ -666,7 +640,6 @@ test \! x$CONFIG_RTAI_RT_POLL = x && AC_DEFINE(CONFIG_RTAI_RT_POLL,1,[Kconfig])
 test \! x$CONFIG_RTAI_RT_POLL_ON_STACK = x && AC_DEFINE(CONFIG_RTAI_RT_POLL_ON_STACK,1,[Kconfig])
 test \! x$CONFIG_RTAI_MSG = x && AC_DEFINE(CONFIG_RTAI_MSG,1,[Kconfig])
 test \! x$CONFIG_RTAI_MBX = x && AC_DEFINE(CONFIG_RTAI_MBX,1,[Kconfig])
-test \! x$CONFIG_RTAI_MQ = x && AC_DEFINE(CONFIG_RTAI_MQ,1,[Kconfig])
 test \! x$CONFIG_RTAI_SHM = x && AC_DEFINE(CONFIG_RTAI_SHM,1,[Kconfig])
 test \! x$CONFIG_RTAI_MALLOC = x && AC_DEFINE(CONFIG_RTAI_MALLOC,1,[Kconfig])
 test \! x$CONFIG_RTAI_USE_TLSF = x && AC_DEFINE(CONFIG_RTAI_USE_TLSF,1,[Kconfig])
@@ -681,7 +654,6 @@ test x$CONFIG_RTAI_FIFOS = xy && AC_DEFINE(CONFIG_RTAI_FIFOS_BUILTIN,1,[Kconfig]
 test x$CONFIG_RTAI_SEM = xy && AC_DEFINE(CONFIG_RTAI_SEM_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_MSG = xy && AC_DEFINE(CONFIG_RTAI_MSG_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_MBX = xy && AC_DEFINE(CONFIG_RTAI_MBX_BUILTIN,1,[Kconfig])
-test x$CONFIG_RTAI_MQ = xy && AC_DEFINE(CONFIG_RTAI_MQ_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_SHM = xy && AC_DEFINE(CONFIG_RTAI_SHM_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_MALLOC = xy && AC_DEFINE(CONFIG_RTAI_MALLOC_BUILTIN,1,[Kconfig])
 
@@ -791,7 +763,6 @@ AM_CONDITIONAL(CONFIG_RTAI_RT_POLL,[test -n "$CONFIG_RTAI_RT_POLL"])
 AM_CONDITIONAL(CONFIG_RTAI_RT_POLL_ON_STACK,[test -n "$CONFIG_RTAI_RT_POLL_ON_STACK"])
 AM_CONDITIONAL(CONFIG_RTAI_MSG,[test -n "$CONFIG_RTAI_MSG"])
 AM_CONDITIONAL(CONFIG_RTAI_MBX,[test -n "$CONFIG_RTAI_MBX"])
-AM_CONDITIONAL(CONFIG_RTAI_MQ,[test -n "$CONFIG_RTAI_MQ"])
 AM_CONDITIONAL(CONFIG_RTAI_SHM,[test -n "$CONFIG_RTAI_SHM"])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC,[test -n "$CONFIG_RTAI_MALLOC"])
 AM_CONDITIONAL(CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL,[test -n "$CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL"])
@@ -800,7 +771,6 @@ AM_CONDITIONAL(CONFIG_RTAI_FIFOS_BUILTIN,[test x$CONFIG_RTAI_FIFOS = xy])
 AM_CONDITIONAL(CONFIG_RTAI_SEM_BUILTIN,[test x$CONFIG_RTAI_SEM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MSG_BUILTIN,[test x$CONFIG_RTAI_MSG = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MBX_BUILTIN,[test x$CONFIG_RTAI_MBX = xy])
-AM_CONDITIONAL(CONFIG_RTAI_MQ_BUILTIN,[test x$CONFIG_RTAI_MQ = xy])
 AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
 
@@ -831,7 +801,6 @@ AC_CONFIG_LINKS(base/arch/x86/hal/Makefile:base/arch/x86/hal/Makefile.kbuild)
 AC_CONFIG_LINKS(base/arch/x86/calibration/Makefile:base/arch/x86/calibration/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/fifos/Makefile:base/ipc/fifos/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/mbx/Makefile:base/ipc/mbx/Makefile.kbuild)
-AC_CONFIG_LINKS(base/ipc/mq/Makefile:base/ipc/mq/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/msg/Makefile:base/ipc/msg/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/sem/Makefile:base/ipc/sem/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
@@ -880,7 +849,6 @@ AC_CONFIG_FILES([ \
 	base/ipc/sem/GNUmakefile \
 	base/ipc/msg/GNUmakefile \
 	base/ipc/mbx/GNUmakefile \
-	base/ipc/mq/GNUmakefile \
 	base/malloc/GNUmakefile \
 	base/math/GNUmakefile \
 	testsuite/GNUmakefile
