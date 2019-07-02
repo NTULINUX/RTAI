@@ -20,7 +20,7 @@ distclean-local:
 
 calibration_PROGRAMS = calibrate
 
-calibrate_SOURCES = calibrate.c calibrate.h
+calibrate_SOURCES = calibrate.c
 calibrate_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
 	-I$(top_srcdir)/base/include \
