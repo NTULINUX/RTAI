@@ -15,7 +15,8 @@ README.INSTALL \
 README.ISOLCPUS \
 README.LINUX_SERVER \
 README.LXRT_EXTS_IN_USE \
-README.SMI
+README.SMI \
+linuxcnc_patches
 
 DISTCLEANFILES = .rtai_config .rtai_config.old .cfok .cfchanged Module.symvers configure
 
