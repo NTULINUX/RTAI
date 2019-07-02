@@ -1,0 +1,72 @@
+From 133494bb6999033aa5055e8f87475cb6ca8b05f4 Mon Sep 17 00:00:00 2001
+From: Alec Ari <neotheuser@ymail.com>
+Date: Mon, 1 Jul 2019 15:25:03 -0500
+Subject: Fix build with new RTAI on Linux 4.14.131
+
+Signed-off-by: Alec Ari <neotheuser@ymail.com>
+---
+ src/Makefile           |  4 ++--
+ src/configure.ac       | 11 ++---------
+ src/rtapi/rtai_rtapi.c |  2 +-
+ 3 files changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index 82786e4ba..c7e991f96 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -833,8 +833,8 @@ sampler-objs := hal/components/sampler.o $(MATHSTUB)
+ obj-$(CONFIG_HAL_PARPORT) += hal_parport.o
+ hal_parport-objs := hal/drivers/hal_parport.o $(MATHSTUB)
+ ifneq ($(BUILD_SYS),uspace)
+-obj-$(CONFIG_PCI_8255) += pci_8255.o
+-pci_8255-objs := hal/drivers/pci_8255.o
++# obj-$(CONFIG_PCI_8255) += pci_8255.o
++# pci_8255-objs := hal/drivers/pci_8255.o
+ obj-$(CONFIG_HAL_TIRO) += hal_tiro.o
+ hal_tiro-objs := hal/drivers/hal_tiro.o $(MATHSTUB)
+ obj-$(CONFIG_HAL_STG) += hal_stg.o
+diff --git a/src/configure.ac b/src/configure.ac
+index 3537b6c92..498ed2f61 100644
+--- a/src/configure.ac
++++ b/src/configure.ac
+@@ -371,6 +371,7 @@ case $RTS in
+     RTPREFIX=rtai
+     RTAI_VERSION=$($RTS --version)
+     RTAI=$(echo $RTAI_VERSION | cut -f 1 -d .)
++    RTAI_LINUXVER=`$RTS --full-linux-ver`
+     RTDIR=`$RTS --prefix`
+     RTDIR=$(cd $RTDIR ; pwd -P )
+     RTFLAGS=`$RTS --module-cflags`
+@@ -593,15 +594,7 @@ install with "sudo apt-get install libusb-1.0-0-dev" or disable with
+ 
+ if test $RTS '!=' uspace; then
+ AC_MSG_CHECKING([for kernel version string])
+-
+-if test -e $KERNELDIR/include/linux/utsrelease.h; then
+-    VERSION_FILE=$KERNELDIR/include/linux/utsrelease.h
+-elif test -e $KERNELDIR/include/generated/utsrelease.h; then
+-    VERSION_FILE=$KERNELDIR/include/generated/utsrelease.h
+-else
+-    VERSION_FILE=$KERNELDIR/include/linux/version.h
+-fi
+-KERNEL_VERS=`$CC -E -dM ${VERSION_FILE} | grep UTS | cut -d '"' -f 2`
++KERNEL_VERS="${RTAI_LINUXVER}"
+ 
+ if test -z "$KERNEL_VERS"; then 
+     AC_MSG_ERROR(Kernel version string not found)
+diff --git a/src/rtapi/rtai_rtapi.c b/src/rtapi/rtai_rtapi.c
+index 5733d73d4..1ae8d310e 100644
+--- a/src/rtapi/rtai_rtapi.c
++++ b/src/rtapi/rtai_rtapi.c
+@@ -64,7 +64,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>		/* replaces malloc.h in recent kernels */
+ #include <linux/ctype.h>	/* isdigit */
+-#include <asm/uaccess.h>	/* copy_from_user() */
++// #include <asm/uaccess.h>	/* copy_from_user() */
+ #include <asm/msr.h>		/* rdtscll() */
+ 
+ /* get inb(), outb(), ioperm() */
+-- 
+2.20.1
+
