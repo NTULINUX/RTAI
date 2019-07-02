@@ -19,5 +19,3 @@ endif
 OPTDIRS += sched ipc arch posix
 
 SUBDIRS = $(OPTDIRS) math scripts
-
-EXTRA_DIST = config
