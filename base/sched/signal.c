@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,7 +23,6 @@
 
 #include <rtai_schedcore.h>
 #include <rtai_signal.h>
-#include <rtai_mq.h>
 
 MODULE_LICENSE("GPL");
 #define MODULE_NAME "RTAI_SIGNALS"
@@ -34,8 +34,8 @@ RTAI_SYSCALL_MODE int rt_request_signal_(RT_TASK *sigtask, RT_TASK *task, long s
 	int retval;
 	if (signal >= 0 && sigtask && task) {
 		if (!task->rt_signals) {
-			if ((task->rt_signals = rt_malloc((MAXSIGNALS + MAX_PQUEUES)*sizeof(struct rt_signal_t)))) {
-				memset(task->rt_signals, 0, ((MAXSIGNALS + MAX_PQUEUES)*sizeof(struct rt_signal_t)));
+			if ((task->rt_signals = rt_malloc((MAXSIGNALS)*sizeof(struct rt_signal_t)))) {
+				memset(task->rt_signals, 0, ((MAXSIGNALS)*sizeof(struct rt_signal_t)));
 				task->pstate = 0;
 			} else {
 				retval = -ENOMEM;

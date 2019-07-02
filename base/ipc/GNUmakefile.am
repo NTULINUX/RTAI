@@ -30,8 +30,4 @@ if CONFIG_RTAI_MBX
 OPTDIRS += mbx
 endif
 
-if CONFIG_RTAI_MQ
-OPTDIRS += mq
-endif
-
 SUBDIRS = $(OPTDIRS)
