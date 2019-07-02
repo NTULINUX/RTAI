@@ -64,7 +64,6 @@ int rtai_calibrate_hard_timer(void);
 #include <rtai_trace.h>
 #include <linux/version.h>
 #include <rtai_hal_names.h>
-#include <asm/rtai_vectors.h>
 
 struct rtai_realtime_irq_s {
         int retmode;

@@ -17,8 +17,7 @@ include_HEADERS = \
 		rtai_hal.h \
 		rtai_lxrt.h \
 		rtai_sched.h \
-		rtai_srq.h \
-		rtai_vectors.h
+		rtai_srq.h
 
 if CONFIG_X86_64
 include_HEADERS += \
