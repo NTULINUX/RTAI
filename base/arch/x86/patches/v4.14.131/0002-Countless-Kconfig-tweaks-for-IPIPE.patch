@@ -1,4 +1,4 @@
-From 1da64869162d528c60ab3d8020b0ae29fb54e53f Mon Sep 17 00:00:00 2001
+From e25c55407857e796fb82e4a1b1e5eb89e192c00b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 26 Jun 2019 14:55:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -38,6 +38,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/gpu/drm/qxl/Kconfig         |   2 +-
  drivers/gpu/drm/vmwgfx/Kconfig      |   2 +-
  drivers/hwspinlock/Kconfig          |   1 +
+ drivers/i2c/Kconfig                 |   2 +-
  drivers/infiniband/hw/usnic/Kconfig |   1 +
  drivers/iommu/Kconfig               |   2 +-
  drivers/mailbox/Kconfig             |   1 +
@@ -78,7 +79,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 64 files changed, 274 insertions(+), 190 deletions(-)
+ 65 files changed, 275 insertions(+), 191 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -975,6 +976,19 @@ index 6e0a5539a9ea..91fd47ae4c29 100644
  
  config HWSPINLOCK_OMAP
  	tristate "OMAP Hardware Spinlock device"
+diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
+index efc3354d60ae..f64ed101a997 100644
+--- a/drivers/i2c/Kconfig
++++ b/drivers/i2c/Kconfig
+@@ -26,7 +26,7 @@ config I2C
+ 
+ config ACPI_I2C_OPREGION
+ 	bool "ACPI I2C Operation region support"
+-	depends on I2C=y && ACPI
++	depends on I2C=y && ACPI && !IPIPE
+ 	default y
+ 	help
+ 	  Say Y here if you want to enable ACPI I2C operation region support.
 diff --git a/drivers/infiniband/hw/usnic/Kconfig b/drivers/infiniband/hw/usnic/Kconfig
 index 29ab11c34f3f..b59ea9838e9c 100644
 --- a/drivers/infiniband/hw/usnic/Kconfig
