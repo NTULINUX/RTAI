@@ -1,7 +1,7 @@
-From f824dcc1829cf4152b3b5a1228516fdafff76590 Mon Sep 17 00:00:00 2001
+From 14ac163f8b88ec4f8f58f6195c13fe7222701303 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 25 Jun 2019 18:31:37 -0500
-Subject: RTAI core release 5 for Linux 4.14.131
+Date: Tue, 2 Jul 2019 22:15:34 -0500
+Subject: IPIPE 4.14 core release 5
 
 Based off of ipipe-core-4.14.128-x86-5
 
@@ -44,7 +44,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  arch/x86/kernel/fpu/core.c              |   58 +-
  arch/x86/kernel/i8259.c                 |   31 +-
  arch/x86/kernel/idt.c                   |   24 +
- arch/x86/kernel/ipipe.c                 |  529 ++++++
+ arch/x86/kernel/ipipe.c                 |  535 ++++++
  arch/x86/kernel/irq.c                   |    5 +-
  arch/x86/kernel/irq_64.c                |   12 +-
  arch/x86/kernel/kgdb.c                  |    4 +-
@@ -120,7 +120,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/asm-generic/switch_to.h         |   11 +-
  include/clocksource/timer-sp804.h       |    9 +-
  include/ipipe/setup.h                   |   10 +
- include/ipipe/thread_info.h             |   13 +
+ include/ipipe/thread_info.h             |   14 +
  include/linux/clockchips.h              |    9 +
  include/linux/console.h                 |    2 +
  include/linux/dw_apb_timer.h            |    3 +-
@@ -129,9 +129,9 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/gpio/driver.h             |    2 +-
  include/linux/hardirq.h                 |    3 +
  include/linux/interrupt.h               |   17 +
- include/linux/ipipe.h                   |  721 +++++++++
+ include/linux/ipipe.h                   |  721 ++++++++
  include/linux/ipipe_debug.h             |  100 ++
- include/linux/ipipe_domain.h            |  360 +++++
+ include/linux/ipipe_domain.h            |  360 ++++
  include/linux/ipipe_lock.h              |  329 ++++
  include/linux/ipipe_tickdev.h           |  165 ++
  include/linux/ipipe_trace.h             |   78 +
@@ -163,8 +163,8 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  kernel/ipipe/Kconfig                    |   47 +
  kernel/ipipe/Kconfig.debug              |  100 ++
  kernel/ipipe/Makefile                   |    2 +
- kernel/ipipe/core.c                     | 1956 +++++++++++++++++++++++
- kernel/ipipe/timer.c                    |  650 ++++++++
+ kernel/ipipe/core.c                     | 1986 +++++++++++++++++++++++
+ kernel/ipipe/timer.c                    |  648 ++++++++
  kernel/ipipe/tracer.c                   | 1486 +++++++++++++++++
  kernel/irq/chip.c                       |  247 ++-
  kernel/irq/dummychip.c                  |    4 +-
@@ -182,7 +182,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  kernel/printk/printk.c                  |  176 +-
  kernel/ptrace.c                         |    2 +
  kernel/rcu/Kconfig.debug                |    2 +-
- kernel/sched/core.c                     |  143 +-
+ kernel/sched/core.c                     |   73 +-
  kernel/sched/idle.c                     |   32 +-
  kernel/sched/wait.c                     |    2 +
  kernel/signal.c                         |   10 +-
@@ -209,7 +209,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                        |    4 +
  mm/mprotect.c                           |   11 +-
  mm/vmalloc.c                            |    2 +
- 202 files changed, 11305 insertions(+), 878 deletions(-)
+ 202 files changed, 11300 insertions(+), 848 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -3823,10 +3823,10 @@ index 38c3d5790970..a395e989199c 100644
  		set_intr_gate(i, entry);
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
 new file mode 100644
-index 000000000000..54afd07fe9df
+index 000000000000..e89d05553877
 --- /dev/null
 +++ b/arch/x86/kernel/ipipe.c
-@@ -0,0 +1,529 @@
+@@ -0,0 +1,535 @@
 +/*   -*- linux-c -*-
 + *   linux/arch/x86/kernel/ipipe.c
 + *
@@ -4093,9 +4093,15 @@ index 000000000000..54afd07fe9df
 +
 +void ipipe_send_ipi(unsigned int ipi, cpumask_t cpumask)
 +{
++	unsigned long flags;
++
++	flags = hard_local_irq_save();
++
 +	cpumask_clear_cpu(ipipe_processor_id(), &cpumask);
 +	if (likely(!cpumask_empty(&cpumask)))
 +		apic->send_IPI_mask(&cpumask, ipipe_apic_irq_vector(ipi));
++
++	hard_local_irq_restore(flags);
 +}
 +EXPORT_SYMBOL_GPL(ipipe_send_ipi);
 +
@@ -9247,10 +9253,10 @@ index 000000000000..c2bc5218cf65
 +#endif /* !_IPIPE_SETUP_H */
 diff --git a/include/ipipe/thread_info.h b/include/ipipe/thread_info.h
 new file mode 100644
-index 000000000000..e49ed759cea2
+index 000000000000..7038c12942c8
 --- /dev/null
 +++ b/include/ipipe/thread_info.h
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,14 @@
 +#ifndef _IPIPE_THREAD_INFO_H
 +#define _IPIPE_THREAD_INFO_H
 +
@@ -9259,9 +9265,10 @@ index 000000000000..e49ed759cea2
 + * domains.
 + */
 +
-+struct ipipe_threadinfo { void *ptd[4]; };
++struct ipipe_threadinfo {
++};
 +
-+static inline void __ipipe_init_threadinfo(struct ipipe_threadinfo *p) { p->ptd[0] = p->ptd[1] = p->ptd[2] = p->ptd[3] = 0; }
++#define __ipipe_init_threadinfo(__p) do { } while (0)
 +
 +#endif /* !_IPIPE_THREAD_INFO_H */
 diff --git a/include/linux/clockchips.h b/include/linux/clockchips.h
@@ -12270,10 +12277,10 @@ index 000000000000..73755150634f
 +obj-$(CONFIG_IPIPE_TRACE) += tracer.o
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
 new file mode 100644
-index 000000000000..cdc93f5619a3
+index 000000000000..ec751abeca53
 --- /dev/null
 +++ b/kernel/ipipe/core.c
-@@ -0,0 +1,1956 @@
+@@ -0,0 +1,1986 @@
 +/* -*- linux-c -*-
 + * linux/kernel/ipipe/core.c
 + *
@@ -12317,20 +12324,6 @@ index 000000000000..cdc93f5619a3
 +#include <ipipe/setup.h>
 +#include <asm/syscall.h>
 +#include <asm/unistd.h>
-+
-+EXPORT_SYMBOL(sys_call_table);
-+int (*rtai_fastcall_hook)(struct pt_regs *) = NULL;
-+EXPORT_SYMBOL(rtai_fastcall_hook);
-+int (*rtai_syscall_hook)(struct pt_regs *) = NULL;
-+EXPORT_SYMBOL(rtai_syscall_hook);
-+int (*rtai_trap_hook)(int exception, struct pt_regs *) = NULL;
-+EXPORT_SYMBOL(rtai_trap_hook);
-+int (*rtai_kevent_hook)(int kevent, void *) = NULL;
-+EXPORT_SYMBOL(rtai_kevent_hook);
-+void (*rtai_migration_hook)(struct task_struct *) = NULL;
-+EXPORT_SYMBOL(rtai_migration_hook);
-+void (*dispatch_irq_head)(unsigned int) = NULL;
-+EXPORT_SYMBOL(dispatch_irq_head);
 +
 +struct ipipe_domain ipipe_root;
 +EXPORT_SYMBOL_GPL(ipipe_root);
@@ -13280,14 +13273,14 @@ index 000000000000..cdc93f5619a3
 +}
 +EXPORT_SYMBOL_GPL(ipipe_set_hooks);
 +
-+int ipipe_fastcall_hook(struct pt_regs *regs)
++int __weak ipipe_fastcall_hook(struct pt_regs *regs)
 +{
-+	return rtai_fastcall_hook ? rtai_fastcall_hook(regs) : -1;
++	return -1;	/* i.e. fall back to slow path. */
 +}
 +
-+int __ipipe_notify_syscall(struct pt_regs *regs)
++int __weak ipipe_syscall_hook(struct ipipe_domain *ipd, struct pt_regs *regs)
 +{
-+	return rtai_syscall_hook ? rtai_syscall_hook(regs) : 0;
++	return 0;
 +}
 +
 +static inline void sync_root_irqs(void)
@@ -13367,7 +13360,7 @@ index 000000000000..cdc93f5619a3
 +	return 0; /* pass syscall down to the host. */
 +}
 +
-+int __Ipipe_notify_syscall(struct pt_regs *regs)
++int __ipipe_notify_syscall(struct pt_regs *regs)
 +{
 +	struct ipipe_domain *caller_domain, *this_domain, *ipd;
 +	struct ipipe_percpu_domain_data *p;
@@ -13388,6 +13381,7 @@ index 000000000000..cdc93f5619a3
 +		__ipipe_set_current_context(p);
 +		p->coflags |= __IPIPE_SYSCALL_R;
 +		hard_local_irq_restore(flags);
++		ret = ipipe_syscall_hook(caller_domain, regs);
 +		flags = hard_local_irq_save();
 +		p->coflags &= ~__IPIPE_SYSCALL_R;
 +		if (__ipipe_current_domain != ipd)
@@ -13417,12 +13411,12 @@ index 000000000000..cdc93f5619a3
 +	return ret;
 +}
 +
-+int __ipipe_notify_trap(int exception, struct pt_regs *regs)
++int __weak ipipe_trap_hook(struct ipipe_trap_data *data)
 +{
-+	return (!__ipipe_root_p && rtai_trap_hook) ? rtai_trap_hook(exception, regs) : 0;
++	return 0;
 +}
 +
-+int __Ipipe_notify_trap(int exception, struct pt_regs *regs)
++int __ipipe_notify_trap(int exception, struct pt_regs *regs)
 +{
 +	struct ipipe_percpu_domain_data *p;
 +	struct ipipe_trap_data data;
@@ -13444,6 +13438,7 @@ index 000000000000..cdc93f5619a3
 +		hard_local_irq_restore(flags);
 +		data.exception = exception;
 +		data.regs = regs;
++		ret = ipipe_trap_hook(&data);
 +		flags = hard_local_irq_save();
 +		p->coflags &= ~__IPIPE_TRAP_R;
 +	}
@@ -13460,12 +13455,12 @@ index 000000000000..cdc93f5619a3
 +	return !ipipe_root_p;
 +}
 +
-+int __ipipe_notify_kevent(int kevent, void *data)
++int __weak ipipe_kevent_hook(int kevent, void *data)
 +{
-+	ipipe_root_only(); return rtai_kevent_hook ? rtai_kevent_hook(kevent, data) : 0;
++	return 0;
 +}
 +
-+int __Ipipe_notify_kevent(int kevent, void *data)
++int __ipipe_notify_kevent(int kevent, void *data)
 +{
 +	struct ipipe_percpu_domain_data *p;
 +	unsigned long flags;
@@ -13479,6 +13474,7 @@ index 000000000000..cdc93f5619a3
 +	if (likely(p->coflags & __IPIPE_KEVENT_E)) {
 +		p->coflags |= __IPIPE_KEVENT_R;
 +		hard_local_irq_restore(flags);
++		ret = ipipe_kevent_hook(kevent, data);
 +		flags = hard_local_irq_save();
 +		p->coflags &= ~__IPIPE_KEVENT_R;
 +	}
@@ -13488,9 +13484,8 @@ index 000000000000..cdc93f5619a3
 +	return ret;
 +}
 +
-+void inline ipipe_migration_hook(struct task_struct *p)
++void __weak ipipe_migration_hook(struct task_struct *p)
 +{
-+	if (rtai_migration_hook) rtai_migration_hook(p);
 +}
 +
 +static void complete_domain_migration(void) /* hw IRQs off */
@@ -13566,6 +13561,49 @@ index 000000000000..cdc93f5619a3
 +		vmf->handler(vmf);
 +}
 +EXPORT_SYMBOL_GPL(__ipipe_notify_vm_preemption);
++
++static void dispatch_irq_head(unsigned int irq) /* hw interrupts off */
++{
++	struct ipipe_percpu_domain_data *p = ipipe_this_cpu_head_context(), *old;
++	struct ipipe_domain *head = p->domain;
++
++	if (unlikely(test_bit(IPIPE_STALL_FLAG, &p->status))) {
++		__ipipe_set_irq_pending(head, irq);
++		return;
++	}
++
++	/* Switch to the head domain if not current. */
++	old = __ipipe_current_context;
++	if (old != p)
++		__ipipe_set_current_context(p);
++
++	p->irqall[irq]++;
++	__set_bit(IPIPE_STALL_FLAG, &p->status);
++	barrier();
++	head->irqs[irq].handler(irq, head->irqs[irq].cookie);
++	__ipipe_run_irqtail(irq);
++	hard_local_irq_disable();
++	p = ipipe_this_cpu_head_context();
++	__clear_bit(IPIPE_STALL_FLAG, &p->status);
++
++	/* Are we still running in the head domain? */
++	if (likely(__ipipe_current_context == p)) {
++		/* Did we enter this code over the head domain? */
++		if (old->domain == head) {
++			/* Yes, do immediate synchronization. */
++			if (__ipipe_ipending_p(p))
++				__ipipe_sync_stage();
++			return;
++		}
++		__ipipe_set_current_context(ipipe_this_cpu_root_context());
++	}
++
++	/*
++	 * We must be running over the root domain, synchronize
++	 * the pipeline for high priority IRQs (slow path).
++	 */
++	__ipipe_do_sync_pipeline(head);
++}
 +
 +void __ipipe_dispatch_irq(unsigned int irq, int flags) /* hw interrupts off */
 +{
@@ -13850,7 +13888,6 @@ index 000000000000..cdc93f5619a3
 +
 +	__clear_bit(IPIPE_STALL_FLAG, &p->status);
 +}
-+EXPORT_SYMBOL_GPL(__ipipe_do_sync_stage);
 +
 +void __ipipe_call_mayday(struct pt_regs *regs)
 +{
@@ -14232,10 +14269,10 @@ index 000000000000..cdc93f5619a3
 +#endif
 diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
 new file mode 100644
-index 000000000000..7826f99d73c3
+index 000000000000..22d5e5be874a
 --- /dev/null
 +++ b/kernel/ipipe/timer.c
-@@ -0,0 +1,650 @@
+@@ -0,0 +1,648 @@
 +/* -*- linux-c -*-
 + * linux/kernel/ipipe/timer.c
 + *
@@ -14804,6 +14841,9 @@ index 000000000000..7826f99d73c3
 +	 * extra call to the tick handler would simply occur after 4
 +	 * billions ticks.
 +	 */
++	if (cdelay > UINT_MAX)
++		cdelay = UINT_MAX;
++
 +	tdelay = cdelay;
 +	if (t->c2t_integ != 1)
 +		tdelay *= t->c2t_integ;
@@ -14814,7 +14854,7 @@ index 000000000000..7826f99d73c3
 +	if (tdelay > t->max_delay_ticks)
 +		tdelay = t->max_delay_ticks;
 +
-+	t->set(tdelay, t->timer_set); return; if (t->set(tdelay, t->timer_set) < 0)
++	if (t->set(tdelay, t->timer_set) < 0)
 +		ipipe_raise_irq(t->irq);
 +}
 +EXPORT_SYMBOL_GPL(ipipe_timer_set);
@@ -14881,11 +14921,6 @@ index 000000000000..7826f99d73c3
 +					  t->host_timer->next_event, false);
 +	}
 +}
-+
-+EXPORT_SYMBOL(ipipe_select_timers);
-+EXPORT_SYMBOL(ipipe_timers_release);
-+EXPORT_SYMBOL(ipipe_timer_start);
-+EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/ipipe/tracer.c b/kernel/ipipe/tracer.c
 new file mode 100644
 index 000000000000..2d75199b086b
@@ -17521,7 +17556,7 @@ index 0ec7d1d33a14..2034d02e8ee3 100644
  config TORTURE_TEST
  	tristate
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b3ff73d6a4c2..bfecabdae7d0 100644
+index b3ff73d6a4c2..606664e090c2 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -16,6 +16,7 @@
@@ -17532,15 +17567,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  
  #include <linux/blkdev.h>
  #include <linux/kprobes.h>
-@@ -85,6 +86,7 @@ int sysctl_sched_rt_runtime = 950000;
- 
- /* CPUs with isolated domains */
- cpumask_var_t cpu_isolated_map;
-+EXPORT_SYMBOL(cpu_isolated_map);
- 
- /*
-  * __task_rq_lock - lock the rq @p resides on.
-@@ -1129,10 +1131,13 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -1129,10 +1130,13 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
  	}
  
  	/* Can the task run on the task's current CPU? If so, we're done */
@@ -17555,7 +17582,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  	if (task_running(rq, p) || p->state == TASK_WAKING) {
  		struct migration_arg arg = { p, dest_cpu };
  		/* Need help from migration thread: drop lock and wait. */
-@@ -1798,7 +1803,9 @@ void scheduler_ipi(void)
+@@ -1798,7 +1802,9 @@ void scheduler_ipi(void)
  	 * however a fair share of IPIs are still resched only so this would
  	 * somewhat pessimize the simple resched case.
  	 */
@@ -17565,7 +17592,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  	sched_ttwu_pending();
  
  	/*
-@@ -1808,7 +1815,9 @@ void scheduler_ipi(void)
+@@ -1808,7 +1814,9 @@ void scheduler_ipi(void)
  		this_rq()->idle_balance = 1;
  		raise_softirq_irqoff(SCHED_SOFTIRQ);
  	}
@@ -17575,7 +17602,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  }
  
  static void ttwu_queue_remote(struct task_struct *p, int cpu, int wake_flags)
-@@ -1995,7 +2004,8 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+@@ -1995,7 +2003,8 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
  	 */
  	raw_spin_lock_irqsave(&p->pi_lock, flags);
  	smp_mb__after_spinlock();
@@ -17585,7 +17612,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  		goto out;
  
  	trace_sched_waking(p);
-@@ -2752,6 +2762,7 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+@@ -2752,6 +2761,7 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
  	 * PREEMPT_COUNT kernels).
  	 */
  
@@ -17593,102 +17620,17 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  	rq = finish_task_switch(prev);
  	balance_callback(rq);
  	preempt_enable();
-@@ -2763,52 +2774,64 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
- /*
-  * context_switch - switch to the new MM and the new thread's register state.
-  */
--static __always_inline struct rq *
-+static struct rq *
- context_switch(struct rq *rq, struct task_struct *prev,
- 	       struct task_struct *next, struct rq_flags *rf)
- {
- 	struct mm_struct *mm, *oldmm;
- 
--	prepare_task_switch(rq, prev, next);
--
- 	mm = next->mm;
- 	oldmm = prev->active_mm;
--	/*
--	 * For paravirt, this is coupled with an exit in switch_to to
--	 * combine the page table reload and the switch backend into
--	 * one hypercall.
--	 */
--	arch_start_context_switch(prev);
--
--	if (!mm) {
--		next->active_mm = oldmm;
--		mmgrab(oldmm);
--		enter_lazy_tlb(oldmm, next);
--	} else
--		switch_mm_irqs_off(oldmm, mm, next);
--
--	if (!prev->mm) {
--		prev->active_mm = NULL;
--		rq->prev_mm = oldmm;
--	}
- 
--	rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
-+	if (likely(!rq)) {
-+		switch_mm_irqs_off(oldmm, next->active_mm, next);
-+		if (!mm) enter_lazy_tlb(oldmm, next);
-+	} else {
-+		prepare_task_switch(rq, prev, next);
- 
--	/*
--	 * Since the runqueue lock will be released by the next
--	 * task (which is an invalid locking op but in the case
--	 * of the scheduler it's an obvious special-case), so we
--	 * do an early lockdep release here:
--	 */
--	rq_unpin_lock(rq, rf);
--	spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
-+		/*
-+		 * For paravirt, this is coupled with an exit in switch_to to
-+		 * combine the page table reload and the switch backend into
-+		 * one hypercall.
-+		 */
-+		arch_start_context_switch(prev);
-+
-+		if (!mm) {
-+			next->active_mm = oldmm;
-+			mmgrab(oldmm);
-+			enter_lazy_tlb(oldmm, next);
-+		} else
-+			switch_mm_irqs_off(oldmm, mm, next);
-+
-+		if (!prev->mm) {
-+			prev->active_mm = NULL;
-+			rq->prev_mm = oldmm;
-+		}
-+
-+		rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
-+
-+		/*
-+		 * Since the runqueue lock will be released by the next
-+		 * task (which is an invalid locking op but in the case
-+		 * of the scheduler it's an obvious special-case), so we
-+		 * do an early lockdep release here:
-+		 */
-+		rq_unpin_lock(rq, rf);
-+		spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
-+	}
- 
- 	/* Here we just switch the register state and the stack. */
+@@ -2807,6 +2817,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
  	switch_to(prev, next, prev);
  	barrier();
  
-+	if (likely(!rq)) return NULL;
-+
 +	if (unlikely(__ipipe_switch_tail()))
 +		return NULL;
 +
  	return finish_task_switch(prev);
  }
-+EXPORT_SYMBOL(context_switch);
  
- /*
-  * nr_running and nr_context_switches:
-@@ -3193,6 +3216,7 @@ static noinline void __schedule_bug(struct task_struct *prev)
+@@ -3193,6 +3206,7 @@ static noinline void __schedule_bug(struct task_struct *prev)
   */
  static inline void schedule_debug(struct task_struct *prev)
  {
@@ -17696,7 +17638,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  #ifdef CONFIG_SCHED_STACK_END_CHECK
  	if (task_stack_end_corrupted(prev))
  		panic("corrupted stack end detected inside scheduler\n");
-@@ -3292,7 +3316,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+@@ -3292,7 +3306,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
   *
   * WARNING: must be called with preemption disabled!
   */
@@ -17705,7 +17647,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  {
  	struct task_struct *prev, *next;
  	unsigned long *switch_count;
-@@ -3381,12 +3405,17 @@ static void __sched notrace __schedule(bool preempt)
+@@ -3381,12 +3395,17 @@ static void __sched notrace __schedule(bool preempt)
  
  		/* Also unlocks the rq: */
  		rq = context_switch(rq, prev, next, &rf);
@@ -17723,7 +17665,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  }
  
  void __noreturn do_task_dead(void)
-@@ -3424,7 +3453,8 @@ asmlinkage __visible void __sched schedule(void)
+@@ -3424,7 +3443,8 @@ asmlinkage __visible void __sched schedule(void)
  	sched_submit_work(tsk);
  	do {
  		preempt_disable();
@@ -17733,7 +17675,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  		sched_preempt_enable_no_resched();
  	} while (need_resched());
  }
-@@ -3504,7 +3534,8 @@ static void __sched notrace preempt_schedule_common(void)
+@@ -3504,7 +3524,8 @@ static void __sched notrace preempt_schedule_common(void)
  		 */
  		preempt_disable_notrace();
  		preempt_latency_start(1);
@@ -17743,7 +17685,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  		preempt_latency_stop(1);
  		preempt_enable_no_resched_notrace();
  
-@@ -3527,7 +3558,7 @@ asmlinkage __visible void __sched notrace preempt_schedule(void)
+@@ -3527,7 +3548,7 @@ asmlinkage __visible void __sched notrace preempt_schedule(void)
  	 * If there is a non-zero preempt_count or interrupts are disabled,
  	 * we do not want to preempt the current task. Just return..
  	 */
@@ -17752,7 +17694,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  		return;
  
  	preempt_schedule_common();
-@@ -3553,7 +3584,7 @@ asmlinkage __visible void __sched notrace preempt_schedule_notrace(void)
+@@ -3553,7 +3574,7 @@ asmlinkage __visible void __sched notrace preempt_schedule_notrace(void)
  {
  	enum ctx_state prev_ctx;
  
@@ -17761,7 +17703,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  		return;
  
  	do {
-@@ -4215,6 +4246,7 @@ static int __sched_setscheduler(struct task_struct *p,
+@@ -4215,6 +4236,7 @@ static int __sched_setscheduler(struct task_struct *p,
  
  	prev_class = p->sched_class;
  	__setscheduler(rq, p, attr, pi);
@@ -17769,7 +17711,7 @@ index b3ff73d6a4c2..bfecabdae7d0 100644
  
  	if (queued) {
  		/*
-@@ -5781,6 +5813,43 @@ int in_sched_functions(unsigned long addr)
+@@ -5781,6 +5803,43 @@ int in_sched_functions(unsigned long addr)
  		&& addr < (unsigned long)__sched_text_end);
  }
  
@@ -18911,5 +18853,5 @@ index 6c906f6f16cc..3fd28bb97256 100644
  }
  
 -- 
-2.22.0
+2.22.0.455.g172b71a6c5
 

@@ -1,6 +1,6 @@
-From e25c55407857e796fb82e4a1b1e5eb89e192c00b Mon Sep 17 00:00:00 2001
+From 2c245943008405f09606af88496e12a798aa06ee Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Wed, 26 Jun 2019 14:55:00 -0500
+Date: Tue, 2 Jul 2019 22:18:52 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -2538,5 +2538,5 @@ index 87f2a6f842fd..1dd3ec658282 100644
  	imply STRICT_DEVMEM
  	help
 -- 
-2.22.0
+2.22.0.455.g172b71a6c5
 
