@@ -28,7 +28,7 @@ endif # CONFIG_X86_64
 
 rtai_math.ko: musl
 rtai_math.ko: @RTAI_KBUILD_ENV@
-rtai_math.ko: libm.c export_musl.h
+rtai_math.ko: libm.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
 	@RTAI_KBUILD_BOTTOM@

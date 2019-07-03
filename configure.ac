@@ -567,15 +567,6 @@ AC_ARG_ENABLE(tune-tsc-sync,
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_TUNE_TSC_SYNC:-no})
 
-AC_MSG_CHECKING(for complex math support)
-AC_ARG_ENABLE(complex-math,
-		[ --enable-complex-math		Enable complex math support],
-	[case "$enableval" in
-	y | yes) CONFIG_RTAI_MATH_KCOMPLEX=y ;;
-	*) unset CONFIG_RTAI_MATH_KCOMPLEX ;;
-	esac])
-AC_MSG_RESULT(${CONFIG_RTAI_MATH_KCOMPLEX:-no})
-
 dnl Test for TSC if 32-bit is forced and too old of CPU type
 AC_MSG_CHECKING(if kernel has TSC enabled)
 if test x$CONFIG_X86_TSC = x ; then
@@ -648,7 +639,6 @@ test \! x$CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL = x && AC_DEFINE(CONFIG_RTAI_LXRT_U
 test \! x$CONFIG_RTAI_ALIGN_LINUX_PRIORITY = x && AC_DEFINE(CONFIG_RTAI_ALIGN_LINUX_PRIORITY,1,[Kconfig])
 test \! x$CONFIG_RTAI_TASK_SWITCH_SIGNAL = x && AC_DEFINE(CONFIG_RTAI_TASK_SWITCH_SIGNAL,1,[Kconfig])
 test \! x$CONFIG_RTAI_HARD_SOFT_TOGGLER = x && AC_DEFINE(CONFIG_RTAI_HARD_SOFT_TOGGLER,1,[Kconfig])
-test x$CONFIG_RTAI_MATH_KCOMPLEX = xy && AC_DEFINE(CONFIG_RTAI_MATH_KCOMPLEX,1,[Kconfig])
 
 test x$CONFIG_RTAI_FIFOS = xy && AC_DEFINE(CONFIG_RTAI_FIFOS_BUILTIN,1,[Kconfig])
 test x$CONFIG_RTAI_SEM = xy && AC_DEFINE(CONFIG_RTAI_SEM_BUILTIN,1,[Kconfig])
