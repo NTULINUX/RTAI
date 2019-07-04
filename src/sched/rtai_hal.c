@@ -850,11 +850,6 @@ int __rtai_hal_init (void)
 
 	printk("SYSINFO - # CPUs: %d, TIMER NAME: '%s', TIMER IRQ: %d, TIMER FREQ: %lu, CLOCK NAME: '%s', CLOCK FREQ: %lu, CPU FREQ: %llu, LINUX TIMER IRQ: %d.\n", sysinfo.sys_nr_cpus, ipipe_timer_name(), rtai_tunables.timer_irq, rtai_tunables.timer_freq, ipipe_clock_name(), rtai_tunables.clock_freq, sysinfo.sys_cpu_freq, __ipipe_hrtimer_irq); 
 
-#ifdef CONFIG_RTAI_USE_STACK_ARGS
-	printk("\nREMARK: RTAI WILL ACCESS USER SPACE ON STACKS ARGS ITS WAY.\n\n");
-#else
-	printk("\nREMARK: RTAI WILL NOT ACCESS USER SPACE ON STACKS ARGS ITS WAY.\n\n");
-#endif
 	return 0;
 }
 

@@ -2571,10 +2571,9 @@ static int __rtai_lxrt_init(void)
 	printk(", <uses LINUX SYSCALLs>");
 #endif
 #ifdef CONFIG_RTAI_MALLOC
-	printk(", kstacks pool size = %d bytes", rtai_kstack_heap_size);
+	printk("kstacks pool size = %d bytes", rtai_kstack_heap_size);
 #endif
-	printk(".\n");
-	printk(KERN_INFO "RTAI[sched]: hard timer type/freq = %s/%d(Hz); timing: ONESHOT; ", TIMER_NAME, (int)TIMER_FREQ);
+	printk(KERN_INFO "RTAI[sched]: hard timer type/freq = %s/%d(Hz)", TIMER_NAME, (int)TIMER_FREQ);
 #ifdef CONFIG_RTAI_LONG_TIMED_LIST
 	printk("black/red timed lists.\n");
 #else
