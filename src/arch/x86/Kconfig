@@ -512,12 +512,6 @@ config RTAI_USE_NEWERR
 	to choose what to do, without forcing any adaption for already
 	existing working applications.
 
-config RTAI_MATH_KCOMPLEX
-	bool "Include complex math support"
-	default n
-	help
-	This parameter allows the inclusion of complex math support functions.
-
 config RTAI_MALLOC
 	tristate "Real-time malloc support"
 	default y
