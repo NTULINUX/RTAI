@@ -1,5 +1,6 @@
 /*
  * COPYRIGHT (C) 2000  Paolo Mantegazza (mantegazza@aero.polimi.it)
+ * COPYRIGHT (C) 2019  Alec Ari         (neotheuser@ymail.com)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,8 +36,6 @@ int main(void)
 	unsigned int msg;
 	MBX *mbx;
 	struct sample { long long min; long long max; int index, ovrn; } samp;
-	time_t timestamp;
-	struct tm *tm_timestamp;
 	long long max = -1000000000, min = 1000000000;
 	int n = 0;
 	struct pollfd pfd = { fd: 0, events: POLLIN|POLLERR|POLLHUP, revents: 0 };
@@ -58,12 +57,12 @@ int main(void)
 		exit(1);
 	}
 
-	printf("RTAI Testsuite - USER latency (all data in nanoseconds)\n");
+	printf("\nRTAI testsuite and calibration tool (all data in nanoseconds)\n");
+	printf("# period = %i (ns) \n", 100000);
+	printf("# average time = %i (s)\n\n", (int)1);
+
 	while (!end) {
 		if ((n++ % 21) == 0) {
-			time(&timestamp); 
-			tm_timestamp=localtime(&timestamp);
-			printf("%04d/%02d/%0d %02d:%02d:%02d\n", tm_timestamp->tm_year+1900, tm_timestamp->tm_mon+1, tm_timestamp->tm_mday, tm_timestamp->tm_hour, tm_timestamp->tm_min, tm_timestamp->tm_sec);
 			printf("RTH|%11s|%11s|%11s|%11s|%11s|%11s\n", "lat min", "ovl min", "lat avg","lat max","ovl max", "overruns");
 		}
 		rt_mbx_receive(mbx, &samp, sizeof(samp));

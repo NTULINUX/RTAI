@@ -1,5 +1,6 @@
 /*
  * COPYRIGHT (C) 2000  Paolo Mantegazza (mantegazza@aero.polimi.it)
+ * COPYRIGHT (C) 2019  Alec Ari         (neotheuser@ymail.com)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,7 +31,6 @@
 
 #define AVRGTIME    1
 #define PERIOD 100000
-#define TIMER_MODE  0
 
 #define ECHOSPEED 1
 
@@ -84,20 +84,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("\n## RTAI latency calibration tool ##\n");
-	printf("# period = %i (ns) \n", PERIOD);
-	printf("# average time = %i (s)\n", (int)AVRGTIME);
-	printf("# use the FPU\n");
-	printf("#%sstart the timer\n", argc == 1 ? " " : " do not ");
-	printf("# timer_mode is %s\n", TIMER_MODE ? "periodic" : "oneshot");
-	printf("\n");
-
 	if (argc == 1) {
-		if (TIMER_MODE) {
-			rt_set_periodic_mode();
-		} else {
-			rt_set_oneshot_mode();
-		}
+		rt_set_oneshot_mode();
 		period = start_rt_timer(nano2count(PERIOD));
 	} else {
 		period = nano2count(PERIOD);
@@ -124,18 +112,10 @@ int main(int argc, char *argv[])
 			expected += period;
 
 			if (!rt_task_wait_period()) {
-				if (TIMER_MODE) {
-					diff = (int) ((t = rt_get_cpu_time_ns()) - svt - PERIOD);
-					svt = t;
-				} else {
-					diff = (int) count2nano(rt_get_tscnt() - expected);
-				}
+				diff = (int) count2nano(rt_get_tscnt() - expected);
 			} else {
 				samp.ovrn++;
 				diff = 0;
-				if (TIMER_MODE) {
-					svt = rt_get_cpu_time_ns();
-				}
 			}
 			if (diff < min_diff) {
 				min_diff = diff;
