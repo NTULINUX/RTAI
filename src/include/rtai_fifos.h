@@ -588,7 +588,7 @@ RTAI_PROTO(int, rtf_read_if,(int fd, void *buf, int count))
  * Write data to FIFO in user space, with timeout.
  *
  * rtf_write_timed writes a block of data to a real-time fifo identified by the
- * file descriptor @a fd waiting at most @æ delay milliseconds to complete the
+ * file descriptor @a fd waiting at most @Ã¦ delay milliseconds to complete the
  * operation.
  *
  * @param fd is the file descriptor returned at fifo open.
