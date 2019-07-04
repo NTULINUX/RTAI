@@ -21,27 +21,13 @@ clean-local:
 	@RTAI_KBUILD_CLEAN@
 	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src)))
 
-lib_LTLIBRARIES = liblxrt.la
-
-liblxrt_la_SOURCES = services.c
-
-liblxrt_la_LDFLAGS = -module -version-info 1:0:0
-
-liblxrt_la_CPPFLAGS = \
-	@RTAI_USER_CFLAGS@ \
-	-D_GNU_SOURCE \
-	-fno-inline \
-	-I$(top_srcdir)/src/include
-
 calibration_PROGRAMS = calibrate
 
 calibrate_SOURCES = calibrate.c
 calibrate_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
 	-I$(top_srcdir)/src/include
-calibrate_LDADD = \
-	liblxrt.la \
-	-lpthread
+calibrate_LDADD = -lpthread
 
 rtai_hal.ko: @RTAI_KBUILD_ENV@
 rtai_hal.ko: rtai_hal.c

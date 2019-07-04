@@ -714,10 +714,7 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_KSTACK_HEAPSZ,$CONFIG_RTAI_KSTACK_HEAPSZ,[Kconfig
 fifos_template="/dev/rtf%d"
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_FIFOS_TEMPLATE,"$fifos_template",[Kconfig])
 
-AH_VERBATIM(CONFIG_RTAI_LXRT_INLINE,[
-#ifndef CONFIG_RTAI_LXRT_INLINE
-#define CONFIG_RTAI_LXRT_INLINE CONFIG_RTAI_INTERNAL_LXRT_INLINE
-#endif /* !CONFIG_RTAI_LXRT_INLINE */
+AH_VERBATIM(,[
 #define __hidefun(name) name ## _hidden_inline
 #define RTAI_PROTO(type,name,arglist) static inline type name arglist
 #define RTAI_PROTO_ALWAYS_INLINE(type,name,arglist) static inline type name arglist

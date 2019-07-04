@@ -9,9 +9,7 @@ latency_CPPFLAGS = \
 	-I$(top_srcdir)/src/include \
 	-I../../../src/include
 
-latency_LDADD = \
-	../src/sched/liblxrt.la \
-	-lpthread
+latency_LDADD = -lpthread
 
 display_SOURCES = display.c
 
@@ -20,9 +18,7 @@ display_CPPFLAGS = \
 	-I$(top_srcdir)/src/include \
 	-I../../../src/include
 
-display_LDADD = \
-	../src/sched/liblxrt.la \
-	-lpthread
+display_LDADD = -lpthread
 
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(testdir)
