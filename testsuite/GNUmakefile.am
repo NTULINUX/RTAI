@@ -10,7 +10,7 @@ latency_CPPFLAGS = \
 	-I../../../base/include
 
 latency_LDADD = \
-	../base/sched/liblxrt/liblxrt.la \
+	../base/sched/liblxrt.la \
 	-lpthread
 
 display_SOURCES = display.c
@@ -21,7 +21,7 @@ display_CPPFLAGS = \
 	-I../../../base/include
 
 display_LDADD = \
-	../base/sched/liblxrt/liblxrt.la \
+	../base/sched/liblxrt.la \
 	-lpthread
 
 install-data-local:

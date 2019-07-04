@@ -57,9 +57,7 @@ stamp-h1
 .libs
 
 # Executables
-base/arch/*/calibration/calibrate
-base/arch/*/calibration/calibration_helper
-base/arch/*/calibration/setsmi
+base/sched/calibrate
 
 # KConfig Generated files
 base/scripts/kconfig/.config*

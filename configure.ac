@@ -797,8 +797,6 @@ RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
 RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
 
 AC_CONFIG_LINKS(base/include/asm:$srcdir/base/include/asm-x86)
-AC_CONFIG_LINKS(base/arch/x86/hal/Makefile:base/arch/x86/hal/Makefile.kbuild)
-AC_CONFIG_LINKS(base/arch/x86/calibration/Makefile:base/arch/x86/calibration/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/fifos/Makefile:base/ipc/fifos/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/mbx/Makefile:base/ipc/mbx/Makefile.kbuild)
 AC_CONFIG_LINKS(base/ipc/msg/Makefile:base/ipc/msg/Makefile.kbuild)
@@ -841,8 +839,6 @@ AC_CONFIG_FILES([ \
 	base/scripts/rtai-load \
 	base/include/rtai_defs.h \
 	base/arch/x86/GNUmakefile \
-	base/arch/x86/hal/GNUmakefile \
-	base/arch/x86/calibration/GNUmakefile \
 	base/include/asm-x86/GNUmakefile \
 	base/ipc/fifos/GNUmakefile \
 	base/ipc/shm/GNUmakefile \

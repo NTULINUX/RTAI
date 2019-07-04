@@ -8,6 +8,8 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+calibrationdir = $(prefix)/calibration
+
 moduledir = @RTAI_MODULE_DIR@
 
 noinst_LIBRARIES =
@@ -17,24 +19,61 @@ builtins_srclist = $(wildcard $(foreach mod,$(builtins),$(patsubst %,$(top_srcdi
 
 clean-local:
 	@RTAI_KBUILD_CLEAN@
-	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src))) 
+	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src)))
+
+lib_LTLIBRARIES = liblxrt.la
+
+liblxrt_la_SOURCES = services.c
+
+liblxrt_la_LDFLAGS = -module -version-info 1:0:0
+
+liblxrt_la_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-D_GNU_SOURCE \
+	-fno-inline \
+	-I$(top_srcdir)/base/include
+
+calibration_PROGRAMS = calibrate
+
+calibrate_SOURCES = calibrate.c
+calibrate_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include
+calibrate_LDADD = \
+	liblxrt.la \
+	-lpthread
+
+rtai_hal.ko: @RTAI_KBUILD_ENV@
+rtai_hal.ko: rtai_hal.c
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
 
 rtai_sched.ko: @RTAI_KBUILD_ENV@
 rtai_sched.ko: sched.c sys.c api.c signal.c $(builtins_srclist)
-	@(cd ../arch && $(MAKE) rtai_hal.ko)
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="-DUSE_RTAI_TASKS=1" \
 	@RTAI_KBUILD_BOTTOM@
 
-all-local: rtai_sched.ko
+all-local: rtai_hal.ko rtai_sched.ko
 	$(mkinstalldirs) $(top_srcdir)/modules
 	$(INSTALL_DATA) $^ $(top_srcdir)/modules
 
-install-exec-local: rtai_sched.ko
+install-exec-local: rtai_hal.ko rtai_sched.ko
 	$(mkinstalldirs) $(DESTDIR)$(moduledir)
-	$(INSTALL_DATA) rtai_sched.ko $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $^ $(DESTDIR)$(moduledir)
 
-# liblxrt is always built
-SUBDIRS = liblxrt
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
+	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(calibrationdir)/run
+	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(calibrationdir)/.runinfo" >> $(DESTDIR)$(calibrationdir)/run
+	@echo "sleep 5 && sync && ${DESTDIR}$(bindir)/rtai-load cleanup" >> $(DESTDIR)$(calibrationdir)/run
+	@chmod 755 $(DESTDIR)$(calibrationdir)/run
 
-EXTRA_DIST = Makefile.kbuild
+run: all
+	@$(top_srcdir)/rtai-scripts/rtai-load --verbose
+
+EXTRA_DIST = runinfo Makefile.kbuild
+
+DISTCLEANFILES = Makefile
