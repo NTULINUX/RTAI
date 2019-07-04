@@ -16,7 +16,7 @@ config MODULES
 
 config RTAI_VERSION
 	string
-	default "5.2.1"
+	default "5.2.2"
 
 menu "General"
 
