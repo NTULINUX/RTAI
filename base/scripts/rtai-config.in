@@ -21,7 +21,6 @@ RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
 RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
 RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
 RTAI_LIBRARY_DIR="${staging}${libdir}"
-RTAI_POSIX_WRAP="@RTAI_POSIX_WRAP@"
 
 unset prefix libdir datadir pkgdatadir includedir
 
@@ -77,9 +76,6 @@ while [[ "${#}" -gt "0" ]] ; do
 			source "${RTAI_LINUX_DIR}/.config"
 			echo "${RTAI_LINUX_VERSION}${CONFIG_LOCALVERSION}"
 			;;
-		--posix-wrap)
-			echo "${RTAI_POSIX_WRAP}"
-			;;
 		--version)
 			echo "${RTAI_VERSION}"
 			;;
@@ -102,7 +98,6 @@ while [[ "${#}" -gt "0" ]] ; do
 	--full-linux-version
 	--module-dir
 	--library-dir
-	--posix-wrap
 	--version"
 			exit 0
 			;;

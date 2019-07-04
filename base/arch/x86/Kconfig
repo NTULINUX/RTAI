@@ -473,17 +473,6 @@ config RTAI_MBX
 	Mailboxes depend on semaphores.
 	The module will be called: rtai_mbx.ko
 
-config RTAI_MQ
-	tristate "POSIX-like message queues"
-	depends on RTAI_SEM
-	default y if RTAI_SEM=y
-	default m if RTAI_SEM=m
-	help
-	RTAI pqueues implements the message queues section of Posix 1003.1d.
-	They provide kernel-safe message queues. Message queues depend on
-	semaphores.
-	The module will be called: rtai_mq.ko
-
 config RTAI_CLOCK_REALTIME
 	bool "Support for Posix CLOCK_REALTIME APIs"
 	default y

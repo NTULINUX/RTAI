@@ -19,7 +19,6 @@ nobase_include_HEADERS = \
 		rtai_msg.h \
 		rtai_nam2num.h \
 		rtai_names.h \
-		rtai_pmq.h \
 		rtai_prinher.h \
 		rtai_proc_fs.h \
 		rtai_proxies.h \
@@ -32,7 +31,6 @@ nobase_include_HEADERS = \
 		rtai_shm.h \
 		rtai_signal.h \
 		rtai_spl.h \
-		rtai_tasklets.h \
 		rtai_trace.h \
 		rtai_types.h \
 		rtai_version.h \

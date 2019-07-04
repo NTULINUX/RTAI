@@ -45,7 +45,6 @@
 #include <rtai_scb.h>
 #include <rtai_mbx.h>
 #include <rtai_msg.h>
-#include <rtai_tasklets.h>
 #include <rtai_fifos.h>
 #include <rtai_shm.h>
 
@@ -540,12 +539,6 @@ static inline int rtai_init_features (void)
 #ifdef CONFIG_RTAI_MBX_BUILTIN
     __rtai_mbx_init();
 #endif /* CONFIG_RTAI_MBX_BUILTIN */
-#ifdef CONFIG_RTAI_MQ_BUILTIN
-    __rtai_mq_init();
-#endif /* CONFIG_RTAI_MQ_BUILTIN */
-#ifdef CONFIG_RTAI_TASKLETS_BUILTIN
-    __rtai_tasklets_init();
-#endif /* CONFIG_RTAI_TASKLETS_BUILTIN */
 #ifdef CONFIG_RTAI_FIFOS_BUILTIN
     __rtai_fifos_init();
 #endif /* CONFIG_RTAI_FIFOS_BUILTIN */
@@ -570,12 +563,6 @@ static inline void rtai_cleanup_features (void) {
 #ifdef CONFIG_RTAI_FIFOS_BUILTIN
     __rtai_fifos_exit();
 #endif /* CONFIG_RTAI_FIFOS_BUILTIN */
-#ifdef CONFIG_RTAI_TASKLETS_BUILTIN
-    __rtai_tasklets_exit();
-#endif /* CONFIG_RTAI_TASKLETS_BUILTIN */
-#ifdef CONFIG_RTAI_MQ_BUILTIN
-    __rtai_mq_exit();
-#endif /* CONFIG_RTAI_MQ_BUILTIN */
 #ifdef CONFIG_RTAI_MBX_BUILTIN
     __rtai_mbx_exit();
 #endif /* CONFIG_RTAI_MBX_BUILTIN */

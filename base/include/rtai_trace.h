@@ -65,9 +65,8 @@ int rt_trace_event
 #define TRACE_RTAI_EV_MBX                TRACE_RTAI_START + 19   /* Hit key part of mail box services */
 #define TRACE_RTAI_EV_FIFO               TRACE_RTAI_START + 20   /* Hit key part of FIFO services */
 #define TRACE_RTAI_EV_SHM                TRACE_RTAI_START + 21   /* Hit key part of shared memory services */
-#define TRACE_RTAI_EV_POSIX              TRACE_RTAI_START + 22   /* Hit key part of Posix services */
-#define TRACE_RTAI_EV_LXRT               TRACE_RTAI_START + 23   /* Hit key part of LXRT services */
-#define TRACE_RTAI_EV_LXRTI              TRACE_RTAI_START + 24   /* Hit key part of LXRT-Informed services */
+#define TRACE_RTAI_EV_LXRT               TRACE_RTAI_START + 22   /* Hit key part of LXRT services */
+#define TRACE_RTAI_EV_LXRTI              TRACE_RTAI_START + 23   /* Hit key part of LXRT-Informed services */
 
 /* Max number of traced events */
 #define TRACE_RTAI_EV_MAX               TRACE_RTAI_EV_LXRTI
@@ -434,69 +433,6 @@ typedef struct _trace_rtai_shm
            rt_trace_event(TRACE_RTAI_EV_SHM, &shm_event); \
            } while(0)
 
-/*  TRACE_RTAI_POSIX */
-#define TRACE_RTAI_EV_POSIX_MQ_OPEN                       1  /* Open/create message queue */
-#define TRACE_RTAI_EV_POSIX_MQ_CLOSE                      2  /* Close message queue */
-#define TRACE_RTAI_EV_POSIX_MQ_SEND                       3  /* Send message to queue */
-#define TRACE_RTAI_EV_POSIX_MQ_RECV                       4  /* Receive message from queue */
-#define TRACE_RTAI_EV_POSIX_MQ_GET_ATTR                   5  /* Get message queue attributes */
-#define TRACE_RTAI_EV_POSIX_MQ_SET_ATTR                   6  /* Set message queue attributes */
-#define TRACE_RTAI_EV_POSIX_MQ_NOTIFY                     7  /* Register to be notified of message arrival */
-#define TRACE_RTAI_EV_POSIX_MQ_UNLINK                     8  /* Destroy message queue */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_CREATE                9  /* Create RT task */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_EXIT                 10  /* Terminate calling thread */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_SELF                 11  /* Get thread ID */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_INIT            12  /* Initialize thread attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_DESTROY         13  /* Destroy thread attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_SETDETACHSTATE  14  /* Set detach state of thread */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_GETDETACHSTATE  15  /* Get detach state of thread */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_SETSCHEDPARAM   16  /* Set thread scheduling parameters */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_GETSCHEDPARAM   17  /* Get thread scheduling parameters */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_SETSCHEDPOLICY  18  /* Set thread scheduling policy */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_GETSCHEDPOLICY  19  /* Get thread scheduling policy */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_SETINHERITSCHED 20  /* Set thread scheduling inheritance */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_GETINHERITSCHED 21  /* Get thread scheduling inheritance */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_SETSCOPE        22  /* Set thread scheduling scope */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_ATTR_GETSCOPE        23  /* Get thread scheduling scope */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_SCHED_YIELD          24  /* Yield processor control */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_CLOCK_GETTIME        25  /* Get current clock count */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEX_INIT           26  /* Initialize mutex */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEX_DESTROY        27  /* Destroy mutex */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEXATTR_INIT       28  /* Initiatize mutex attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEXATTR_DESTROY    29  /* Destroy mutex attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEXATTR_SETKIND_NP 30  /* Set kind of attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEXATTR_GETKIND_NP 31  /* Get kind of attribute */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_SETSCHEDPARAM        32  /* Set scheduling parameters */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_GETSCHEDPARAM        33  /* Get scheduling parameters */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEX_TRY_LOCK       34  /* Non-blocking mutex lock */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEX_LOCK           35  /* Blocking mutex lock */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_MUTEX_UNLOCK         36  /* Mutex unlock */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_INIT            37  /* Initialize conditionnal variable */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_DESTROY         38  /* Destroy cond. variable */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_CONDATTR_INIT        39  /* Initialize cond. attribute variable */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_CONDATTR_DESTROY     40  /* Destroy cond. attribute variable */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_WAIT            41  /* Wait for cond. variable to be signaled */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_TIMEDWAIT       42  /* Wait for a certain time */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_SIGNAL          43  /* Signal a waiting thread */
-#define TRACE_RTAI_EV_POSIX_PTHREAD_COND_BROADCAST       44  /* Signal all waiting threads */
-typedef struct _trace_rtai_posix
-{
-  uint8_t   event_sub_id;  /* POSIX event ID */
-  uint32_t  event_data1;   /* Event data 1 */
-  uint32_t  event_data2;   /* Event data 2 */
-  uint32_t  event_data3;   /* Event data 3 */
-} LTT_PACKED_STRUCT trace_rtai_posix;
-#define TRACE_RTAI_POSIX(ID, DATA1, DATA2, DATA3) \
-           do \
-           {\
-           trace_rtai_posix posix_event; \
-           posix_event.event_sub_id = (uint8_t)  ID; \
-           posix_event.event_data1  = (uint32_t) DATA1; \
-           posix_event.event_data2  = (uint32_t) DATA2; \
-           posix_event.event_data3  = (uint32_t) DATA3; \
-           rt_trace_event(TRACE_RTAI_EV_POSIX, &posix_event); \
-           } while(0)
-
 /*  TRACE_RTAI_LXRT */
 #define TRACE_RTAI_EV_LXRT_RTAI_SYSCALL_ENTRY             1  /* Entry in LXRT syscall */
 #define TRACE_RTAI_EV_LXRT_RTAI_SYSCALL_EXIT              2  /* Exit from LXRT syscall */
@@ -576,7 +512,6 @@ typedef struct _trace_rtai_lxrti
 #define TRACE_RTAI_MBX(ID, DATA1, DATA2, DATA3)
 #define TRACE_RTAI_FIFO(ID, DATA1, DATA2)
 #define TRACE_RTAI_SHM(ID, DATA1, DATA2, DATA3)
-#define TRACE_RTAI_POSIX(ID, DATA1, DATA2, DATA3)
 #define TRACE_RTAI_LXRT(ID, DATA1, DATA2, DATA3)
 #define TRACE_RTAI_LXRTI(ID, DATA1, DATA2, DATA3)
 #endif /* CONFIG_RTAI_TRACE && __KERNEL__ */
