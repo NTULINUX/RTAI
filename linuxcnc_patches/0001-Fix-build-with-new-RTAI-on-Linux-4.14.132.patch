@@ -1,7 +1,7 @@
 From 133494bb6999033aa5055e8f87475cb6ca8b05f4 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 1 Jul 2019 15:25:03 -0500
-Subject: Fix build with new RTAI on Linux 4.14.131
+Subject: Fix build with new RTAI on Linux 4.14.132
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
