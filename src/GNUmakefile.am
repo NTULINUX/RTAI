@@ -1,4 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -7,11 +8,14 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-EXTRA_CFLAGS += -I$(rtai_srctree)/base/include \
-		-I$(src)/../../include \
-		-I$(src)/../../.. \
-		-D__IN_RTAI__
+OPTDIRS = include
 
-obj-m += rtai_sem.o
+# `malloc', in $(OPTDIRS), must be after `sched' when compiling
+# with kernel 2.4 and builtin RTAI malloc support
+if CONFIG_RTAI_MALLOC
+OPTDIRS += malloc
+endif
 
-rtai_sem-objs := $(rtai_objs)
+OPTDIRS += sched ipc
+
+SUBDIRS = $(OPTDIRS) math

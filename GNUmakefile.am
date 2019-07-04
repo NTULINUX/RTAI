@@ -8,7 +8,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-SUBDIRS = base testsuite
+SUBDIRS = src testsuite scripts
 
 EXTRA_DIST = \
 README.INSTALL \
@@ -16,13 +16,14 @@ README.ISOLCPUS \
 README.LINUX_SERVER \
 README.LXRT_EXTS_IN_USE \
 README.SMI \
-linuxcnc_patches
+linuxcnc_patches \
+ksrc
 
 DISTCLEANFILES = .rtai_config .rtai_config.old .cfok .cfchanged Module.symvers configure
 
 moduledir = @RTAI_MODULE_DIR@
 
-all-recursive install-recursive: base/GNUmakefile clean-if-reconfigured
+all-recursive install-recursive: src/GNUmakefile clean-if-reconfigured
 
 clean-if-reconfigured:
 	@if test -r .cfchanged ; then \
@@ -36,7 +37,7 @@ clean-if-reconfigured:
 
 menuconfig:
 	$(MAKE) srctree=$(PWD) \
-	-C base/scripts/kconfig -f Makefile.kconfig $@
+	-C scripts/kconfig -f Makefile.kconfig $@
 	$(MAKE) --no-print-directory config-status
 
 config-status: .rtai_config
@@ -68,7 +69,7 @@ clean-local:
 	rm -rf modules .cfchanged
 
 distclean-local:
-	$(MAKE) srctree=$(srcdir) -C $(srcdir)/base/scripts/kconfig \
+	$(MAKE) srctree=$(srcdir) -C scripts/kconfig \
 	--no-print-directory -f Makefile.kconfig distclean
 	find . -name GNUmakefile.in | xargs rm -rf
 	rm -rf rtai_config* .rtai_config* autom4te.cache aclocal.m4 m4/l*
@@ -83,14 +84,14 @@ install-data-local: .rtai_config
 install-exec-local: devices
 
 dist-hook:
-	$(MAKE) -C --no-print-directory $(distdir)/base/scripts/kconfig \
+	$(MAKE) -C --no-print-directory scripts/kconfig \
 	-f Makefile.kconfig distclean srctree=$(srcdir)
 
 dev devices:
 	@if test -r $(DESTDIR)/etc/udev/udev.rules ; then \
 	    for f in \
-		    $(srcdir)/base/ipc/shm/rtai_shm.udev \
-		    $(srcdir)/base/ipc/fifos/rtai_fifos.udev \
+		    $(srcdir)/src/ipc/shm/rtai_shm.udev \
+		    $(srcdir)/src/ipc/fifos/rtai_fifos.udev \
 		    ; do \
 		b=`basename $$f` ; \
 		grep -q RTAI:`basename $$b .udev` $(DESTDIR)/etc/udev/udev.rules || \
@@ -98,8 +99,8 @@ dev devices:
 	    done ; \
 	elif test -d $(DESTDIR)/etc/udev/rules.d ; then \
 	    for f in \
-		    $(srcdir)/base/ipc/shm/rtai_shm.udev \
-		    $(srcdir)/base/ipc/fifos/rtai_fifos.udev \
+		    $(srcdir)/src/ipc/shm/rtai_shm.udev \
+		    $(srcdir)/src/ipc/fifos/rtai_fifos.udev \
 		    ; do \
 		b=`basename $$f` ; \
 		grep -q RTAI:`basename $$b .udev` $(DESTDIR)/etc/udev/rules.d/99-rtai.rules || \

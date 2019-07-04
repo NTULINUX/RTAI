@@ -6,22 +6,22 @@ latency_SOURCES = latency.c
 
 latency_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../../../base/include
+	-I$(top_srcdir)/src/include \
+	-I../../../src/include
 
 latency_LDADD = \
-	../base/sched/liblxrt.la \
+	../src/sched/liblxrt.la \
 	-lpthread
 
 display_SOURCES = display.c
 
 display_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
-	-I$(top_srcdir)/base/include \
-	-I../../../base/include
+	-I$(top_srcdir)/src/include \
+	-I../../../src/include
 
 display_LDADD = \
-	../base/sched/liblxrt.la \
+	../src/sched/liblxrt.la \
 	-lpthread
 
 install-data-local:
@@ -34,6 +34,6 @@ install-data-local:
 	@chmod 755 $(DESTDIR)$(testdir)/run
 
 run: all
-	@$(top_srcdir)/base/scripts/rtai-load $(DESTDIR)$(testdir)/.runinfo
+	@$(top_srcdir)/scripts/rtai-load $(DESTDIR)$(testdir)/.runinfo
 
 EXTRA_DIST = runinfo

@@ -5,13 +5,13 @@ override CXX := g++
 squote  := '
 escsq = $(subst $(squote),'\$(squote)',$1)
 cmd = @echo '  $(call escsq,$(quiet_cmd_$(1)))'; $(cmd_$(1))
-this_dir := base/scripts/kconfig
+this_dir := scripts/kconfig
 
 CFLAGS := -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 
 PHONY += menuconfig
 
-Kconfig := $(srctree)/base/arch/x86/Kconfig
+Kconfig := $(srctree)/src/arch/x86/Kconfig
 
 menuconfig: mconf
 	@./$< $(Kconfig)
@@ -66,11 +66,11 @@ dochecklxdialog:
 always := dochecklxdialog
 
 # Add environment specific flags
-EXTRACFLAGS += $(shell $(SHELL) $(srctree)/base/scripts/kconfig/check.sh gcc $(CFLAGS))
+EXTRACFLAGS += $(shell $(SHELL) $(srctree)/scripts/kconfig/check.sh gcc $(CFLAGS))
 
 # generated files seem to need this to find local include files
-CFLAGS_zconf.lex.o	:= -I$(srctree)/base/scripts/kconfig
-CFLAGS_zconf.tab.o	:= -I$(srctree)/base/scripts/kconfig
+CFLAGS_zconf.lex.o	:= -I$(srctree)/scripts/kconfig
+CFLAGS_zconf.tab.o	:= -I$(srctree)/scripts/kconfig
 
 LEX_PREFIX	:= zconf
 YACC_PREFIX	:= zconf

@@ -7,17 +7,11 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-EXTRA_CFLAGS += -I$(rtai_srctree)/base/include \
-		-I$(src)/../include \
-		-I$(src)/../.. \
-		-I/usr/include \
-		-isystem $(shell $(CC) -print-file-name=include-fixed) \
-		$(rtai_extradef) \
-		-D_IEEE_LIBM \
-		-D_ISOC99_SOURCE \
-		-D_SVID_SOURCE \
+EXTRA_CFLAGS += -I$(rtai_srctree)/src/include \
+		-I$(src)/../../include \
+		-I$(src)/../../.. \
 		-D__IN_RTAI__
 
-obj-m += rtai_math.o
+obj-m += rtai_fifos.o
 
-rtai_math-objs := $(rtai_objs)
+rtai_fifos-objs := $(rtai_objs)

@@ -12,7 +12,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
 AC_INIT([RTAI], [5.2.1], [neotheuser@ymail.com])
-AC_CONFIG_AUX_DIR(base/scripts/autoconf)
+AC_CONFIG_AUX_DIR(scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])
@@ -65,7 +65,7 @@ case "$host" in
 esac
 
 dnl Make it more difficult to do something stupid
-RTAI_DEFCONFIG=$srcdir/base/arch/x86/defconfig
+RTAI_DEFCONFIG=$srcdir/src/arch/x86/defconfig
 RTAI_USER_CONFIG=$srcdir/.rtai_config
 AC_MSG_CHECKING([for RTAI Kconfig file])
 if test \! -r $RTAI_DEFCONFIG; then
@@ -796,15 +796,15 @@ RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -fround
 RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
 RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
 
-AC_CONFIG_LINKS(base/include/asm:$srcdir/base/include/asm-x86)
-AC_CONFIG_LINKS(base/ipc/fifos/Makefile:base/ipc/fifos/Makefile.kbuild)
-AC_CONFIG_LINKS(base/ipc/mbx/Makefile:base/ipc/mbx/Makefile.kbuild)
-AC_CONFIG_LINKS(base/ipc/msg/Makefile:base/ipc/msg/Makefile.kbuild)
-AC_CONFIG_LINKS(base/ipc/sem/Makefile:base/ipc/sem/Makefile.kbuild)
-AC_CONFIG_LINKS(base/ipc/shm/Makefile:base/ipc/shm/Makefile.kbuild)
-AC_CONFIG_LINKS(base/malloc/Makefile:base/malloc/Makefile.kbuild)
-AC_CONFIG_LINKS(base/math/Makefile:base/math/Makefile.kbuild)
-AC_CONFIG_LINKS(base/sched/Makefile:base/sched/Makefile.kbuild)
+AC_CONFIG_LINKS(src/include/asm:$srcdir/src/include/asm-x86)
+AC_CONFIG_LINKS(src/ipc/fifos/Makefile:src/ipc/fifos/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/mbx/Makefile:src/ipc/mbx/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/msg/Makefile:src/ipc/msg/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/sem/Makefile:src/ipc/sem/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/shm/Makefile:src/ipc/shm/Makefile.kbuild)
+AC_CONFIG_LINKS(src/malloc/Makefile:src/malloc/Makefile.kbuild)
+AC_CONFIG_LINKS(src/math/Makefile:src/math/Makefile.kbuild)
+AC_CONFIG_LINKS(src/sched/Makefile:src/sched/Makefile.kbuild)
 
 dnl
 dnl Build the Makefiles
@@ -828,25 +828,23 @@ AC_SUBST(RTAI_KBUILD_DISTCLEAN)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
-	base/GNUmakefile \
-	base/arch/GNUmakefile \
-	base/include/GNUmakefile \
-	base/ipc/GNUmakefile \
-	base/sched/GNUmakefile \
-	base/sched/liblxrt/GNUmakefile \
-	base/scripts/GNUmakefile \
-	base/scripts/rtai-config \
-	base/scripts/rtai-load \
-	base/include/rtai_defs.h \
-	base/arch/x86/GNUmakefile \
-	base/include/asm-x86/GNUmakefile \
-	base/ipc/fifos/GNUmakefile \
-	base/ipc/shm/GNUmakefile \
-	base/ipc/sem/GNUmakefile \
-	base/ipc/msg/GNUmakefile \
-	base/ipc/mbx/GNUmakefile \
-	base/malloc/GNUmakefile \
-	base/math/GNUmakefile \
+	src/GNUmakefile \
+	src/arch/GNUmakefile \
+	src/include/GNUmakefile \
+	src/ipc/GNUmakefile \
+	src/sched/GNUmakefile \
+	src/include/rtai_defs.h \
+	src/include/asm-x86/GNUmakefile \
+	src/ipc/fifos/GNUmakefile \
+	src/ipc/shm/GNUmakefile \
+	src/ipc/sem/GNUmakefile \
+	src/ipc/msg/GNUmakefile \
+	src/ipc/mbx/GNUmakefile \
+	src/malloc/GNUmakefile \
+	src/math/GNUmakefile \
+	scripts/GNUmakefile \
+	scripts/rtai-config \
+	scripts/rtai-load \
 	testsuite/GNUmakefile
 	])
 

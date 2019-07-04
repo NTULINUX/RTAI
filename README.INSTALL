@@ -13,7 +13,7 @@ $ git clone -b for-next https://github.com/NTULINUX/RTAI.git
 # wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.131.tar.xz
 # tar xf linux-4.14.131.tar.xz
 # ln -sfv linux-4.14.131 linux
-# cp -aLv /path/to/this/RTAI-git-tree/base/arch/x86/patches/v4.14.131/*.patch /usr/src/
+# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.14.131/*.patch /usr/src/
 # cd linux
 # patch -p1 < ../0001-RTAI-core-release-5-for-Linux-4.14.131.patch
 # patch -p1 < ../0002-Countless-Kconfig-tweaks-for-IPIPE.patch

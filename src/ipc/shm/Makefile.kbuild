@@ -7,11 +7,11 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-EXTRA_CFLAGS += -I$(rtai_srctree)/base/include \
+EXTRA_CFLAGS += -I$(rtai_srctree)/src/include \
 		-I$(src)/../../include \
 		-I$(src)/../../.. \
 		-D__IN_RTAI__
 
-obj-m += rtai_msg.o
+obj-m += rtai_shm.o
 
-rtai_msg-objs := $(rtai_objs)
+rtai_shm-objs := $(rtai_objs)

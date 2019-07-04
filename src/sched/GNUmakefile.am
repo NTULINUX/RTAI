@@ -15,7 +15,7 @@ moduledir = @RTAI_MODULE_DIR@
 noinst_LIBRARIES =
 builtins = @RTAI_BUILTIN_MODLIST@
 
-builtins_srclist = $(wildcard $(foreach mod,$(builtins),$(patsubst %,$(top_srcdir)/base/%/*.[chS],$(mod))))
+builtins_srclist = $(wildcard $(foreach mod,$(builtins),$(patsubst %,$(top_srcdir)/src/%/*.[chS],$(mod))))
 
 clean-local:
 	@RTAI_KBUILD_CLEAN@
@@ -31,14 +31,14 @@ liblxrt_la_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
 	-D_GNU_SOURCE \
 	-fno-inline \
-	-I$(top_srcdir)/base/include
+	-I$(top_srcdir)/src/include
 
 calibration_PROGRAMS = calibrate
 
 calibrate_SOURCES = calibrate.c
 calibrate_CPPFLAGS = \
 	@RTAI_USER_CFLAGS@ \
-	-I$(top_srcdir)/base/include
+	-I$(top_srcdir)/src/include
 calibrate_LDADD = \
 	liblxrt.la \
 	-lpthread

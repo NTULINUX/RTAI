@@ -9,7 +9,7 @@ libtoolize --force --copy --automake || \
 echo -e "Done."
 
 echo -e "Running aclocal..."
-aclocal --force -I base/scripts/autoconf || \
+aclocal --force -I scripts/autoconf || \
 	{
 	echo -e "Error running aclocal" ;
 	exit 1 ;

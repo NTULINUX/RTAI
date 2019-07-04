@@ -11,16 +11,16 @@ CVS
 *.la
 *.swp
 *~
-base/sched/fifos.c
-base/sched/kvmem.c
-base/sched/malloc.c
-base/sched/sem.c
-base/sched/shm.c
+src/sched/fifos.c
+src/sched/kvmem.c
+src/sched/malloc.c
+src/sched/sem.c
+src/sched/shm.c
 Module.symvers
 modules.order
-base/include/asm
-base/scripts/rtai-config
-base/scripts/rtai-load
+src/include/asm
+scripts/rtai-config
+scripts/rtai-load
 rtai_config.h
 
 # Auto-generated files
@@ -57,23 +57,16 @@ stamp-h1
 .libs
 
 # Executables
-base/sched/calibrate
+src/sched/calibrate
 
 # KConfig Generated files
-base/scripts/kconfig/.config*
-base/scripts/kconfig/.ncurses
-base/scripts/kconfig/lex.zconf.c
-base/scripts/kconfig/libkconfig.so
-base/scripts/kconfig/lxdialog/lxdialog
-base/scripts/kconfig/mconf
-base/scripts/kconfig/zconf.tab.c
-base/config/kconfig/.config*
-base/config/kconfig/.ncurses
-base/config/kconfig/lex.zconf.c
-base/config/kconfig/libkconfig.so
-base/config/kconfig/lxdialog/lxdialog
-base/config/kconfig/mconf
-base/config/kconfig/zconf.tab.c
+scripts/kconfig/.config*
+scripts/kconfig/.ncurses
+scripts/kconfig/lex.zconf.c
+scripts/kconfig/libkconfig.so
+scripts/kconfig/lxdialog/lxdialog
+scripts/kconfig/mconf
+scripts/kconfig/zconf.tab.c
 
-# Grabbed in automatically from base/math Makefile
-base/math/musl
+# Grabbed in automatically from src/math Makefile
+src/math/musl

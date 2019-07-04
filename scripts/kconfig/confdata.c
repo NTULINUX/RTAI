@@ -25,7 +25,7 @@ static void conf_message(const char *fmt, ...)
 static const char *conf_filename;
 static int conf_lineno, conf_warnings, conf_unsaved;
 
-const char conf_defname[] = "base/arch/x86/defconfig";
+const char conf_defname[] = "src/arch/x86/defconfig";
 
 static void conf_warning(const char *fmt, ...)
 {
@@ -65,7 +65,7 @@ const char *conf_get_configname(void)
 {
 	char *name = getenv("KCONFIG_CONFIG");
 
-	return name ? name : "../../../.rtai_config";
+	return name ? name : "../../.rtai_config";
 }
 
 const char *conf_get_autoconfig_name(void)

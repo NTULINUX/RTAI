@@ -34,7 +34,7 @@ rtai_math.ko: libm.c export_musl.h
 	@RTAI_KBUILD_BOTTOM@
 	@echo -e "\nIgnore the many undefined symbol warnings above.\n"
 	mv $@ $@.tmp
-	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/base/math/musl/lib/libm.a
+	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/src/math/musl/lib/libm.a
 	rm -f $@.tmp
 
 clean-local:
