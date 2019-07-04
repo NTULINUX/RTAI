@@ -1,0 +1,32 @@
+From 18c8b5ee95dafe150e8dd252a2ff2fb66ba20cfa Mon Sep 17 00:00:00 2001
+From: Alec Ari <neotheuser@ymail.com>
+Date: Thu, 4 Jul 2019 05:48:47 -0500
+Subject: Stop tainting the fucking kernel
+
+Signed-off-by: Alec Ari <neotheuser@ymail.com>
+---
+ kernel/module.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/module.c b/kernel/module.c
+index 095a60b1954b..ccd938309a76 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -3025,12 +3025,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
+ 		return -ENOEXEC;
+ 	}
+ 
++	/* Don't taint the kernel just because we're running RTAI
+ 	if (!get_modinfo(info, "intree")) {
+ 		if (!test_taint(TAINT_OOT_MODULE))
+ 			pr_warn("%s: loading out-of-tree module taints kernel.\n",
+ 				mod->name);
+ 		add_taint_module(mod, TAINT_OOT_MODULE, LOCKDEP_STILL_OK);
+-	}
++	} */
+ 
+ 	check_modinfo_retpoline(mod, info);
+ 
+-- 
+2.22.0
+
