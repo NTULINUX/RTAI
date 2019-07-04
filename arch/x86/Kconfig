@@ -341,29 +341,6 @@ config RTAI_ALIGN_LINUX_PRIORITY
 	i.e. they issued rt_task_init/rt_task_init_schmod, or when RTAI
 	hard real time tasks are given back to Linux.
 
-config RTAI_CAL_FREQS_FACT
-	string "Cure loosely calibrated frequencies - see help"
-	default 0
-	help
-	This configuration parameter is meaningful where it has two effects:
-	1 - A precise scheduling time depends on the ratio cpu_freq/apic_freq.
-	The best results can be achieved by using the RTAI calibration tool.
-	If no calibration is run one will rely on what Linux makes available
-	by default, which could be not precise enough, especially for not so
-	short timed intervals.
- 	That leads to large and systematic latencies, especially in the case
-	of low frequency schedules. By setting this option to a suitable
-	value one can be sure that a certain firing frequency is granted
-	even when relatively large idle periods are encountered, thus
-	limiting the overall latency with which long sleeping tasks might
-	be awaken in case of imprecise calibrations of the above cited
-	frequencies;
-	2 - in the case of very long timed list it will limit the search
-	for the next firing time of widely scattered tasks with lowest
-	priorities, thus avoiding useless scheduling delays. The granted
-	firing interval will be roughly equal to:
-	1.0/(RTAI_CAL_FREQS_FACT + 2.0) (seconds).
-
 endmenu
 
 menu "Supported services"

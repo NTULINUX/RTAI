@@ -446,21 +446,6 @@ AC_ARG_ENABLE(align-priority,
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_ALIGN_LINUX_PRIORITY:-no})
 
-AC_MSG_CHECKING(for calibration frequency factor)
-AC_ARG_ENABLE(cal-freq-fact,
-	[ --enable-cal-freq-fact		Set calibration frequency factor],
-	[case "$enableval" in
- changequote(,)dnl
-	[0-9]*) CONFIG_RTAI_CAL_FREQS_FACT=$enableval ;;
- changequote([,])dnl
-	*) AC_MSG_ERROR([Bad argument to option: --enable-cal-freq-fact=<number>]) ;;
-	esac])
-if test x$CONFIG_RTAI_CAL_FREQS_FACT = x ; then
-	# Use a reasonable default if unset
-	CONFIG_RTAI_CAL_FREQS_FACT=0
-fi
-AC_MSG_RESULT($CONFIG_RTAI_CAL_FREQS_FACT)
-
 AC_MSG_CHECKING(for tlsf use in real-time malloc support)
 AC_ARG_ENABLE(malloc-tlsf,
 	[ --enable-malloc-tlsf		Enable tlsf support in malloc],
@@ -647,7 +632,6 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS,$CONFIG_RTAI_LAT
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ,$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES,$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES,[Kconfig])
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_SCHED_LXRT_NUMSLOTS,$CONFIG_RTAI_SCHED_LXRT_NUMSLOTS,[Kconfig])
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_CAL_FREQS_FACT,$CONFIG_RTAI_CAL_FREQS_FACT,[Kconfig])
 
 case $CONFIG_RTAI_MONITOR_EXECTIME in
 	y) CONFIG_RTAI_MONITOR_EXECTIME=1 ;;
