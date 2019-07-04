@@ -8,7 +8,6 @@ datadir="@datadir@"
 pkgdatadir="${datadir}/@PACKAGE@"
 includedir="@includedir@"
 
-RTAI_VERSION="@PACKAGE_VERSION@"
 RTAI_PREFIX="${staging}${prefix}"
 RTAI_CC="@CC@"
 RTAI_TARGET_SUBARCH="@RTAI_TARGET_SUBARCH@"
@@ -16,11 +15,11 @@ RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
 RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
 RTAI_LINUX_VERSION="@RTAI_LINUX_VERSION@"
 RTAI_KERNEL_CFLAGS="-I. -I${staging}${includedir} @RTAI_KMOD_CFLAGS@ @RTAI_FP_CFLAGS@"
-RTAI_KERNEL_CXXFLAGS="-I. -I${staging}${includedir} @RTAI_KMOD_CXXFLAGS@ @RTAI_FP_CFLAGS@"
 RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
 RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
 RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
 RTAI_LIBRARY_DIR="${staging}${libdir}"
+RTAI_VERSION="@CONFIG_RTAI_VERSION@"
 
 unset prefix libdir datadir pkgdatadir includedir
 

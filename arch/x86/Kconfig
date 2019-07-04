@@ -8,7 +8,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-
 mainmenu "RTAI/x86 configuration"
 
 config MODULES
@@ -17,7 +16,7 @@ config MODULES
 
 config RTAI_VERSION
 	string
-	default "5.2.1 (Beta)"
+	default "5.2.1"
 
 menu "General"
 
@@ -53,7 +52,7 @@ config RTAI_CPUS
 	machines. If it is your case, you may want to enter here the
 	number of CPUs of your motherboard.
 
-	PAY ATTENTION: the default value is 2.
+	The default value is 4.
 
 config RTAI_DIAG_TSC_SYNC
 	bool "Diagnose out of sync multi processor TSCs"
@@ -278,7 +277,7 @@ config RTAI_SCHED_LXRT_NUMSLOTS
 	help
 	The maximum number of registrable objects in RTAI.
 
-	The default is 256.
+	The default value is 256.
 
 config RTAI_MONITOR_EXECTIME
 	bool "Display RTAI task execution time (in per thousand)"

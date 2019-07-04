@@ -18,10 +18,6 @@ AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS(rtai_config.h)
 
-CONFIG_RTAI_VERSION_MAJOR=5
-CONFIG_RTAI_VERSION_MINOR=2
-CONFIG_RTAI_REVISION_LEVEL=1
-
 AC_PROG_INSTALL
 LT_INIT
 AC_PROG_CC
@@ -65,7 +61,7 @@ case "$host" in
 esac
 
 dnl Make it more difficult to do something stupid
-RTAI_DEFCONFIG=$srcdir/src/arch/x86/defconfig
+RTAI_DEFCONFIG=$srcdir/arch/x86/defconfig
 RTAI_USER_CONFIG=$srcdir/.rtai_config
 AC_MSG_CHECKING([for RTAI Kconfig file])
 if test \! -r $RTAI_DEFCONFIG; then
@@ -616,11 +612,7 @@ dnl
 dnl Produce the info needed to build rtai_config.h
 dnl
 
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MAJOR,$CONFIG_RTAI_VERSION_MAJOR,[Kconfig])
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_VERSION_MINOR,$CONFIG_RTAI_VERSION_MINOR,[Kconfig])
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_REVISION_LEVEL,$CONFIG_RTAI_REVISION_LEVEL,[Kconfig])
 test \! x$CONFIG_RTAI_LINUXDIR = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_LINUXDIR,$CONFIG_RTAI_LINUXDIR,[Kconfig])
-
 test \! x$CONFIG_RTAI_CPUS = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_CPUS,$CONFIG_RTAI_CPUS,[Kconfig])
 test x$CONFIG_RTAI_DIAG_TSC_SYNC = xy && AC_DEFINE(CONFIG_RTAI_DIAG_TSC_SYNC,1,[Kconfig])
 test \! x$CONFIG_RTAI_MASTER_TSC_CPU = x && AC_DEFINE_UNQUOTED(CONFIG_RTAI_MASTER_TSC_CPU,$CONFIG_RTAI_MASTER_TSC_CPU,[Kconfig])
@@ -780,8 +772,8 @@ dnl extra arch-dependent opts to be passed to the compiler
 RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
 RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
-RTAI_KMOD_CFLAGS="$RTAI_KMOD_CFLAGS -D__IN_RTAI__"
-RTAI_USER_CFLAGS="$RTAI_USER_CFLAGS -D__IN_RTAI__"
+RTAI_KMOD_CFLAGS="-D__IN_RTAI__"
+RTAI_USER_CFLAGS="-D__IN_RTAI__"
 
 AC_CONFIG_LINKS(src/include/asm:$srcdir/src/include/asm-x86)
 AC_CONFIG_LINKS(src/ipc/fifos/Makefile:src/ipc/fifos/Makefile.kbuild)
@@ -797,6 +789,7 @@ dnl
 dnl Build the Makefiles
 dnl
 
+AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILD_STRING)
 AC_SUBST(RTAI_HOST_STRING)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
@@ -812,11 +805,12 @@ AC_SUBST(RTAI_KBUILD_BOTTOM)
 AC_SUBST(RTAI_KBUILD_CMD)
 AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
+dnl From Kconfig
+AC_SUBST(CONFIG_RTAI_VERSION)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \
 	src/GNUmakefile \
-	src/arch/GNUmakefile \
 	src/include/GNUmakefile \
 	src/ipc/GNUmakefile \
 	src/sched/GNUmakefile \

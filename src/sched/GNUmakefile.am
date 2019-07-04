@@ -21,6 +21,9 @@ clean-local:
 	@RTAI_KBUILD_CLEAN@
 	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src)))
 
+distclean-local:
+	rm -rf .deps
+
 calibration_PROGRAMS = calibrate
 
 calibrate_SOURCES = calibrate.c

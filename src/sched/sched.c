@@ -1841,11 +1841,7 @@ static void wake_up_srq_handler(unsigned srq)
 	int cpuid = rtai_cpuid();
 	WAKE_UP_TASKs(wake_up_hts);
 	WAKE_UP_TASKs(wake_up_srq);
-#if LINUX_VERSION_CODE > KERNEL_VERSION(3,13,0)
 	set_tsk_need_resched(current);
-#else
-	set_need_resched();
-#endif
 }
 
 static unsigned long traptrans, systrans, linux_srv_calls;

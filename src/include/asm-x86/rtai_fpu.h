@@ -159,9 +159,7 @@ extern unsigned int fpu_kernel_xstate_size;
 #define restore_fpenv(fpenv)	do { __restore_fpenv(&(fpenv)); } while (0)
 
 #ifdef DEFINE_FPU_FPREGS_OWNER_CTX
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,2,0)
 DEFINE_PER_CPU(struct fpu *, fpu_fpregs_owner_ctx);
-#endif
 #endif
 
 // FPU MANAGEMENT DRESSED FOR IN KTHREAD/THREAD/PROCESS FPU USAGE FROM RTAI

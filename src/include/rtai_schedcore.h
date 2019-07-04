@@ -34,7 +34,6 @@
 #include <asm/param.h>
 #include <asm/io.h>
 #include <linux/oom.h>
-#include <rtai_version.h>
 #include <rtai_lxrt.h>
 #include <rtai_sched.h>
 #include <rtai_malloc.h>
