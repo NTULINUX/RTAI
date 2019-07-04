@@ -55,6 +55,7 @@ stamp-h1
 .deps
 .tmp_versions
 .libs
+*.tmp
 
 # Executables
 src/sched/calibrate
