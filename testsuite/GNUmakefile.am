@@ -24,9 +24,9 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(testdir)
 	$(INSTALL_DATA) $(top_srcdir)/testsuite/runinfo $(DESTDIR)$(testdir)/.runinfo
 	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(testdir)/run
-	@echo "${DESTDIR}$(bindir)/rtai-load $(DESTDIR)$(testdir)/.runinfo" >> $(DESTDIR)$(testdir)/run
-	@echo "$(DESTDIR)$(testdir)/latency & $(DESTDIR)$(testdir)/display" >> $(DESTDIR)$(testdir)/run
-	@echo "sleep 1 && sync && ${DESTDIR}$(bindir)/rtai-load cleanup" >> $(DESTDIR)$(testdir)/run
+	@echo "$(bindir)/rtai-load $(testdir)/.runinfo" >> $(DESTDIR)$(testdir)/run
+	@echo "$(testdir)/latency & $(testdir)/display" >> $(DESTDIR)$(testdir)/run
+	@echo "sleep 1 && sync && $(bindir)/rtai-load cleanup" >> $(DESTDIR)$(testdir)/run
 	@chmod 755 $(DESTDIR)$(testdir)/run
 
 run: all
