@@ -17,9 +17,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS(rtai_config.h)
-
 AC_PROG_INSTALL
 LT_INIT
+RTAI_VERSION="5.2.2"
+
 AC_PROG_CC
 CC="gcc"
 CFLAGS=""
@@ -583,11 +584,7 @@ if test x$CONFIG_RTAI_MBX = xy ; then
 	fi
 fi
 
-dnl
-dnl Build a Kconfig file corresponding to the current configuration
-dnl if none exists.
-dnl
-
+dnl Build a Kconfig file corresponding to the current configuration if none exists.
 if test \! -r .rtai_config; then
 	set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' | \
 	sed -e 's,\(.*\)=\(.*\)$,\1=\2,' > .rtai_config
@@ -789,8 +786,7 @@ AC_SUBST(RTAI_KBUILD_BOTTOM)
 AC_SUBST(RTAI_KBUILD_CMD)
 AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
-dnl From Kconfig
-AC_SUBST(CONFIG_RTAI_VERSION)
+AC_SUBST(RTAI_VERSION)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \

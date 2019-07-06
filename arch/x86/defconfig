@@ -3,7 +3,6 @@
 # RTAI/x86 configuration
 #
 CONFIG_MODULES=y
-CONFIG_RTAI_VERSION="5.2.2"
 
 #
 # General

@@ -19,7 +19,7 @@ RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
 RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
 RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
 RTAI_LIBRARY_DIR="${staging}${libdir}"
-RTAI_VERSION="@CONFIG_RTAI_VERSION@"
+RTAI_VERSION="@RTAI_VERSION@"
 
 unset prefix libdir datadir pkgdatadir includedir
 

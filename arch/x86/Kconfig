@@ -14,10 +14,6 @@ config MODULES
 	bool
 	default y
 
-config RTAI_VERSION
-	string
-	default "5.2.2"
-
 menu "General"
 
 config RTAI_INSTALLDIR
