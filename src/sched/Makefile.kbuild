@@ -11,8 +11,7 @@
 EXTRA_CFLAGS += -I$(rtai_srctree)/src/include \
 		-I$(src)/../include \
 		-I$(src)/../.. \
-		$(rtai_extradef) \
-		-D__IN_RTAI__
+		$(rtai_extradef)
 
 obj-m += $(rtai_target).o
 

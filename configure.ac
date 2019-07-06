@@ -677,37 +677,6 @@ AC_DEFINE_UNQUOTED(CONFIG_RTAI_KSTACK_HEAPSZ,$CONFIG_RTAI_KSTACK_HEAPSZ,[Kconfig
 fifos_template="/dev/rtf%d"
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_FIFOS_TEMPLATE,"$fifos_template",[Kconfig])
 
-AH_VERBATIM(,[
-#define __hidefun(name) name ## _hidden_inline
-#define RTAI_PROTO(type,name,arglist) static inline type name arglist
-#define RTAI_PROTO_ALWAYS_INLINE(type,name,arglist) static inline type name arglist
-#define RTAI_PROTO_NEVER_INLINE(type,name,arglist) type name arglist; static inline type __hidefun(name) arglist
-])
-
-dnl CAUTION: We need to have the CONFIG_RTAI_XX symbols always defined when
-dnl the configuration header is read, but we want the Autoconf-produced
-dnl symbols to be defined only when compiling RTAI. This way, we won't
-dnl pollute the namespace with the latter when our configuration header is
-dnl indirectly included by a client application. To achieve this, we ask
-dnl autoheader to produce the following header structure:
-dnl #define CONFIG_XX
-dnl #define CONFIG_XX ...
-dnl #ifdef __IN_RTAI__
-dnl <Autoconf-defined symbols>
-dnl #endif /* __IN_RTAI__ */
-dnl This is quite a hack since we have to rely on the fact that
-dnl all Autoconf-generated symbols are lexicographically sorted
-dnl after CONFIG_RTAI_XX ones, but, well...
-
-dnl Use a key which will cause the verbatim string to be put after
-dnl all CONFIG_RTAI_XX symbols, but still before any Autoconf-generated
-dnl symbol, hence CONFIG_RTAI___.
-AH_VERBATIM(CONFIG_RTAI___,[#ifdef __IN_RTAI__])
-
-dnl Now we can close the conditional section, right after all
-dnl Autoconf-generated symbols have been listed.
-AH_BOTTOM([#endif /* __IN_RTAI__ */])
-
 dnl
 dnl Produce automake conditionals.
 dnl
@@ -733,10 +702,7 @@ AM_CONDITIONAL(CONFIG_RTAI_MBX_BUILTIN,[test x$CONFIG_RTAI_MBX = xy])
 AM_CONDITIONAL(CONFIG_RTAI_SHM_BUILTIN,[test x$CONFIG_RTAI_SHM = xy])
 AM_CONDITIONAL(CONFIG_RTAI_MALLOC_BUILTIN,[test x$CONFIG_RTAI_MALLOC = xy])
 
-dnl
-dnl Define arch-specific CFLAGS and links
-dnl
-
+dnl Define everything related to Kbuild
 RTAI_KBUILD_ENV='src2obj = $(patsubst %.$(1),%.o,$(filter %.$(1),$(call notdir,$(2))))'
 RTAI_KBUILD_TOP="@if test \\! -r Module.symvers ; then \$(LN_S) -f \"\`cd \$(top_builddir) && pwd\`/Module.symvers\" . ; fi;"
 RTAI_KBUILD_BOTTOM=
@@ -748,32 +714,15 @@ RTAI_KBUILD_CMD="for src in \$^; do if test \\! -r \`basename \$\$src\`; then \$
 RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers modules.order && rm -Rf .tmp_versions'
 RTAI_KBUILD_DISTCLEAN=""
 
-dnl extra arch-dependent opts to be passed to the compiler
+dnl Extra options to be passed to the compiler
 RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
-RTAI_FP_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
-
-RTAI_KMOD_CFLAGS="-D__IN_RTAI__"
-RTAI_USER_CFLAGS="-D__IN_RTAI__"
-
-AC_CONFIG_LINKS(src/include/asm:$srcdir/src/include/asm-x86)
-AC_CONFIG_LINKS(src/ipc/fifos/Makefile:src/ipc/fifos/Makefile.kbuild)
-AC_CONFIG_LINKS(src/ipc/mbx/Makefile:src/ipc/mbx/Makefile.kbuild)
-AC_CONFIG_LINKS(src/ipc/msg/Makefile:src/ipc/msg/Makefile.kbuild)
-AC_CONFIG_LINKS(src/ipc/sem/Makefile:src/ipc/sem/Makefile.kbuild)
-AC_CONFIG_LINKS(src/ipc/shm/Makefile:src/ipc/shm/Makefile.kbuild)
-AC_CONFIG_LINKS(src/malloc/Makefile:src/malloc/Makefile.kbuild)
-AC_CONFIG_LINKS(src/math/Makefile:src/math/Makefile.kbuild)
-AC_CONFIG_LINKS(src/sched/Makefile:src/sched/Makefile.kbuild)
-
-dnl
-dnl Build the Makefiles
-dnl
+RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans \
+		-mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILD_STRING)
 AC_SUBST(RTAI_HOST_STRING)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
-AC_SUBST(RTAI_KMOD_CFLAGS)
 AC_SUBST(RTAI_USER_CFLAGS)
 AC_SUBST(RTAI_FP_CFLAGS)
 AC_SUBST(RTAI_LINUX_DIR)
@@ -786,6 +735,20 @@ AC_SUBST(RTAI_KBUILD_CMD)
 AC_SUBST(RTAI_KBUILD_CLEAN)
 AC_SUBST(RTAI_KBUILD_DISTCLEAN)
 AC_SUBST(RTAI_VERSION)
+
+dnl
+dnl Build the Makefiles
+dnl
+
+AC_CONFIG_LINKS(src/include/asm:$srcdir/src/include/asm-x86)
+AC_CONFIG_LINKS(src/ipc/fifos/Makefile:src/ipc/fifos/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/mbx/Makefile:src/ipc/mbx/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/msg/Makefile:src/ipc/msg/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/sem/Makefile:src/ipc/sem/Makefile.kbuild)
+AC_CONFIG_LINKS(src/ipc/shm/Makefile:src/ipc/shm/Makefile.kbuild)
+AC_CONFIG_LINKS(src/malloc/Makefile:src/malloc/Makefile.kbuild)
+AC_CONFIG_LINKS(src/math/Makefile:src/math/Makefile.kbuild)
+AC_CONFIG_LINKS(src/sched/Makefile:src/sched/Makefile.kbuild)
 
 AC_CONFIG_FILES([ \
 	GNUmakefile \

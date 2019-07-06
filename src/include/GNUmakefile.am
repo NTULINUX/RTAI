@@ -37,16 +37,8 @@ nobase_include_HEADERS = \
 
 all-local: GNUmakefile
 
-install-data-local:
-	$(INSTALL_HEADER) $(CONFIG_HEADER) $(DESTDIR)$(includedir)/rtai_config.h
-
 distclean-local:
-	rm -f asm
-
-uninstall-local: rtai_defs.h
-	rm -f rtai_defs.h
-
-FORCE:
+	rm -f asm rtai_defs.h
 
 SUBDIRS = asm-x86
 

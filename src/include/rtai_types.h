@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2003 Paolo Mantegazza <mantegazza@aero.polimi.it>
+ * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -36,6 +37,9 @@
 
 #define RT_SCHED_FIFO  0 
 #define RT_SCHED_RR    1 
+
+#define RTAI_PROTO(type,name,arglist) static inline type name arglist
+#define RTAI_PROTO_ALWAYS_INLINE(type,name,arglist) static inline type name arglist
 
 struct pt_regs;
 
