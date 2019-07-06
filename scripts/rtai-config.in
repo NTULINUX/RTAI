@@ -14,7 +14,7 @@ RTAI_TARGET_SUBARCH="@RTAI_TARGET_SUBARCH@"
 RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
 RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
 RTAI_LINUX_VERSION="@RTAI_LINUX_VERSION@"
-RTAI_KERNEL_CFLAGS="-I. -I${staging}${includedir} @RTAI_KMOD_CFLAGS@ @RTAI_FP_CFLAGS@"
+RTAI_KERNEL_CFLAGS="-I. -I${staging}${includedir} @RTAI_FP_CFLAGS@"
 RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
 RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
 RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
@@ -44,11 +44,8 @@ while [[ "${#}" -gt "0" ]] ; do
 		--config)
 			echo "${RTAI_CONFIG}"
 			;;
-		--mod*-cflags|--kernel-cflags)
+		--mod*-cflags|--kern*-cflags)
 			echo "${RTAI_KERNEL_CFLAGS}"
-			;;
-		--mod*-cxxflags|--kernel-cxxflags)
-			echo "${RTAI_KERNEL_CXXFLAGS}"
 			;;
 		--mod*-ext)
 			echo ".ko"
@@ -88,7 +85,6 @@ while [[ "${#}" -gt "0" ]] ; do
 	--prefix
 	--config
 	--module-cflags
-	--module-cxxflags
 	--module-ext
 	--lxrt-cflags
 	--lxrt-ldflags
