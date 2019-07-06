@@ -84,7 +84,6 @@ typedef struct _trace_rtai_global_irq_entry
   uint8_t  irq_id;      /* IRQ number */
   uint8_t  kernel;      /* Are we executing kernel code */
 } LTT_PACKED_STRUCT trace_rtai_global_irq_entry;
-#if CONFIG_X86
 #define TRACE_RTAI_GLOBAL_IRQ_ENTRY(ID, __dummy) \
            do \
            {\
@@ -96,7 +95,6 @@ typedef struct _trace_rtai_global_irq_entry
            irq_entry.kernel = !((VM_MASK & eflags) || (3 & xcs));\
            rt_trace_event(TRACE_RTAI_EV_GLOBAL_IRQ_ENTRY, &irq_entry);\
            } while(0)
-#endif
 
 /*  TRACE_RTAI_GLOBAL_IRQ_EXIT */
 #define TRACE_RTAI_GLOBAL_IRQ_EXIT() rt_trace_event(TRACE_RTAI_EV_GLOBAL_IRQ_EXIT, NULL)
@@ -107,7 +105,6 @@ typedef struct _trace_rtai_own_irq_entry
   uint8_t  irq_id;      /* IRQ number */
   uint8_t  kernel;      /* Are we executing kernel code */
 } LTT_PACKED_STRUCT trace_rtai_own_irq_entry;
-#if CONFIG_X86
 #define TRACE_RTAI_OWN_IRQ_ENTRY(ID) \
            do \
            {\
@@ -119,7 +116,6 @@ typedef struct _trace_rtai_own_irq_entry
            irq_entry.kernel = !((VM_MASK & eflags) || (3 & xcs));\
            rt_trace_event(TRACE_RTAI_EV_OWN_IRQ_ENTRY, &irq_entry);\
            } while(0)
-#endif
 
 /*  TRACE_RTAI_OWN_IRQ_EXIT */
 #define TRACE_RTAI_OWN_IRQ_EXIT() rt_trace_event(TRACE_RTAI_EV_OWN_IRQ_EXIT, NULL)
@@ -153,7 +149,6 @@ typedef struct _trace_rtai_srq_entry
   uint8_t  srq_id;      /* SRQ number */
   uint8_t  kernel;      /* Are we executing kernel code */
 } LTT_PACKED_STRUCT trace_rtai_srq_entry;
-#if CONFIG_X86
 #define TRACE_RTAI_SRQ_ENTRY(ID) \
            do \
            {\
@@ -165,7 +160,6 @@ typedef struct _trace_rtai_srq_entry
            srq_entry.kernel = !((VM_MASK & eflags) || (3 & xcs));\
            rt_trace_event(TRACE_RTAI_EV_SRQ_ENTRY, &srq_entry);\
            } while(0)
-#endif
 
 /*  TRACE_RTAI_SRQ_EXIT */
 #define TRACE_RTAI_SRQ_EXIT() rt_trace_event(TRACE_RTAI_EV_SRQ_EXIT, NULL)
