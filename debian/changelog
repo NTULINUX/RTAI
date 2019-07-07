@@ -1,0 +1,14 @@
+rtai (5.2.2-linuxcnc) stretch; urgency=low
+
+  * debian packaging requirements
+  * Trim rtai_math down to only what LinuxCNC needs
+
+ -- andypugh <andy@bodgesoc.org>  Fri, 05 Jul 2019 00:38:43 +0100
+
+rtai (0.1.2.gfb5bf8a) stretch; urgency=low
+
+  * debian packaging requirements
+  * Trim rtai_math down to only what LinuxCNC needs
+
+ -- buildbot <buildbot@example.com>  Fri, 05 Jul 2019 00:34:25 +0100
+

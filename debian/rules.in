@@ -1,0 +1,106 @@
+#!/usr/bin/make -f
+
+# This gets set by debian/configure to the version of the kernel image
+# we're building for, for example "3.16.0-9".
+KERNEL_VERSION = @KERNEL_VERSION@
+
+# This gets set to the featureset of the kernel image, probably "rtai".
+FEATURESET = @FEATURESET@
+
+# We somewhat goofily detect the kernel flavor by seeing what
+# linux-headers package got installed to satisfy the build-dependency.
+FLAVOR=$(shell basename $(KERNEL_DIR) | sed -re 's/^linux-headers-$(KERNEL_VERSION)-$(FEATURESET)-//')
+
+KERNEL_DIR = $(shell ls -1d /usr/src/linux-headers-$(KERNEL_VERSION)-$(FEATURESET)-*)
+
+ARCH = $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+HOST = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+
+CONFIGURE := --enable-shm
+CONFIGURE += --enable-sem
+CONFIGURE += --enable-mbx
+CONFIGURE += --enable-msg
+CONFIGURE += --enable-malloc
+CONFIGURE += --enable-fifos
+CONFIGURE += --enable-serial
+CONFIGURE += --enable-16550a
+CONFIGURE += --with-16550a-ham=any
+
+CONFIGURE += --enable-fpu
+CONFIGURE += --enable-math=m
+CONFIGURE += --enable-math-c99
+
+CONFIGURE += --enable-cpus=4
+
+CONFIGURE += --enable-ktasks-sched-lxrt
+
+CONFIGURE += --disable-leds
+CONFIGURE += --disable-rtailab
+CONFIGURE += --disable-netrpc
+CONFIGURE += --disable-netrpc-rtnet
+CONFIGURE += --disable-comedi-lxrt
+CONFIGURE += --disable-rtdm
+#CONFIGURE += --disable-dbx
+
+CONFIGURE += --with-linux-dir=$(KERNEL_DIR)
+
+CONFIGURE += --prefix=/usr/realtime-$(KERNEL_VERSION)-$(FEATURESET)-$(FLAVOR)
+CONFIGURE += --libdir=/usr/lib
+CONFIGURE += --includedir=/usr/include/rtai
+
+CONFIGURE += --host=$(HOST)
+
+
+ifeq ($(ARCH),i386)
+    NEWLIB_CONFIGURE=--disable-shared --disable-multilib --host=i386-pc-sysv CFLAGS="-O2"
+else ifeq ($(ARCH),amd64)
+    NEWLIB_CONFIGURE=--disable-shared --disable-multilib --host=x86_64-pc-none CFLAGS="-O2 -mcmodel=kernel"
+endif
+
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+
+	# build rtai
+	./configure $(CONFIGURE)
+	$(MAKE) V=1
+	touch build-stamp
+
+
+clean:
+	dh_testdir
+	rm -f build-stamp debian/rtai-modules-$(KERNEL_VERSION).files
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	mkdir -p debian/tmp
+	mkdir -p debian/tmp/etc/udev/rules.d
+	$(MAKE) install DESTDIR=`pwd`/debian/tmp
+
+	install -d debian/tmp/usr/share/doc/rtai-modules-$(KERNEL_VERSION)
+	cp README.* debian/tmp/usr/share/doc/rtai-modules-$(KERNEL_VERSION)
+
+	(cd debian/tmp; find -not -type d) > debian/rtai-modules-$(KERNEL_VERSION).files
+	dh_movefiles
+
+binary: binary-indep binary-arch
+binary-indep: build install
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_installdocs
+	dh_installman
+	dh_link
+	dh_strip
+	dh_makeshlibs
+	dh_compress
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
