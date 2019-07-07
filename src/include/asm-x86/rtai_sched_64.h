@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2019      Alec Ari <neotheuser@ymail.com>
  * Copyright (C) 1999-2013 Paolo Mantegazza  <mantegazza@aero.polimi.it>
  * Copyright (C) 2000      Stuart Hughes     <shughes@zentropix.com>
  * Copyright (C) 2007      Antonio Barbalace <barbalace@igi.cnr.it>
@@ -21,7 +22,7 @@
 #ifndef _RTAI_ASM_X86_64_SCHED_H
 #define _RTAI_ASM_X86_64_SCHED_H
 
-#if 1
+#if 0
 // adapted from Linux kernel 2.6.20.1 (include/asm-x86_64/calling.h)
 #define rt_exchange_tasks(oldtask, newtask) \
 	__asm__ __volatile__( \
@@ -127,8 +128,8 @@
 	);
 #endif
 
-#if 0
-// with push and pop 
+#if 1
+/* Adapted from Linux kernel 4.19.57 (arch/x86/entry/calling.h) */
 #define rt_exchange_tasks(oldtask, newtask) \
 	__asm__ __volatile__( \
 	"pushq %%rdi\n\t" \
