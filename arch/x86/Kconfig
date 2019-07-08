@@ -29,12 +29,12 @@ config RTAI_INSTALLDIR
 
 config RTAI_LINUXDIR
 	string "Linux source tree"
-	default "/usr/src/linux"
+	default "/lib/modules/$(uname -r)/build"
 	help
 	This variable contains the directory of your previously
 	patched Linux kernel. As explained before, you can change the
 	value of the Linux source tree which is fixed by default to
-	/usr/src/linux.
+	/lib/modules/$(uname -r)/build.
 
 endmenu
 

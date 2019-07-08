@@ -8,7 +8,7 @@ CONFIG_MODULES=y
 # General
 #
 CONFIG_RTAI_INSTALLDIR="/usr/realtime"
-CONFIG_RTAI_LINUXDIR="/usr/src/linux"
+CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
 
 #
 # Machine (x86)

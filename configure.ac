@@ -88,11 +88,10 @@ dnl
 AC_MSG_CHECKING([for Linux source tree])
 
 dnl safe default
-if test x$CONFIG_RTAI_LINUXDIR != x ; then
-	RTAI_LINUX_DIR=$CONFIG_RTAI_LINUXDIR
-else
-	RTAI_LINUX_DIR="/usr/src/linux"
+if test x$CONFIG_RTAI_LINUXDIR = x ; then
+	CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
 fi
+RTAI_LINUX_DIR=$CONFIG_RTAI_LINUXDIR
 
 AC_ARG_WITH(linux-dir,
 	[ --with-linux-dir=<linux-dir>	RTAI-enabled Linux kernel tree],
@@ -105,15 +104,17 @@ AC_ARG_WITH(linux-dir,
 	RTAI_LINUX_DIR="$withval"
 	])
 
-if test x${RTAI_LINUX_DIR} = x; then
-	echo
-	AC_MSG_ERROR([Linux kernel tree not specified -- use --with-linux-dir])
-fi
-
-if test \! -r ${RTAI_LINUX_DIR}/Makefile; then
+if test \! -r ${RTAI_LINUX_DIR}/arch/x86/Makefile; then
 	echo
 	AC_MSG_ERROR([No Linux kernel tree in ${RTAI_LINUX_DIR}])
 fi
+
+dnl Load Linux kernel configuration
+if test \! -r ${RTAI_LINUX_DIR}/.config; then
+	AC_MSG_RESULT([invalid])
+	AC_MSG_ERROR([$RTAI_LINUX_DIR is not configured. --with-linux-dir sets linux-dir])
+fi
+source $RTAI_LINUX_DIR/.config
 
 if grep KERNELSRC $RTAI_LINUX_DIR/Makefile > /dev/null; then
 eval LINUX_`grep '^KERNELSRC' $RTAI_LINUX_DIR/Makefile | sed -e 's, ,,g'|sed -e 's,:,,g'`
@@ -128,19 +129,8 @@ eval linux_`grep '^EXTRAVERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 eval linux_`grep '^PATCHLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 eval linux_`grep '^SUBLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
 eval linux_`grep '^VERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
-
-dnl Load Linux kernel configuration
-if test \! -r ${RTAI_LINUX_DIR}/.config; then
-	AC_MSG_RESULT([invalid])
-	AC_MSG_ERROR([$RTAI_LINUX_DIR is not configured -- --with-linux-dir sets linux-dir])
-fi
-source $RTAI_LINUX_DIR/.config
-
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
 AC_MSG_RESULT([$RTAI_LINUX_DIR (kernel ${RTAI_LINUX_VERSION}${CONFIG_SMP:+-SMP})])
-if test x${CONFIG_RTAI_LINUXDIR} = x; then
-	CONFIG_RTAI_LINUXDIR=$RTAI_LINUX_DIR
-fi
 
 dnl
 dnl Perform a few sanity checks.
@@ -151,11 +141,11 @@ KERNEL_ARCH="`uname -m`"
 AC_MSG_RESULT([$KERNEL_ARCH])
 
 if test x${CONFIG_MODULE_UNLOAD} = x ; then
-	AC_MSG_ERROR([Please set CONFIG_MODULE_UNLOAD for $RTAI_LINUX_DIR and rebuild your kernel])
+	AC_MSG_ERROR([Please enable CONFIG_MODULE_UNLOAD in $RTAI_LINUX_DIR and rebuild your kernel])
 fi
 
-if test \! -r $LINUX_KERNELSRC/include/linux/ipipe.h; then
-	AC_MSG_ERROR([HAL patch not applied/enabled in $LINUX_KERNELSRC])
+if test x${CONFIG_IPIPE} = x ; then
+	AC_MSG_ERROR([IPIPE not enabled in $RTAI_LINUX_DIR])
 fi
 
 dnl
