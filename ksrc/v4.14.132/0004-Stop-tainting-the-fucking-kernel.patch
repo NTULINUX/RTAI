@@ -1,4 +1,4 @@
-From 18c8b5ee95dafe150e8dd252a2ff2fb66ba20cfa Mon Sep 17 00:00:00 2001
+From 77fae5804e1b6f4e7776bad917def9a2d8b27e43 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Thu, 4 Jul 2019 05:48:47 -0500
 Subject: Stop tainting the fucking kernel
@@ -28,5 +28,5 @@ index 095a60b1954b..ccd938309a76 100644
  	check_modinfo_retpoline(mod, info);
  
 -- 
-2.22.0
+2.22.0.455.g172b71a6c5
 

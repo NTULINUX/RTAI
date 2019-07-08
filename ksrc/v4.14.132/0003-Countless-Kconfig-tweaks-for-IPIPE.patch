@@ -1,4 +1,4 @@
-From 2c245943008405f09606af88496e12a798aa06ee Mon Sep 17 00:00:00 2001
+From 2a7613a710a9083a7d91334937535f7526fd4e5b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 2 Jul 2019 22:18:52 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -15,7 +15,7 @@ Make it easy to hack in native 32-bit support for testing.
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/Kconfig                        |   5 +-
- arch/x86/Kconfig                    |  62 +++++++-----
+ arch/x86/Kconfig                    |  70 ++++++++-----
  arch/x86/Kconfig.debug              |  32 +++---
  arch/x86/kvm/Kconfig                |   1 +
  drivers/acpi/Kconfig                |  28 ++++--
@@ -79,7 +79,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 65 files changed, 275 insertions(+), 191 deletions(-)
+ 65 files changed, 279 insertions(+), 195 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -119,21 +119,36 @@ index 77b3e21c4844..782589f1cb1f 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b147b5c53af6..8f259be4671a 100644
+index 8409b9073422..3f89689e952b 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -145,8 +145,9 @@ config X86
+@@ -145,12 +145,7 @@ config X86
  	select HAVE_IOREMAP_PROT
  	select HAVE_IRQ_EXIT_ON_IRQ_STACK	if X86_64
  	select HAVE_IRQ_TIME_ACCOUNTING
 -	select HAVE_IPIPE_SUPPORT		if X86_64
  	select HAVE_IPIPE_TRACER_SUPPORT
+-	select IPIPE_HAVE_HOSTRT if IPIPE
+-	select IPIPE_HAVE_SAFE_THREAD_INFO if IPIPE
+-	select IPIPE_WANT_PTE_PINNING if IPIPE
+-	select IPIPE_HAVE_VM_NOTIFIER if IPIPE
+ 	select HAVE_KERNEL_BZIP2
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_LZ4
+@@ -184,6 +179,12 @@ config X86
+ 	select HAVE_UNSTABLE_SCHED_CLOCK
+ 	select HAVE_USER_RETURN_NOTIFIER
+ 	select HOTPLUG_SMT			if SMP
 +	# Disabling IPIPE is broken right now (Xenomai mainline)
 +	select IPIPE				if X86_64
- 	select IPIPE_HAVE_SAFE_THREAD_INFO if IPIPE
- 	select IPIPE_WANT_PTE_PINNING if IPIPE
- 	select IPIPE_HAVE_VM_NOTIFIER if IPIPE
-@@ -427,7 +428,7 @@ config X86_MPPARSE
++	select IPIPE_HAVE_HOSTRT if IPIPE
++	select IPIPE_HAVE_SAFE_THREAD_INFO if IPIPE
++	select IPIPE_HAVE_VM_NOTIFIER if IPIPE
++	select IPIPE_WANT_PTE_PINNING if IPIPE
+ 	select IRQ_FORCED_THREADING
+ 	select PCI_LOCKLESS_CONFIG
+ 	select PERF_EVENTS
+@@ -428,7 +429,7 @@ config X86_MPPARSE
  
  config X86_BIGSMP
  	bool "Support for big SMP systems with more than 8 CPUs"
@@ -142,7 +157,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  This option is needed for the systems that have more than 8 CPUs
  
-@@ -438,6 +439,7 @@ config GOLDFISH
+@@ -439,6 +440,7 @@ config GOLDFISH
  config RETPOLINE
  	bool "Avoid speculative indirect branches in kernel"
  	default y
@@ -150,7 +165,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select STACK_VALIDATION if HAVE_STACK_VALIDATION
  	help
  	  Compile kernel with the retpoline compiler options to guard against
-@@ -461,6 +463,7 @@ config INTEL_RDT
+@@ -462,6 +464,7 @@ config INTEL_RDT
  if X86_32
  config X86_EXTENDED_PLATFORM
  	bool "Support for extended (non-PC) x86 platforms"
@@ -158,7 +173,7 @@ index b147b5c53af6..8f259be4671a 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -483,6 +486,7 @@ endif
+@@ -484,6 +487,7 @@ endif
  if X86_64
  config X86_EXTENDED_PLATFORM
  	bool "Support for extended (non-PC) x86 platforms"
@@ -166,7 +181,7 @@ index b147b5c53af6..8f259be4671a 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -603,7 +607,7 @@ config X86_INTEL_QUARK
+@@ -604,7 +608,7 @@ config X86_INTEL_QUARK
  
  config X86_INTEL_LPSS
  	bool "Intel Low Power Subsystem Support"
@@ -175,7 +190,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
-@@ -729,6 +733,7 @@ config SCHED_OMIT_FRAME_POINTER
+@@ -730,6 +734,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
  	bool "Linux guest support"
@@ -183,7 +198,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -943,6 +948,7 @@ config MAXSMP
+@@ -944,6 +949,7 @@ config MAXSMP
  config NR_CPUS
  	int "Maximum number of CPUs" if SMP && !MAXSMP
  	range 2 8 if SMP && X86_32 && !X86_BIGSMP
@@ -191,7 +206,7 @@ index b147b5c53af6..8f259be4671a 100644
  	range 2 64 if SMP && X86_32 && X86_BIGSMP
  	range 2 512 if SMP && !MAXSMP && !CPUMASK_OFFSTACK && X86_64
  	range 2 8192 if SMP && !MAXSMP && CPUMASK_OFFSTACK && X86_64
-@@ -957,16 +963,19 @@ config NR_CPUS
+@@ -958,16 +964,19 @@ config NR_CPUS
  	  supported value is 8192, otherwise the maximum value is 512.  The
  	  minimum value which makes sense is 2.
  
@@ -214,7 +229,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1123,7 +1132,7 @@ source "arch/x86/events/Kconfig"
+@@ -1124,7 +1133,7 @@ source "arch/x86/events/Kconfig"
  config X86_LEGACY_VM86
  	bool "Legacy VM86 support"
  	default n
@@ -223,7 +238,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  This option allows user programs to put the CPU into V8086
  	  mode, which is an 80286-era approximation of 16-bit real mode.
-@@ -1155,7 +1164,7 @@ config VM86
+@@ -1156,7 +1165,7 @@ config VM86
  config X86_16BIT
  	bool "Enable support for 16-bit segments" if EXPERT
  	default y
@@ -232,7 +247,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  This option is required by programs like Wine to run 16-bit
  	  protected mode legacy code on x86 processors.  Disabling
-@@ -1173,7 +1182,7 @@ config X86_ESPFIX64
+@@ -1174,7 +1183,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -241,7 +256,7 @@ index b147b5c53af6..8f259be4671a 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1190,7 +1199,7 @@ config X86_VSYSCALL_EMULATION
+@@ -1191,7 +1200,7 @@ config X86_VSYSCALL_EMULATION
  
  config TOSHIBA
  	tristate "Toshiba Laptop support"
@@ -250,7 +265,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  This adds a driver to safely access the System Management Mode of
  	  the CPU on Toshiba portables with a genuine Toshiba BIOS. It does
-@@ -1206,6 +1215,7 @@ config TOSHIBA
+@@ -1207,6 +1216,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -258,7 +273,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1484,6 +1494,7 @@ config NUMA
+@@ -1485,6 +1495,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -266,7 +281,7 @@ index b147b5c53af6..8f259be4671a 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1605,8 +1616,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1606,8 +1617,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -276,7 +291,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1808,6 +1818,7 @@ config ARCH_RANDOM
+@@ -1809,6 +1819,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -284,7 +299,7 @@ index b147b5c53af6..8f259be4671a 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1821,7 +1832,7 @@ config X86_INTEL_MPX
+@@ -1822,7 +1833,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -293,7 +308,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1849,7 +1860,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1850,7 +1861,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -302,7 +317,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1863,7 +1874,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1864,7 +1875,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  
  config EFI
  	bool "EFI runtime service support"
@@ -311,7 +326,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	---help---
-@@ -1921,6 +1932,7 @@ source kernel/Kconfig.hz
+@@ -1922,6 +1933,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -319,7 +334,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -1940,9 +1952,8 @@ config KEXEC_FILE
+@@ -1941,9 +1953,8 @@ config KEXEC_FILE
  	bool "kexec file based system call"
  	select KEXEC_CORE
  	select BUILD_BIN2C
@@ -331,7 +346,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -1971,6 +1982,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -1972,6 +1983,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -339,7 +354,7 @@ index b147b5c53af6..8f259be4671a 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2032,6 +2044,7 @@ config PHYSICAL_START
+@@ -2033,6 +2045,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -347,7 +362,7 @@ index b147b5c53af6..8f259be4671a 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2148,7 +2161,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2149,7 +2162,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -356,7 +371,7 @@ index b147b5c53af6..8f259be4671a 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2222,7 +2235,7 @@ config COMPAT_VDSO
+@@ -2223,7 +2236,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -365,7 +380,7 @@ index b147b5c53af6..8f259be4671a 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2236,10 +2249,11 @@ choice
+@@ -2237,10 +2250,11 @@ choice
  	  static binaries, you can say None without a performance penalty
  	  to improve security.
  
@@ -378,7 +393,7 @@ index b147b5c53af6..8f259be4671a 100644
  		help
  		  Actual executable code is located in the fixed vsyscall
  		  address mapping, implementing time() efficiently. Since
-@@ -2249,6 +2263,7 @@ choice
+@@ -2250,6 +2264,7 @@ choice
  
  	config LEGACY_VSYSCALL_EMULATE
  		bool "Emulate"
@@ -386,7 +401,7 @@ index b147b5c53af6..8f259be4671a 100644
  		help
  		  The kernel traps and emulates calls into the fixed
  		  vsyscall address mapping. This makes the mapping
-@@ -2313,6 +2328,7 @@ config CMDLINE_OVERRIDE
+@@ -2314,6 +2329,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -394,7 +409,7 @@ index b147b5c53af6..8f259be4671a 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2806,7 +2822,7 @@ source "fs/Kconfig.binfmt"
+@@ -2807,7 +2823,7 @@ source "fs/Kconfig.binfmt"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -403,7 +418,7 @@ index b147b5c53af6..8f259be4671a 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2824,7 +2840,7 @@ config IA32_AOUT
+@@ -2825,7 +2841,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"

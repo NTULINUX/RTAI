@@ -1,14 +1,14 @@
-From 14ac163f8b88ec4f8f58f6195c13fe7222701303 Mon Sep 17 00:00:00 2001
+From 19f29fa9ffaf037620eea1c87b92605bfbb9f955 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 2 Jul 2019 22:15:34 -0500
-Subject: IPIPE 4.14 core release 5
+Subject: IPIPE 4.14 core release 6
 
-Based off of ipipe-core-4.14.128-x86-5
+Based off of ipipe-core-4.14.132-x86-6
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  Documentation/ipipe.rst                 |  924 +++++++++++
- arch/x86/Kconfig                        |   12 +-
+ arch/x86/Kconfig                        |   13 +-
  arch/x86/entry/common.c                 |  111 +-
  arch/x86/entry/entry_64.S               |  157 +-
  arch/x86/entry/thunk_32.S               |    1 +
@@ -209,7 +209,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                        |    4 +
  mm/mprotect.c                           |   11 +-
  mm/vmalloc.c                            |    2 +
- 202 files changed, 11300 insertions(+), 848 deletions(-)
+ 202 files changed, 11301 insertions(+), 848 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -1162,7 +1162,7 @@ index 000000000000..9fba08b66253
 +.. [#f2] Yaghmour, Karim; "ADEOS - Adaptive Domain Environment for Operating Systems"
 +    https://www.opersys.com/ftp/pub/Adeos/adeos.pdf
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8fec1585ac7a..b147b5c53af6 100644
+index 8fec1585ac7a..8409b9073422 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -123,7 +123,7 @@ config X86
@@ -1174,19 +1174,20 @@ index 8fec1585ac7a..b147b5c53af6 100644
  	select HAVE_COPY_THREAD_TLS
  	select HAVE_C_RECORDMCOUNT
  	select HAVE_DEBUG_KMEMLEAK
-@@ -145,6 +145,11 @@ config X86
+@@ -145,6 +145,12 @@ config X86
  	select HAVE_IOREMAP_PROT
  	select HAVE_IRQ_EXIT_ON_IRQ_STACK	if X86_64
  	select HAVE_IRQ_TIME_ACCOUNTING
 +	select HAVE_IPIPE_SUPPORT		if X86_64
 +	select HAVE_IPIPE_TRACER_SUPPORT
++	select IPIPE_HAVE_HOSTRT if IPIPE
 +	select IPIPE_HAVE_SAFE_THREAD_INFO if IPIPE
 +	select IPIPE_WANT_PTE_PINNING if IPIPE
 +	select IPIPE_HAVE_VM_NOTIFIER if IPIPE
  	select HAVE_KERNEL_BZIP2
  	select HAVE_KERNEL_GZIP
  	select HAVE_KERNEL_LZ4
-@@ -736,6 +741,7 @@ if HYPERVISOR_GUEST
+@@ -736,6 +742,7 @@ if HYPERVISOR_GUEST
  
  config PARAVIRT
  	bool "Enable paravirtualization code"
@@ -1194,7 +1195,7 @@ index 8fec1585ac7a..b147b5c53af6 100644
  	---help---
  	  This changes the kernel so it can modify itself when it is run
  	  under a hypervisor, potentially improving performance significantly
-@@ -928,7 +934,7 @@ config IOMMU_HELPER
+@@ -928,7 +935,7 @@ config IOMMU_HELPER
  
  config MAXSMP
  	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
@@ -1203,7 +1204,7 @@ index 8fec1585ac7a..b147b5c53af6 100644
  	select CPUMASK_OFFSTACK
  	---help---
  	  Enable maximum number of CPUS and NUMA Nodes for this architecture.
-@@ -989,6 +995,8 @@ config SCHED_MC_PRIO
+@@ -989,6 +996,8 @@ config SCHED_MC_PRIO
  
  source "kernel/Kconfig.preempt"
  
@@ -1916,7 +1917,7 @@ index 89789e8c80f6..dc376e53aa2a 100644
  static inline unsigned char inb_pic(unsigned int port)
 diff --git a/arch/x86/include/asm/ipipe.h b/arch/x86/include/asm/ipipe.h
 new file mode 100644
-index 000000000000..127dad935d9b
+index 000000000000..2f7f4304de42
 --- /dev/null
 +++ b/arch/x86/include/asm/ipipe.h
 @@ -0,0 +1,70 @@
@@ -1946,7 +1947,7 @@ index 000000000000..127dad935d9b
 +
 +#ifdef CONFIG_IPIPE
 +
-+#define IPIPE_CORE_RELEASE	5
++#define IPIPE_CORE_RELEASE	6
 +
 +struct ipipe_domain;
 +
