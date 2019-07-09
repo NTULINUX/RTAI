@@ -148,6 +148,10 @@ if test x${CONFIG_IPIPE} = x ; then
 	AC_MSG_ERROR([IPIPE not enabled in $RTAI_LINUX_DIR])
 fi
 
+if $(grep "IPIPE_LEGACY" ${RTAI_LINUX_DIR}/.config >> /dev/null 2>&1) ; then
+	AC_MSG_ERROR([IPIPE_LEGACY is available -- kernel too old and not supported.])
+fi
+
 dnl
 dnl Process the build options, possibly overriding the loaded
 dnl configuration.

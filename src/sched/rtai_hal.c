@@ -80,10 +80,6 @@ MODULE_LICENSE("GPL");
 #include <rtai_proc_fs.h>
 #include <stdarg.h>
 
-#ifdef CONFIG_IPIPE_LEGACY
-#error "CONFIG_IPIPE_LEGACY MUST NOT BE ENABLED, RECONFIGURE LINUX AND REMAKE BOTH KERNEL AND RTAI."
-#endif
-
 #define RTAI_NR_IRQS  IPIPE_NR_IRQS
 
 struct hal_domain_struct rtai_domain;
