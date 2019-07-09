@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 # This gets set by debian/configure to the version of the kernel image
-# we're building for, for example "3.16.0-9".
+# we're building for, for example "4.14.0-9".
 KERNEL_VERSION = @KERNEL_VERSION@
 
 # This gets set to the featureset of the kernel image, probably "rtai".
@@ -16,31 +16,7 @@ KERNEL_DIR = $(shell ls -1d /usr/src/linux-headers-$(KERNEL_VERSION)-$(FEATURESE
 ARCH = $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 HOST = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
-CONFIGURE := --enable-shm
-CONFIGURE += --enable-sem
-CONFIGURE += --enable-mbx
-CONFIGURE += --enable-msg
-CONFIGURE += --enable-malloc
-CONFIGURE += --enable-fifos
-CONFIGURE += --enable-serial
-CONFIGURE += --enable-16550a
-CONFIGURE += --with-16550a-ham=any
-
-CONFIGURE += --enable-fpu
-CONFIGURE += --enable-math=m
-CONFIGURE += --enable-math-c99
-
 CONFIGURE += --enable-cpus=4
-
-CONFIGURE += --enable-ktasks-sched-lxrt
-
-CONFIGURE += --disable-leds
-CONFIGURE += --disable-rtailab
-CONFIGURE += --disable-netrpc
-CONFIGURE += --disable-netrpc-rtnet
-CONFIGURE += --disable-comedi-lxrt
-CONFIGURE += --disable-rtdm
-#CONFIGURE += --disable-dbx
 
 CONFIGURE += --with-linux-dir=$(KERNEL_DIR)
 
@@ -50,23 +26,15 @@ CONFIGURE += --includedir=/usr/include/rtai
 
 CONFIGURE += --host=$(HOST)
 
-
-ifeq ($(ARCH),i386)
-    NEWLIB_CONFIGURE=--disable-shared --disable-multilib --host=i386-pc-sysv CFLAGS="-O2"
-else ifeq ($(ARCH),amd64)
-    NEWLIB_CONFIGURE=--disable-shared --disable-multilib --host=x86_64-pc-none CFLAGS="-O2 -mcmodel=kernel"
-endif
-
-
 build: build-stamp
 build-stamp:
 	dh_testdir
 
-	# build rtai
+	# Build RTAI
+	# Shouldn't this line be ./autogen.sh $(CONFIGURE) instead?
 	./configure $(CONFIGURE)
 	$(MAKE) V=1
 	touch build-stamp
-
 
 clean:
 	dh_testdir
