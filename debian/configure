@@ -3,10 +3,10 @@
 # the current build.
 set -x
 
-# KERNEL_VERSION: 3.16.0-9
+# KERNEL_VERSION: 4.14.0-9
 # FEATURESET: rtai
-# KERNEL_HEADERS: linux-headers-3.16.0-9-rtai-686-pae | linux-headers-3.16.0-9-rtai-amd64
-# KERNEL_IMAGES: linux-image-3.16.0-9-rtai-686-pae | linux-image-3.16.0-9-rtai-amd64
+# KERNEL_HEADERS: linux-headers-4.14.0-9-rtai-686-pae | linux-headers-4.14.0-9-rtai-amd64
+# KERNEL_IMAGES: linux-image-4.14.0-9-rtai-686-pae | linux-image-4.14.0-9-rtai-amd64
 function subst() {
     cp $1.in $1
     sed --in-place \
@@ -24,7 +24,7 @@ if [ -z "$1" ]; then
     echo "usage: ./configure KERNEL_VERSION FEATURESET FLAVOR [FLAVOR...] "
     echo "    KERNEL_VERSION is the kernel version number to compile against"
     echo "    (including the 'rtai' featureset specifier), for example"
-    echo "    3.4-9-rtai."
+    echo "    4.14-9-rtai."
     echo ""
     echo "    FEATURESET should be the string 'rtai'."
     echo ""
