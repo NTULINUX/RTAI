@@ -4,7 +4,7 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 1.) Download the RTAI source
 
-$ git clone -b for-next https://github.com/NTULINUX/RTAI.git
+$ git clone https://github.com/NTULINUX/RTAI.git
 
 2.) Patch kernel with IPIPE, in this case we use 4.14.132
 
