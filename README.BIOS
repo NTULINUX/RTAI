@@ -1,0 +1,32 @@
+=== Important BIOS/UEFI configuration notes ===
+
+In order for RTAI to properly function, you must disable several
+important features in BIOS/UEFI. This list is not complete as
+every board is different, but the main ones to disable are:
+
+Hyperthreading:
+HT/SMT
+
+Power savings:
+C1E, C1-C8, idle/sleep states, ECO-friendly options,
+hibernate/suspend, AMD Cool'n'Quiet, frequency scaling,
+CPU speed governing, auto/dynamic CPU clock (set to manual instead,
+force factory CPU clock speed)
+
+Virtualization:
+VT/VT-d/VT-x, AMD-V/Vi, SVM
+
+Other options to disable:
+IOMMU, Fast boot, SR-IOV, Secure Boot/Trusted Boot,
+TXT (Trusted Execution Technology) SMAP (Supervisor Mode Access
+Prevention) Turbo Boost / CPU Turbo / CPB (Core Performance Boost)
+AMD ACC (Advanced Clock Calibration)
+
+For Ryzen systems:
+In one of the power settings, there is an option between
+"Low current idle" or "auto" and this must be set to
+"Typical current idle" instead.
+
+If you see any options related to the above listed, fully
+_DISABLE_ all of them. The idea is to never have the CPU
+change speeds under any cicumstance, or ever sleep.
