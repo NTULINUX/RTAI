@@ -2563,9 +2563,6 @@ static int __rtai_lxrt_init(void)
 
 	register_reboot_notifier(&lxrt_reboot_notifier);
 
-#ifdef CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL
-	printk(", <uses LINUX SYSCALLs>");
-#endif
 #ifdef CONFIG_RTAI_MALLOC
 	printk("kstacks pool size = %d bytes", rtai_kstack_heap_size);
 #endif

@@ -25,12 +25,6 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-#ifdef CONFIG_RTAI_LXRT_USE_LINUX_SYSCALL
-#define USE_LINUX_SYSCALL
-#else
-#undef USE_LINUX_SYSCALL
-#endif
-
 #define RTAI_SRQ_SYSCALL_NR  0x70000001
 
 static inline long long rtai_srq(long srq, unsigned long args)
