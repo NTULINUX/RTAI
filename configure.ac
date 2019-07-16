@@ -21,32 +21,26 @@ AC_PROG_INSTALL
 LT_INIT
 RTAI_VERSION="5.2.2"
 
-AC_PROG_CC
+AC_PROG_CC([gcc])
 CC="gcc"
 CFLAGS=""
 
 dnl Only GCC is supported.
 AC_MSG_CHECKING([whether gcc version is sufficient])
-GCC_VERSION=`gcc -dumpversion`
+GCC_VERSION=$(gcc -dumpversion)
 if test $? -eq 0; then
-	GCC_VERSION_MAJOR=`echo $GCC_VERSION | cut -d. -f1`
-	GCC_VERSION_MINOR=`echo $GCC_VERSION | cut -d. -f2`
+	GCC_VERSION_MAJOR=$(echo $GCC_VERSION | cut -d. -f1)
+	GCC_VERSION_MINOR=$(echo $GCC_VERSION | cut -d. -f2)
 else
 	AC_MSG_RESULT([no])
 	AC_MSG_ERROR([GCC is required.])
 fi
-if test $GCC_VERSION_MAJOR -lt 4 -o $GCC_VERSION_MAJOR -eq 4 -a $GCC_VERSION_MINOR -lt 6 ; then
+if test $GCC_VERSION_MAJOR -lt 4 -o $GCC_VERSION_MAJOR -eq 4 -a $GCC_VERSION_MINOR -lt 9 ; then
 	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([GCC version 4.6.0 or later is required.])
+	AC_MSG_ERROR([GCC version 4.9.0 or later is required.])
 else
 	AC_MSG_RESULT([yes])
 fi
-
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_BUILD_STRING,"$build",[Build system alias])
-RTAI_BUILD_STRING="$build"
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_HOST_STRING,"$host",[Host system alias])
-RTAI_HOST_STRING="$host"
-AC_DEFINE_UNQUOTED(CONFIG_RTAI_COMPILER,"`gcc -v 2>&1 | tail -n 1`",[Compiler])
 
 dnl Only support X86 and AMD64
 case "$host" in
@@ -81,68 +75,49 @@ AC_MSG_RESULT([$KCONFIG_RESULT])
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
 
-dnl
-dnl Process the Linux kernel configuration
-dnl
-
-AC_MSG_CHECKING([for Linux source tree])
-
-dnl safe default
+dnl Safe default for kernel source, may be changed with --with-linux-dir
 if test x$CONFIG_RTAI_LINUXDIR = x ; then
 	CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
 fi
 RTAI_LINUX_DIR=$CONFIG_RTAI_LINUXDIR
 
+AC_MSG_CHECKING([for Linux source tree])
 AC_ARG_WITH(linux-dir,
 	[ --with-linux-dir=<linux-dir>	RTAI-enabled Linux kernel tree],
-	[
-	case "$withval" in
+	[case "$withval" in
 	"" | y | ye | yes | n | no)
-		AC_MSG_ERROR([You must supply an argument to --with-linux-dir.])
+		AC_MSG_ERROR([You must supply an absolute path to --with-linux-dir.])
 		;;
 	esac
 	RTAI_LINUX_DIR="$withval"
-	])
-
 if test \! -r ${RTAI_LINUX_DIR}/arch/x86/Makefile; then
 	echo
-	AC_MSG_ERROR([No Linux kernel tree in ${RTAI_LINUX_DIR}])
+	AC_MSG_ERROR([No Linux kernel tree found in ${RTAI_LINUX_DIR}])
 fi
-
-dnl Load Linux kernel configuration
 if test \! -r ${RTAI_LINUX_DIR}/.config; then
 	AC_MSG_RESULT([invalid])
-	AC_MSG_ERROR([$RTAI_LINUX_DIR is not configured. --with-linux-dir sets linux-dir])
+	AC_MSG_ERROR([$RTAI_LINUX_DIR is not configured, did you build an RTAI kernel yet?])
 fi
+	])
+AC_MSG_RESULT([$RTAI_LINUX_DIR])
+
+dnl Load the Linux kernel configuration
 source $RTAI_LINUX_DIR/.config
 
-if grep KERNELSRC $RTAI_LINUX_DIR/Makefile > /dev/null; then
-eval LINUX_`grep '^KERNELSRC' $RTAI_LINUX_DIR/Makefile | sed -e 's, ,,g'|sed -e 's,:,,g'`
-eval LINUX_`grep '^KERNELOUTPUT' $RTAI_LINUX_DIR/Makefile | sed -e 's, ,,g'|sed -e 's,:,,g'`
-elif grep '^MAKEARGS *:= *-C' $RTAI_LINUX_DIR/Makefile > /dev/null; then
-LINUX_KERNELSRC=`sed -n -e 's,^MAKEARGS *:= *-C *\(@<:@^@<:@:space:@:>@@:>@*\).*,\1,p' $RTAI_LINUX_DIR/Makefile`
-else
-LINUX_KERNELSRC=$RTAI_LINUX_DIR
-fi
-
-eval linux_`grep '^EXTRAVERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
-eval linux_`grep '^PATCHLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
-eval linux_`grep '^SUBLEVEL =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
-eval linux_`grep '^VERSION =' $LINUX_KERNELSRC/Makefile | sed -e 's, ,,g'`
+AC_MSG_CHECKING([for Linux kernel version])
+eval linux_$(grep "^VERSION" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
+eval linux_$(grep "^PATCHLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
+eval linux_$(grep "^SUBLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
-AC_MSG_RESULT([$RTAI_LINUX_DIR (kernel ${RTAI_LINUX_VERSION}${CONFIG_SMP:+-SMP})])
+AC_MSG_RESULT([$RTAI_LINUX_VERSION])
 
 dnl
 dnl Perform a few sanity checks.
 dnl
 
-AC_MSG_CHECKING([for kernel architecture])
-KERNEL_ARCH="`uname -m`"
+AC_MSG_CHECKING([for Linux kernel architecture])
+KERNEL_ARCH=$(uname -m)
 AC_MSG_RESULT([$KERNEL_ARCH])
-
-if test x${CONFIG_MODULE_UNLOAD} = x ; then
-	AC_MSG_ERROR([Please enable CONFIG_MODULE_UNLOAD in $RTAI_LINUX_DIR and rebuild your kernel])
-fi
 
 if test x${CONFIG_IPIPE} = x ; then
 	AC_MSG_ERROR([IPIPE not enabled in $RTAI_LINUX_DIR])
@@ -150,6 +125,10 @@ fi
 
 if $(grep "IPIPE_LEGACY" ${RTAI_LINUX_DIR}/.config >> /dev/null 2>&1) ; then
 	AC_MSG_ERROR([IPIPE_LEGACY is available -- kernel too old and not supported.])
+fi
+
+if test x${CONFIG_MODULE_UNLOAD} = x ; then
+	AC_MSG_ERROR([Please enable CONFIG_MODULE_UNLOAD in $RTAI_LINUX_DIR and rebuild your kernel])
 fi
 
 dnl
@@ -714,8 +693,6 @@ RTAI_USER_CFLAGS=" -O2 -fomit-frame-pointer -pipe"
 RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)
-AC_SUBST(RTAI_BUILD_STRING)
-AC_SUBST(RTAI_HOST_STRING)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
 AC_SUBST(RTAI_USER_CFLAGS)
 AC_SUBST(RTAI_FP_CFLAGS)
