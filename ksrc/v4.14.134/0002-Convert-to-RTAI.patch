@@ -1,6 +1,6 @@
-From a0b83254383395e7e500d0acd56d7743ed0378ed Mon Sep 17 00:00:00 2001
+From fb22fec1a20f534213a2765efde45c9c19e45ccb Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 2 Jul 2019 22:16:33 -0500
+Date: Tue, 23 Jul 2019 18:48:54 -0500
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
@@ -370,5 +370,5 @@ index 606664e090c2..5f5217bed4bc 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.22.0.455.g172b71a6c5
+2.22.0
 

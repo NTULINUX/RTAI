@@ -1,9 +1,9 @@
-From 19f29fa9ffaf037620eea1c87b92605bfbb9f955 Mon Sep 17 00:00:00 2001
+From a4e9c9bfd03933b7e0e2d1c0435007916356fc3a Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 2 Jul 2019 22:15:34 -0500
-Subject: IPIPE 4.14 core release 6
+Date: Tue, 23 Jul 2019 18:47:27 -0500
+Subject: IPIPE 4.14 core release 7
 
-Based off of ipipe-core-4.14.132-x86-6
+Based off of ipipe-core-4.14.133-x86-7
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
@@ -1447,7 +1447,7 @@ index 389800344f69..ee611df659c3 100644
  		prepare_exit_to_usermode(regs);
  		return 0;	/* Keep it simple: use IRET. */
 diff --git a/arch/x86/entry/entry_64.S b/arch/x86/entry/entry_64.S
-index e09ba4bc8b98..f0705652186c 100644
+index e09ba4bc8b98..f46449b28a59 100644
 --- a/arch/x86/entry/entry_64.S
 +++ b/arch/x86/entry/entry_64.S
 @@ -30,6 +30,7 @@
@@ -1633,8 +1633,8 @@ index e09ba4bc8b98..f0705652186c 100644
 +\skip_label:
 +	UNWIND_HINT_REGS
 +	DISABLE_INTERRUPTS(CLBR_ANY)
-+	testl	%ebx, %ebx	/* %ebx: return to kernel mode */
-+	jnz	retint_kernel_early
++	testb	$3, CS(%rsp)
++	jz	retint_kernel_early
 +	jmp	retint_user_early
 +	.endif
 +1001:
@@ -1917,7 +1917,7 @@ index 89789e8c80f6..dc376e53aa2a 100644
  static inline unsigned char inb_pic(unsigned int port)
 diff --git a/arch/x86/include/asm/ipipe.h b/arch/x86/include/asm/ipipe.h
 new file mode 100644
-index 000000000000..2f7f4304de42
+index 000000000000..8745ebe1b7ad
 --- /dev/null
 +++ b/arch/x86/include/asm/ipipe.h
 @@ -0,0 +1,70 @@
@@ -1947,7 +1947,7 @@ index 000000000000..2f7f4304de42
 +
 +#ifdef CONFIG_IPIPE
 +
-+#define IPIPE_CORE_RELEASE	6
++#define IPIPE_CORE_RELEASE	7
 +
 +struct ipipe_domain;
 +
@@ -4790,7 +4790,7 @@ index 9b2486e8ec00..79bed93893cc 100644
  	if (err)
  		goto free_vmcs;
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 858dd0d89b02..c3e98b761171 100644
+index a8526042d176..f5ecc0cb056e 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -42,6 +42,7 @@
@@ -11401,10 +11401,10 @@ index 3496baa0b07f..c731f1874042 100644
  
  # define for_each_irq_desc(irq, desc)					\
 diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 1c5469adaa85..cb808d2a4953 100644
+index bb7baecef002..5b8ef675cf45 100644
 --- a/include/linux/kernel.h
 +++ b/include/linux/kernel.h
-@@ -205,9 +205,12 @@ struct user;
+@@ -206,9 +206,12 @@ struct user;
  
  #ifdef CONFIG_PREEMPT_VOLUNTARY
  extern int _cond_resched(void);
@@ -17531,10 +17531,10 @@ index 2e2c86dd226f..00181c48f6f5 100644
  }
  
 diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index a75959dc149e..f352b6213e03 100644
+index 09fb3f58a838..e0605de87b3b 100644
 --- a/kernel/ptrace.c
 +++ b/kernel/ptrace.c
-@@ -826,6 +826,8 @@ static int ptrace_resume(struct task_struct *child, long request,
+@@ -824,6 +824,8 @@ static int ptrace_resume(struct task_struct *child, long request,
  		user_disable_single_step(child);
  	}
  
@@ -17998,7 +17998,7 @@ index 4ad6f6ca18c1..5f93356dd495 100644
  	help
  	  This option will modify all the calls to function tracing
 diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index 3e92852c8b23..f092ee61db40 100644
+index c4a0ad18c859..7c7ac7d55e03 100644
 --- a/kernel/trace/ftrace.c
 +++ b/kernel/trace/ftrace.c
 @@ -34,6 +34,7 @@
@@ -18045,7 +18045,7 @@ index 3e92852c8b23..f092ee61db40 100644
  	int ret;
  
  	ret = ftrace_arch_code_modify_prepare();
-@@ -5662,10 +5676,10 @@ static int ftrace_process_locs(struct module *mod,
+@@ -5665,10 +5679,10 @@ static int ftrace_process_locs(struct module *mod,
  	 * reason to cause large interrupt latencies while we do it.
  	 */
  	if (!mod)
@@ -18058,7 +18058,7 @@ index 3e92852c8b23..f092ee61db40 100644
  	ret = 0;
   out:
  	mutex_unlock(&ftrace_lock);
-@@ -5918,9 +5932,11 @@ void __init ftrace_init(void)
+@@ -5921,9 +5935,11 @@ void __init ftrace_init(void)
  	unsigned long count, flags;
  	int ret;
  
@@ -18072,7 +18072,7 @@ index 3e92852c8b23..f092ee61db40 100644
  	if (ret)
  		goto failed;
  
-@@ -6076,7 +6092,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+@@ -6079,7 +6095,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
  		}
  	} while_for_each_ftrace_op(op);
  out:
@@ -18137,7 +18137,7 @@ index 8123a8b53c54..cf615486f96f 100644
  
  /**
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 76267d82f157..80da2985cc1e 100644
+index 91227e339ef6..7db24f2de3e2 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -2919,8 +2919,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
@@ -18726,7 +18726,7 @@ index e9bce27bc18c..0d9f06cb9639 100644
  
  static struct kmem_cache *page_ptl_cachep;
 diff --git a/mm/mlock.c b/mm/mlock.c
-index 46af369c13e5..7244eab0bcc3 100644
+index 1f9ee86672e8..c1b956b8973a 100644
 --- a/mm/mlock.c
 +++ b/mm/mlock.c
 @@ -864,3 +864,29 @@ void user_shm_unlock(size_t size, struct user_struct *user)
@@ -18854,5 +18854,5 @@ index 6c906f6f16cc..3fd28bb97256 100644
  }
  
 -- 
-2.22.0.455.g172b71a6c5
+2.22.0
 
