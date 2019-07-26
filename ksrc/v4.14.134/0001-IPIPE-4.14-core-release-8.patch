@@ -1,9 +1,9 @@
-From a4e9c9bfd03933b7e0e2d1c0435007916356fc3a Mon Sep 17 00:00:00 2001
+From ccadea79c317a8c4c2741d6b0309c1c37b2ef0a2 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 23 Jul 2019 18:47:27 -0500
-Subject: IPIPE 4.14 core release 7
+Date: Thu, 25 Jul 2019 22:35:59 -0500
+Subject: IPIPE 4.14 core release 8
 
-Based off of ipipe-core-4.14.133-x86-7
+Taken directly from ipipe-core-4.14.134-x86-8
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
@@ -48,7 +48,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  arch/x86/kernel/irq.c                   |    5 +-
  arch/x86/kernel/irq_64.c                |   12 +-
  arch/x86/kernel/kgdb.c                  |    4 +-
- arch/x86/kernel/process.c               |   20 +-
+ arch/x86/kernel/process.c               |   24 +-
  arch/x86/kernel/process_32.c            |    2 +-
  arch/x86/kernel/process_64.c            |    2 +-
  arch/x86/kernel/smp.c                   |    4 +-
@@ -209,7 +209,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                        |    4 +
  mm/mprotect.c                           |   11 +-
  mm/vmalloc.c                            |    2 +
- 202 files changed, 11301 insertions(+), 848 deletions(-)
+ 202 files changed, 11303 insertions(+), 850 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -1917,7 +1917,7 @@ index 89789e8c80f6..dc376e53aa2a 100644
  static inline unsigned char inb_pic(unsigned int port)
 diff --git a/arch/x86/include/asm/ipipe.h b/arch/x86/include/asm/ipipe.h
 new file mode 100644
-index 000000000000..8745ebe1b7ad
+index 000000000000..5d42d2df5905
 --- /dev/null
 +++ b/arch/x86/include/asm/ipipe.h
 @@ -0,0 +1,70 @@
@@ -1947,7 +1947,7 @@ index 000000000000..8745ebe1b7ad
 +
 +#ifdef CONFIG_IPIPE
 +
-+#define IPIPE_CORE_RELEASE	7
++#define IPIPE_CORE_RELEASE	8
 +
 +struct ipipe_domain;
 +
@@ -4448,7 +4448,7 @@ index 8e36f249646e..c9ff690c23ca 100644
  	return ret;
  }
 diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index d2ef967bfafb..1e7f0ec75565 100644
+index d2ef967bfafb..7d359e0dfcd5 100644
 --- a/arch/x86/kernel/process.c
 +++ b/arch/x86/kernel/process.c
 @@ -116,8 +116,16 @@ void exit_thread(struct task_struct *tsk)
@@ -4469,6 +4469,18 @@ index d2ef967bfafb..1e7f0ec75565 100644
  		/*
  		 * Careful, clear this in the TSS too:
  		 */
+@@ -468,9 +476,9 @@ void speculation_ctrl_update(unsigned long tif)
+ 	unsigned long flags;
+ 
+ 	/* Forced update. Make sure all relevant TIF flags are different */
+-	local_irq_save(flags);
++	flags = hard_local_irq_save();
+ 	__speculation_ctrl_update(~tif, tif);
+-	local_irq_restore(flags);
++	hard_local_irq_restore(flags);
+ }
+ 
+ /* Called from seccomp/prctl update */
 @@ -583,7 +591,7 @@ bool xen_set_default_idle(void)
  
  void stop_this_cpu(void *dummy)
