@@ -1,7 +1,12 @@
-From bb061d4b6bfa24f2cb11b810c167bf38ba673343 Mon Sep 17 00:00:00 2001
+From 45e4634b08f6153c3e2720d038e94ad5e56255b7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Thu, 25 Jul 2019 22:38:45 -0500
-Subject: Stop tainting the fucking kernel
+Date: Mon, 7 Oct 2019 19:20:14 -0500
+Subject: Allow OOT modules without tainting kernel
+
+This kernel is designed to run RTAI, so OOT (out-of-tree)
+modules are expected to load. The kernel may still get tainted,
+just never for this particular reason. A tainted kernel should
+be a sign of an actual problem, OOT is TOO trigger-happy (lol.)
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
@@ -9,10 +14,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/module.c b/kernel/module.c
-index 095a60b1954b..ccd938309a76 100644
+index ef3ad1051d68..593a09583c5d 100644
 --- a/kernel/module.c
 +++ b/kernel/module.c
-@@ -3025,12 +3025,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
+@@ -3037,12 +3037,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
  		return -ENOEXEC;
  	}
  

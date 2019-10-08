@@ -1,6 +1,6 @@
-From 987aab84872acbf5bfbbdab73732c7adc8edc1f8 Mon Sep 17 00:00:00 2001
+From 0a59a561f0239067041d96541fd4abca4ed4a497 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Thu, 25 Jul 2019 22:38:16 -0500
+Date: Mon, 7 Oct 2019 19:19:29 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -882,10 +882,10 @@ index 6a172d338f6d..a6a9466dd1f8 100644
  	select PM_OPP
  	help
 diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index 6e4ed5a9c6fd..149640820c44 100644
+index 42c4ff75281b..05762eeeabb2 100644
 --- a/drivers/firmware/Kconfig
 +++ b/drivers/firmware/Kconfig
-@@ -185,7 +185,7 @@ config RASPBERRYPI_FIRMWARE
+@@ -186,7 +186,7 @@ config RASPBERRYPI_FIRMWARE
  config FW_CFG_SYSFS
  	tristate "QEMU fw_cfg device support in sysfs"
  	depends on SYSFS && (ARM || ARM64 || PPC_PMAC || SPARC || X86)
@@ -1687,7 +1687,7 @@ index 5f93356dd495..5af0e1637403 100644
  	  Enable the kernel tracing infrastructure.
  
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index d1057c94ae0d..8f2c8703ef55 100644
+index 8a84a77bde1a..b2890e198b6e 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
 @@ -47,7 +47,7 @@ config MESSAGE_LOGLEVEL_DEFAULT
