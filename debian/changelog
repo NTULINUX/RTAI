@@ -1,3 +1,9 @@
+rtai (5.2.3-linuxcnc) stretch; urgency=low
+
+  * Lots of fixes and updates
+
+ -- Alec Ari <neotheuser@ymail.com> Mon, 07 Oct 2019 20:03:55 -0500
+
 rtai (5.2.2-linuxcnc) stretch; urgency=low
 
   * Debian packaging requirements

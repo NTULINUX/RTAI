@@ -11,7 +11,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
-AC_INIT([RTAI], [5.2.2], [neotheuser@ymail.com])
+AC_INIT([RTAI], [5.2.3], [neotheuser@ymail.com])
 AC_CONFIG_AUX_DIR(scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
@@ -19,7 +19,7 @@ AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
 LT_INIT
-RTAI_VERSION="5.2.2"
+RTAI_VERSION="5.2.3"
 
 AC_PROG_CC([gcc])
 CC="gcc"

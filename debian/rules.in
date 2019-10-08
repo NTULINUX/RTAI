@@ -16,7 +16,7 @@ KERNEL_DIR = $(shell ls -1d /usr/src/linux-headers-$(KERNEL_VERSION)-$(FEATURESE
 ARCH = $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 HOST = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 
-CONFIGURE += --enable-cpus=4
+CONFIGURE += --enable-cpus=8
 
 CONFIGURE += --with-linux-dir=$(KERNEL_DIR)
 
