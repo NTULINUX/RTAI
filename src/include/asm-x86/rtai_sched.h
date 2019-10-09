@@ -3,6 +3,7 @@
  *   @file
  *
  *   Copyright: 2013 Paolo Mantegazza.
+ *   Copyright: 2019 Alec Ari.
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,11 +23,51 @@
 #ifndef _RTAI_ASM_X86_SCHED_H
 #define _RTAI_ASM_X86_SCHED_H
 
-#ifdef __i386__
-#include "rtai_sched_32.h"
-#else
-#include "rtai_sched_64.h"
-#endif
+#define rt_exchange_tasks(oldtask, newtask) \
+	__asm__ __volatile__( \
+	"pushq %%rdi\n\t" \
+	"pushq %%rsi\n\t" \
+	"pushq %%rdx\n\t" \
+	"pushq %%rcx\n\t" \
+	"pushq %%rax\n\t" \
+	"pushq %%r8\n\t" \
+	"pushq %%r9\n\t" \
+	"pushq %%r10\n\t" \
+	"pushq %%r11\n\t" \
+	"pushq %%rbx\n\t" \
+	"pushq %%rbp\n\t" \
+	"pushq %%r12\n\t" \
+	"pushq %%r13\n\t" \
+	"pushq %%r14\n\t" \
+	"pushq %%r15\n\t" \
+\
+	"pushq $1f\n\t" \
+\
+	"movq (%%rcx), %%rbx\n\t" \
+	"movq %%rsp, (%%rbx)\n\t" \
+	"movq (%%rdx), %%rsp\n\t" \
+	"movq %%rdx, (%%rcx)\n\t" \
+	"ret\n" \
+\
+"1:	 popq %%r15\n\t" \
+	"popq %%r14\n\t" \
+	"popq %%r13\n\t" \
+	"popq %%r12\n\t" \
+	"popq %%rbp\n\t" \
+	"popq %%rbx\n\t" \
+	"popq %%r11\n\t" \
+	"popq %%r10\n\t" \
+	"popq %%r9\n\t" \
+	"popq %%r8\n\t" \
+	"popq %%rax\n\t" \
+	"popq %%rcx\n\t" \
+	"popq %%rdx\n\t" \
+	"popq %%rsi\n\t" \
+	"popq %%rdi\n\t" \
+\
+	: \
+	: "c" (&oldtask), "d" (newtask) \
+	);
 
 #define init_arch_stack() \
 do { \
@@ -45,5 +86,12 @@ do { \
 #define RT_SET_RTAI_TRAP_HANDLER(x)  rt_set_rtai_trap_handler(x)
 
 #define DO_TIMER_PROPER_OP()
+
+static inline void *get_stack_pointer(void)
+{
+	void *sp;
+	asm volatile ("movq %%rsp, %0" : "=r" (sp));
+	return sp;
+}
 
 #endif /* !_RTAI_ASM_X86_SCHED_H */

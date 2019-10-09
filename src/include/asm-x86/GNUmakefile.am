@@ -19,20 +19,6 @@ include_HEADERS = \
 		rtai_sched.h \
 		rtai_srq.h
 
-if CONFIG_X86_64
-include_HEADERS += \
-	rtai_atomic_64.h \
-	rtai_hal_64.h \
-	rtai_sched_64.h \
-	rtai_lxrt_64.h 
-else
-include_HEADERS += \
-	rtai_atomic_32.h \
-	rtai_hal_32.h \
-	rtai_sched_32.h \
-	rtai_lxrt_32.h
-endif
-
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(includedir)
 	rm -f $(DESTDIR)$(includedir)/../asm

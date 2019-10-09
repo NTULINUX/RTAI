@@ -601,10 +601,44 @@ static inline int rt_free_global_irq(unsigned irq)
 }
 #endif /* __cplusplus */
 
-#ifdef __i386__
-#include "rtai_hal_32.h"
+static __inline__ unsigned long ffnz (unsigned long word) {
+    /* Derived from bitops.h's ffs() */
+    __asm__("bsfq %1, %0"
+	    : "=r" (word)
+	    : "r"  (word));
+    return word;
+}
+
+static inline unsigned long long rtai_ulldiv(unsigned long long ull, unsigned long uld, unsigned long *r)
+{
+	if (r) *r = ull%uld;
+	return ull/uld;
+}
+
+static inline long rtai_imuldiv (long i, long mult, long div) {
+
+    /* Returns (int)i = (int)i*(int)(mult)/(int)div. */
+    
+    int dummy;
+
+    __asm__ __volatile__ ( \
+	"mulq %%rdx\t\n" \
+	"divq %%rcx\t\n" \
+	: "=a" (i), "=d" (dummy)
+       	: "a" (i), "d" (mult), "c" (div));
+
+    return i;
+}
+
+static inline long long rtai_llimd(long long ll, long mult, long div) {
+	return rtai_imuldiv(ll, mult, div);
+}
+
+#if defined(CONFIG_SMP) && defined(CONFIG_RTAI_DIAG_TSC_SYNC) && defined(CONFIG_RTAI_TUNE_TSC_SYNC)
+extern long long rtai_tsc_ofst[];
+#define rtai_rdtsc() ({ unsigned long long t; ipipe_read_tsc(t); t + rtai_tsc_ofst[rtai_cpuid()]; })
 #else
-#include "rtai_hal_64.h"
+#define rtai_rdtsc() ({ unsigned long long t; ipipe_read_tsc(t); t; })
 #endif
 
 #include <linux/ipipe_tickdev.h>

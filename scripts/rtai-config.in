@@ -10,7 +10,6 @@ includedir="@includedir@"
 
 RTAI_PREFIX="${staging}${prefix}"
 RTAI_CC="@CC@"
-RTAI_TARGET_SUBARCH="@RTAI_TARGET_SUBARCH@"
 RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
 RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
 RTAI_LINUX_VERSION="@RTAI_LINUX_VERSION@"
@@ -33,7 +32,7 @@ while [[ "${#}" -gt "0" ]] ; do
 			echo "x86"
 			;;
 		--subarch)
-			echo "${RTAI_TARGET_SUBARCH}"
+			echo "64-bit"
 			;;
 		--prefix)
 			echo "${RTAI_PREFIX}"
