@@ -1,4 +1,4 @@
-From 0a59a561f0239067041d96541fd4abca4ed4a497 Mon Sep 17 00:00:00 2001
+From ab93364fac93ad35bcc3f18b354e57e64c1d43e7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 7 Oct 2019 19:19:29 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -63,7 +63,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/watchdog/Kconfig            |   1 +
  fs/Kconfig.binfmt                   |   1 +
  init/Kconfig                        |  33 +++---
- kernel/ipipe/Kconfig                |  11 +-
+ kernel/ipipe/Kconfig                |  12 ++-
  kernel/irq/Kconfig                  |   4 +-
  kernel/power/Kconfig                |   6 +-
  kernel/rcu/Kconfig.debug            |   8 +-
@@ -76,7 +76,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 64 files changed, 282 insertions(+), 193 deletions(-)
+ 64 files changed, 283 insertions(+), 193 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -1555,10 +1555,10 @@ index 33cca939377e..a94cbc0bf838 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f1f5..05b72a0e446b 100644
+index d17edb89f1f5..0477694547e5 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -6,7 +6,16 @@ config HAVE_IPIPE_SUPPORT
+@@ -6,7 +6,17 @@ config HAVE_IPIPE_SUPPORT
  config IPIPE
  	bool "Interrupt pipeline"
  	depends on HAVE_IPIPE_SUPPORT
@@ -1573,6 +1573,7 @@ index d17edb89f1f5..05b72a0e446b 100644
 +	select SCHED_OMIT_FRAME_POINTER
 +	select HIGH_RES_TIMERS
 +	select X86_IO_APIC
++	select X86_FAST_FEATURE_TESTS if EMBEDDED
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.

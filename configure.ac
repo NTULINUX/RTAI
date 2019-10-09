@@ -42,19 +42,6 @@ else
 	AC_MSG_RESULT([yes])
 fi
 
-dnl Only support X86 and AMD64
-case "$host" in
-	i*86*-*)
-		RTAI_TARGET_SUBARCH="32-bit"
-		;;
-	x86_64*-*)
-		RTAI_TARGET_SUBARCH="64-bit"
-		;;
-	*)
-		echo "Only x86 and amd64 platforms are supported."
-		exit 1;
-esac
-
 dnl Make it more difficult to do something stupid
 RTAI_DEFCONFIG=$srcdir/arch/x86/defconfig
 RTAI_USER_CONFIG=$srcdir/.rtai_config
@@ -115,20 +102,32 @@ dnl
 dnl Perform a few sanity checks.
 dnl
 
-AC_MSG_CHECKING([for Linux kernel architecture])
-KERNEL_ARCH=$(uname -m)
-AC_MSG_RESULT([$KERNEL_ARCH])
+AC_MSG_CHECKING([for X86_64 kernel config option])
+if test x${CONFIG_X86_64} = x ; then
+	AC_MSG_ERROR([Only amd64 platforms are supported.])
+else
+	AC_MSG_RESULT([yes])
+fi
 
+AC_MSG_CHECKING([for IPIPE kernel config option])
 if test x${CONFIG_IPIPE} = x ; then
 	AC_MSG_ERROR([IPIPE not enabled in $RTAI_LINUX_DIR])
+else
+	AC_MSG_RESULT([yes])
 fi
 
+AC_MSG_CHECKING([for IPIPE_LEGACY kernel config option])
 if $(grep "IPIPE_LEGACY" ${RTAI_LINUX_DIR}/.config >> /dev/null 2>&1) ; then
 	AC_MSG_ERROR([IPIPE_LEGACY is available -- kernel too old and not supported.])
+else
+	AC_MSG_RESULT([ok])
 fi
 
+AC_MSG_CHECKING([for module unloading support])
 if test x${CONFIG_MODULE_UNLOAD} = x ; then
 	AC_MSG_ERROR([Please enable CONFIG_MODULE_UNLOAD in $RTAI_LINUX_DIR and rebuild your kernel])
+else
+	AC_MSG_RESULT([yes])
 fi
 
 dnl
@@ -513,13 +512,6 @@ AC_ARG_ENABLE(tune-tsc-sync,
 	esac])
 AC_MSG_RESULT(${CONFIG_RTAI_TUNE_TSC_SYNC:-no})
 
-dnl Test for TSC if 32-bit is forced and too old of CPU type
-AC_MSG_CHECKING(if kernel has TSC enabled)
-if test x$CONFIG_X86_TSC = x ; then
-	AC_MSG_ERROR([Missing TSC support: Please select a newer CPU type in kernel options.])
-fi
-AC_MSG_RESULT([yes])
-
 dnl
 dnl Check for invalid combinations
 dnl
@@ -689,7 +681,7 @@ RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers m
 RTAI_KBUILD_DISTCLEAN=""
 
 dnl Extra options to be passed to the compiler
-RTAI_USER_CFLAGS=" -O2 -fomit-frame-pointer -pipe"
+RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
 RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)

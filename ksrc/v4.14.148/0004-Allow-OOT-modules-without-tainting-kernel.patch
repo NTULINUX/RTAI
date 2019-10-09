@@ -1,4 +1,4 @@
-From 45e4634b08f6153c3e2720d038e94ad5e56255b7 Mon Sep 17 00:00:00 2001
+From d5f4be03660dba7977015996c8e139caacd8d98e Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 7 Oct 2019 19:20:14 -0500
 Subject: Allow OOT modules without tainting kernel
