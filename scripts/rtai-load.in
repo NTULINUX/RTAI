@@ -8,14 +8,14 @@ if [[ "${EUID}" != "0" ]] ; then
 fi
 
 PATH="${PATH}:@prefix@/bin"
+argument_save="/tmp/runinfo"
 
-type rtai-config > /dev/null 2>&1 || \
+type rtai-config >> /dev/null 2>&1 || \
 	{
 		echo "${CMDNAME} cannot find rtai-config" ; exit 1 ;
 	}
 
 MODULEDIR=$(rtai-config --module-dir)
-argument_save="/tmp/runinfo"
 
 while [[ "${#}" -gt "0" ]] ; do
 	argument="${1}"
@@ -23,8 +23,8 @@ while [[ "${#}" -gt "0" ]] ; do
 		*runinfo)
 			;;
 		cleanup)
-			for_cleanup=$(tac "${argument_save}")
 			echo "Cleaning up..."
+			for_cleanup=$(tac "${argument_save}")
 			for module in ${for_cleanup} ; do
 				rmmod "${MODULEDIR}/${module}" || \
 				{
