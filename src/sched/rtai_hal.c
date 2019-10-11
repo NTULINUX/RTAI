@@ -764,8 +764,17 @@ static void rtai_proc_unregister (void)
 	remove_proc_entry("rtai", 0);
 }
 
-#define CPU_ISOLATED_MAP (cpu_isolated_map)
-	extern cpumask_var_t cpu_isolated_map;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
+extern cpumask_var_t cpu_isolated_map;
+#define set_cpu_isolated_map()  do { } while(0)
+#else
+#include <linux/sched/isolation.h>
+static cpumask_var_t cpu_isolated_map;
+#define set_cpu_isolated_map() \
+	do { \
+		cpumask_andnot(cpu_isolated_map, cpu_possible_mask, housekeeping_cpumask(HK_FLAG_DOMAIN)); \
+	} while(0)
+#endif
 
 extern struct ipipe_domain ipipe_root;
 extern void (*dispatch_irq_head)(unsigned int);
@@ -817,9 +826,10 @@ int __rtai_hal_init (void)
 	rtai_trap_hook = rtai_trap_fault;
 
 #ifdef CONFIG_SMP
+	set_cpu_isolated_map();
 	CpuIsolatedMap = 0;
 	for (i = 0; i < RTAI_NR_CPUS; i++) {
-		if (cpumask_test_cpu(i, CPU_ISOLATED_MAP)) {
+		if (cpumask_test_cpu(i, cpu_isolated_map)) {
 			set_bit(i, &CpuIsolatedMap);
 		}
 	}
