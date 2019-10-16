@@ -53,7 +53,7 @@ static double dot(double *a, double *b, int n)
 static volatile int end;
 void endme(int sig) { end = 1; }
 
-int main(int argc, char *argv[])
+int main(char *argv[])
 {
 	int diff;
 	int skip;
@@ -84,12 +84,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (argc == 1) {
-		rt_set_oneshot_mode();
-		period = start_rt_timer(nano2count(PERIOD));
-	} else {
-		period = nano2count(PERIOD);
-	}
+	period = nano2count(PERIOD);
 
 	for(i = 0; i < MAXDIM; i++) {
 		a[i] = b[i] = 3.141592;
@@ -140,9 +135,6 @@ int main(int argc, char *argv[])
 		rt_sleep(nano2count(1000000));
 	}
 	rt_make_soft_real_time();
-	if (argc == 1) {
-		stop_rt_timer();	
-	}
 	rt_get_exectime(task, exectime);
 	if (exectime[1] && exectime[2]) {
 		printf("\n>>> S = %g, EXECTIME = %G\n", s, (double)exectime[0]/(double)(exectime[2] - exectime[1]));
