@@ -1,16 +1,22 @@
-From 488abac5bd282b0762f71bc3a9882cfbaa6e2078 Mon Sep 17 00:00:00 2001
+From 4f35388cda2ed4f314000788136616dfa7f7a54c Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 23 Jul 2019 19:42:43 -0500
-Subject: Fix build with new RTAI on Linux 4.14.134
+Date: Wed, 16 Oct 2019 16:48:34 -0500
+Subject: Fix build with new RTAI on Linux 4.14.148
 
-Needs LinuxCNC commit 469d3cb9b767a48d149b4ab2a02fe49fb07eae26
+LinuxCNC needs the following commits:
+
+(Only included in LinuxCNC master and 2.8 git branches)
+469d3cb9b767a48d149b4ab2a02fe49fb07eae26
 pci_8255: Change function names to avoid clash with v4.x kernel macros.
+
+(Included in LinuxCNC master, 2.8 and 2.7 git branches)
+0dbbfb3ae106feea27dab4753ae40c21b6ea06d3
+RTAI_RTAPI: RTAPI does not compile with kernel 4.14 without this change.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
- src/configure.ac       | 11 ++---------
- src/rtapi/rtai_rtapi.c |  2 +-
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ src/configure.ac | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
 diff --git a/src/configure.ac b/src/configure.ac
 index 3d0f621a6..7005fcf63 100644
@@ -41,19 +47,6 @@ index 3d0f621a6..7005fcf63 100644
  
  if test -z "$KERNEL_VERS"; then 
      AC_MSG_ERROR(Kernel version string not found)
-diff --git a/src/rtapi/rtai_rtapi.c b/src/rtapi/rtai_rtapi.c
-index 5733d73d4..1ae8d310e 100644
---- a/src/rtapi/rtai_rtapi.c
-+++ b/src/rtapi/rtai_rtapi.c
-@@ -64,7 +64,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>		/* replaces malloc.h in recent kernels */
- #include <linux/ctype.h>	/* isdigit */
--#include <asm/uaccess.h>	/* copy_from_user() */
-+// #include <asm/uaccess.h>	/* copy_from_user() */
- #include <asm/msr.h>		/* rdtscll() */
- 
- /* get inb(), outb(), ioperm() */
 -- 
 2.22.0
 
