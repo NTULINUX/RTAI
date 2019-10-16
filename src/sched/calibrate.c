@@ -104,18 +104,25 @@ static inline double kf_lat_eval(long period)
 	return CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS == 1 ? xe : (CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS == 2 ? xm : (xe + xm)/2);
 }
 
-#if 1
 int main(int argc, char **argv)
 {
 	RT_TASK *usrcal;
 	int period, ulat = -1, klat = -1;
+	int count;
 	FILE *file;
 
 	period = atoi(argv[2]);
 	if (period <= 0) {
 		if (!period && !access(argv[1], F_OK)) {
 			file = fopen(argv[1], "r");
-			fscanf(file, "%d %d %d", &klat, &ulat, &period);
+			count = fscanf(file, "%d %d %d", &klat, &ulat, &period);
+			if (count == EOF) {
+				rt_printk("Error: fscanf is EOF.\n");
+				exit(1);
+			} else if (count != 3) {
+				rt_printk("Error: fscanf matched %i input items, 3 expected.\n", count);
+				exit(1);
+			}
 			fclose(file);
 		}
 		rt_sched_latencies(klat > 0 ? nano2count(klat) : klat, ulat > 0 ? nano2count(ulat) : ulat, period > 0 ? nano2count(period) : period);
@@ -137,54 +144,3 @@ int main(int argc, char **argv)
 	}
 	return 0;
 }
-#else
-int main(int argc, char **argv)
-{
-#define WARMUP 50
-	RT_TASK *usrcal;
-	RTIME start_time, resume_time;
-	int loop, period, ulat = -1, klat = -1;
-	long latency = 0, ovrns = 0;
-	FILE *file;
-
-	period = atoi(argv[2]);
-	if (period <= 0) {
-		if (!period && !access(argv[1], F_OK)) {
-			file = fopen(argv[1], "r");
-			fscanf(file, "%d %d %d", &klat, &ulat, &period);
-			fclose(file);
-		}
-		rt_sched_latencies(klat > 0 ? nano2count(klat) : klat, ulat > 0 ? nano2count(ulat) : ulat, period > 0 ? nano2count(period) : period);
-	} else {
- 		if (!(usrcal = rt_thread_init(nam2num("USRCAL"), 0, 0, SCHED_FIFO, 0xF))) {
-			return 1;
-		}
-		if ((file = fopen(argv[1], "w"))) {
-			klat = atoi(argv[3]);
-			mlockall(MCL_CURRENT | MCL_FUTURE);
-			rt_make_hard_real_time();
-			start_time = rt_rdtsc();
-			resume_time = start_time + 5*period;
-			rt_task_make_periodic(usrcal, resume_time, period);
-			for (loop = 1; loop <= (MAX_LOOPS + WARMUP); loop++) {
-				resume_time += period;
-				if (!rt_task_wait_period()) {
-					latency += (long)(rt_rdtsc() - resume_time);
-					if (loop == WARMUP) {
-						latency = 0;
-					}
-				} else {
-					ovrns++;
-				}
-			}
-			rt_make_soft_real_time();
-			ulat = latency/MAX_LOOPS;
-			fprintf(file, "%lld %lld %lld\n", count2nano(klat), count2nano(ulat), count2nano(period));
-			rt_sched_latencies(klat, ulat, period);
-			fclose(file);
-		}
-		rt_thread_delete(usrcal);
-	}
-	return 0;
-}
-#endif
