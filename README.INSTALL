@@ -29,6 +29,8 @@ Configure to your needs
 
 === WARNING: Debian and Debian-based distro developers ===
 
+If you are using kernel sources from git:
+
 Running simply `make deb-pkg` in the kernel source will add a "+" sign to the
 kernel version, regardless if CONFIG_LOCALVERSION is set in the kernel config.
 Using `make deb-pkg LOCALVERSION=<string>` when CONFIG_LOCALVERSION is empty will
@@ -74,11 +76,22 @@ To do this:
 
 $ cd /path/to/linuxcnc-tree
 $ patch -p1 /path/to/this/RTAI-git-tree/linuxcnc_patches/0001*.patch
-$ cd src
-$ ./autogen.sh
+
+Depending on what version of LinuxCNC you are building, you may need to apply
+the following commits to LinuxCNC:
+
+(Only included in LinuxCNC master and 2.8 git branches)
+469d3cb9b767a48d149b4ab2a02fe49fb07eae26
+pci_8255: Change function names to avoid clash with v4.x kernel macros.
+
+(Included in LinuxCNC master, 2.8 and 2.7 git branches)
+0dbbfb3ae106feea27dab4753ae40c21b6ea06d3
+RTAI_RTAPI: RTAPI does not compile with kernel 4.14 without this change.
 
 Configure LinuxCNC:
 
+$ cd src
+$ ./autogen.sh
 $ ./configure
 
 For a full list of possible options:
