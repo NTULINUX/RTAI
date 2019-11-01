@@ -18,7 +18,7 @@ src/sched/sem.c
 src/sched/shm.c
 Module.symvers
 modules.order
-src/include/asm
+include/asm
 scripts/rtai-config
 scripts/rtai-load
 rtai_config.h

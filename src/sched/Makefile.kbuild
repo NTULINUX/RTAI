@@ -8,8 +8,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-EXTRA_CFLAGS += -I$(rtai_srctree)/src/include \
-		-I$(src)/../include \
+EXTRA_CFLAGS += -I$(rtai_srctree)/include \
 		-I$(src)/../.. \
 		$(rtai_extradef) \
 		-D__IN_RTAI__

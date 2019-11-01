@@ -757,7 +757,7 @@ dnl
 dnl Build the Makefiles
 dnl
 
-AC_CONFIG_LINKS(src/include/asm:$srcdir/src/include/asm-x86)
+AC_CONFIG_LINKS(include/asm:$srcdir/include/asm-x86)
 AC_CONFIG_LINKS(src/ipc/fifos/Makefile:src/ipc/fifos/Makefile.kbuild)
 AC_CONFIG_LINKS(src/ipc/mbx/Makefile:src/ipc/mbx/Makefile.kbuild)
 AC_CONFIG_LINKS(src/ipc/msg/Makefile:src/ipc/msg/Makefile.kbuild)
@@ -770,11 +770,11 @@ AC_CONFIG_LINKS(src/sched/Makefile:src/sched/Makefile.kbuild)
 AC_CONFIG_FILES([ \
 	GNUmakefile \
 	src/GNUmakefile \
-	src/include/GNUmakefile \
+	include/GNUmakefile \
 	src/ipc/GNUmakefile \
 	src/sched/GNUmakefile \
-	src/include/rtai_defs.h \
-	src/include/asm-x86/GNUmakefile \
+	include/rtai_defs.h \
+	include/asm-x86/GNUmakefile \
 	src/ipc/fifos/GNUmakefile \
 	src/ipc/shm/GNUmakefile \
 	src/ipc/sem/GNUmakefile \

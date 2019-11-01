@@ -8,14 +8,8 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-OPTDIRS = include
-
-# `malloc', in $(OPTDIRS), must be after `sched' when compiling
-# with kernel 2.4 and builtin RTAI malloc support
 if CONFIG_RTAI_MALLOC
-OPTDIRS += malloc
+MALLOCDIR = malloc
 endif
 
-OPTDIRS += sched ipc
-
-SUBDIRS = $(OPTDIRS) math
+SUBDIRS = sched ipc $(MALLOCDIR) math

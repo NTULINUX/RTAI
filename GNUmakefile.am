@@ -8,7 +8,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-SUBDIRS = src testsuite scripts
+SUBDIRS = include src testsuite scripts
 
 EXTRA_DIST = \
 README.INSTALL \
