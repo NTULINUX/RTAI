@@ -328,7 +328,7 @@ config RTAI_FULL_PRINHER
 
 config RTAI_ALIGN_LINUX_PRIORITY
 	bool "Keep Linux task priority aligned to RTAI"
-	default n
+	default y
 	help
 
 	By enabling this option the RTAI scheduler will keep Linux tasks

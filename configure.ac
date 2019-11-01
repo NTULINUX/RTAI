@@ -199,6 +199,10 @@ AC_ARG_ENABLE(msg,
 	m | mod | module) CONFIG_RTAI_MSG=m ;;
 	*) unset CONFIG_RTAI_MSG ;;
 	esac])
+if test x$CONFIG_RTAI_MSG = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_MSG=m
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_MSG:-no})
 
 if test x$CONFIG_RTAI_MSG = xy ; then
@@ -213,6 +217,10 @@ AC_ARG_ENABLE(mbx,
 	m | mod | module) CONFIG_RTAI_MBX=m ;;
 	*) unset CONFIG_RTAI_MBX ;;
 	esac])
+if test x$CONFIG_RTAI_MBX = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_MBX=m
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_MBX:-no})
 
 if test x$CONFIG_RTAI_MBX = xy ; then
@@ -245,6 +253,10 @@ AC_ARG_ENABLE(malloc,
 	m | mod | module) CONFIG_RTAI_MALLOC=m ;;
 	*) unset CONFIG_RTAI_MALLOC ;;
 	esac])
+if test x$CONFIG_RTAI_MALLOC = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_MALLOC=y
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_MALLOC:-no})
 
 if test x$CONFIG_RTAI_MALLOC = xy ; then
@@ -303,8 +315,8 @@ AC_ARG_ENABLE(self-calibration-metrics,
 	*) AC_MSG_ERROR([Bad argument to option: --enable-latency-self-calibration-metrics=[1-3]]) ;;
 	esac])
 if test x$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS=1
+	# Use a reasonable default if unset
+	CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS=1
 fi
 AC_MSG_RESULT($CONFIG_RTAI_LATENCY_SELF_CALIBRATION_METRICS)
 
@@ -318,8 +330,8 @@ AC_ARG_ENABLE(self-calibration-freq,
 	*) AC_MSG_ERROR([Bad argument to option: --enable-latency-self-calibration-freq=<Hz>]) ;;
 	esac])
 if test x$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ=10000
+	# Use a reasonable default if unset
+	CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ=10000
 fi
 AC_MSG_RESULT($CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ)
 
@@ -333,8 +345,8 @@ AC_ARG_ENABLE(self-calibration-cycles,
 	*) AC_MSG_ERROR([Bad argument to option: --enable-latency-self-calibration-cycles=<numcycles>]) ;;
 	esac])
 if test x$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES = x ; then
-  # Use a reasonable default if unset
-  CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES=$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ
+	# Use a reasonable default if unset
+	CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES=$CONFIG_RTAI_LATENCY_SELF_CALIBRATION_FREQ
 fi
 AC_MSG_RESULT($CONFIG_RTAI_LATENCY_SELF_CALIBRATION_CYCLES)
 
@@ -383,6 +395,41 @@ if test x$CONFIG_RTAI_SCHED_LXRT_NUMSLOTS = x ; then
 fi
 AC_MSG_RESULT($CONFIG_RTAI_SCHED_LXRT_NUMSLOTS)
 
+AC_MSG_CHECKING(for RTAI task execution time display)
+AC_ARG_ENABLE(monitor-exec-time,
+	[ --enable-monitor-exec-time	Display RTAI task execution time (in per thousand)],
+	[case "$enableval" in
+	y | yes) CONFIG_RTAI_MONITOR_EXECTIME=y ;;
+	*) unset CONFIG_RTAI_MONITOR_EXECTIME ;;
+	esac])
+if test x$CONFIG_RTAI_MONITOR_EXECTIME = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_MONITOR_EXECTIME=y
+fi
+AC_MSG_RESULT(${CONFIG_RTAI_MONITOR_EXECTIME:-no})
+
+AC_MSG_CHECKING(for round-robin scheduling)
+AC_ARG_ENABLE(round-robin,
+	[ --enable-round-robin		Allow round-robin scheduling],
+	[case "$enableval" in
+	y | yes) CONFIG_RTAI_ALLOW_RR=y ;;
+	*) unset CONFIG_RTAI_ALLOW_RR ;;
+	esac])
+if test x$CONFIG_RTAI_ALLOW_RR = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_ALLOW_RR=y
+fi
+AC_MSG_RESULT(${CONFIG_RTAI_ALLOW_RR:-no})
+
+AC_MSG_CHECKING(for full priority inheritance)
+AC_ARG_ENABLE(full-priority,
+	[ --enable-full-priority		Enable full priority inheritance],
+	[case "$enableval" in
+	y | yes) CONFIG_RTAI_FULL_PRINHER=y ;;
+	*) unset CONFIG_RTAI_FULL_PRINHER ;;
+	esac])
+AC_MSG_RESULT(${CONFIG_RTAI_FULL_PRINHER:-no})
+
 AC_MSG_CHECKING(for task switch signal)
 AC_ARG_ENABLE(task-switch-signal,
 	[ --enable-task-switch-signal	Enable RTAI task switch signal],
@@ -408,6 +455,10 @@ AC_ARG_ENABLE(align-priority,
 	y | yes) CONFIG_RTAI_ALIGN_LINUX_PRIORITY=y ;;
 	*) unset CONFIG_RTAI_ALIGN_LINUX_PRIORITY ;;
 	esac])
+if test x$CONFIG_RTAI_ALIGN_LINUX_PRIORITY = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_ALIGN_LINUX_PRIORITY=y
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_ALIGN_LINUX_PRIORITY:-no})
 
 AC_MSG_CHECKING(for tlsf use in real-time malloc support)
@@ -465,14 +516,18 @@ AC_ARG_ENABLE(cpus,
 	[ --enable-cpus			Number of physical CPU cores],
 	[case "$enableval" in
  changequote(,)dnl
-	[1-16]*)
+	[0-9]*) CONFIG_RTAI_CPUS=$enableval ;;
  changequote([,])dnl
-		if test $enableval -lt 1 -o $enableval -gt 16 ; then
-			AC_MSG_ERROR([Invalid value to option: --enable-cpus=<number-of-CPUs> (must be between 1 and 16)])
-		fi
-		CONFIG_RTAI_CPUS=$enableval ;;
+	*) AC_MSG_ERROR([Bad argument to option: --enable-cpus=<number-of-CPUs>])
 	esac])
+if test x$CONFIG_RTAI_CPUS = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_CPUS=4
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
+if test $CONFIG_RTAI_CPUS -lt 1 -o $CONFIG_RTAI_CPUS -gt 16 ; then
+	AC_MSG_ERROR([Invalid value to option: --enable-cpus=<number-of-CPUs> (must be between 1 and 16)])
+fi
 
 dnl
 dnl Check for TSC options
@@ -491,17 +546,18 @@ AC_ARG_ENABLE(master-tsc-cpu,
 	[ --enable-master-tsc-cpu	Enable master TSC CPU],
 	[case "$enableval" in
  changequote(,)dnl
-	[0-15]*)
+	[0-9]*) CONFIG_RTAI_MASTER_TSC_CPU=$enableval ;;
  changequote([,])dnl
-		if test x$CONFIG_RTAI_CPUS = x ; then
-			AC_MSG_ERROR([Option --enable-cpus must be defined before --enable-master-tsc-cpu])
-		fi
-		if test $enableval -lt 0 -o $enableval -ge $CONFIG_RTAI_CPUS ; then
-			AC_MSG_ERROR([Invalid value to option: --enable-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
-		fi
-		CONFIG_RTAI_MASTER_TSC_CPU=$enableval ;;
+	*)
 	esac])
+if test x$CONFIG_RTAI_MASTER_TSC_CPU = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_MASTER_TSC_CPU=0
+fi
 AC_MSG_RESULT(${CONFIG_RTAI_MASTER_TSC_CPU:0})
+if test $CONFIG_RTAI_MASTER_TSC_CPU -lt 0 -o $CONFIG_RTAI_MASTER_TSC_CPU -ge $CONFIG_RTAI_CPUS ; then
+	AC_MSG_ERROR([Invalid value to option: --enable-master-tsc-cpu=<master-CPU-number> (must be between 0 and CONFIG_RTAI_CPUS)])
+fi
 
 AC_MSG_CHECKING(for tune out of sync MP-TSCs)
 AC_ARG_ENABLE(tune-tsc-sync,
@@ -540,11 +596,9 @@ if test x$CONFIG_RTAI_MBX = xy ; then
 	fi
 fi
 
-dnl Build a Kconfig file corresponding to the current configuration if none exists.
-if test \! -r .rtai_config; then
-	set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' | \
-	sed -e 's,\(.*\)=\(.*\)$,\1=\2,' > .rtai_config
-fi
+dnl Build a Kconfig file corresponding to the current configuration
+set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' &> $RTAI_USER_CONFIG
+sed -i '/MODULES_/d' $RTAI_USER_CONFIG
 
 dnl
 dnl Produce the info needed to build rtai_config.h
