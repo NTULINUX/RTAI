@@ -43,7 +43,7 @@ else
 fi
 
 dnl Make it more difficult to do something stupid
-RTAI_DEFCONFIG=$srcdir/arch/x86/defconfig
+RTAI_DEFCONFIG=$srcdir/defconfig
 RTAI_USER_CONFIG=$srcdir/.rtai_config
 AC_MSG_CHECKING([for RTAI Kconfig file])
 if test \! -r $RTAI_DEFCONFIG; then
