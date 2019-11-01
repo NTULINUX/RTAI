@@ -461,6 +461,19 @@ if test x$CONFIG_RTAI_ALIGN_LINUX_PRIORITY = x ; then
 fi
 AC_MSG_RESULT(${CONFIG_RTAI_ALIGN_LINUX_PRIORITY:-no})
 
+AC_MSG_CHECKING(for new return values of blocking RTAI APIs)
+AC_ARG_ENABLE(new-return-values,
+		[ --new-return-values	New return values of blocking RTAI APIs],
+	[case "$enableval" in
+	y | yes) CONFIG_RTAI_USE_NEWERR=y ;;
+	*) unset CONFIG_RTAI_USE_NEWERR ;;
+	esac])
+if test x$CONFIG_RTAI_USE_NEWERR = x ; then
+	# Use a reasonable default if unset
+	CONFIG_RTAI_USE_NEWERR=y
+fi
+AC_MSG_RESULT(${CONFIG_RTAI_USE_NEWERR:-no})
+
 AC_MSG_CHECKING(for tlsf use in real-time malloc support)
 AC_ARG_ENABLE(malloc-tlsf,
 	[ --enable-malloc-tlsf		Enable tlsf support in malloc],
@@ -652,6 +665,7 @@ esac
 AC_DEFINE_UNQUOTED(CONFIG_RTAI_ALLOW_RR,$CONFIG_RTAI_ALLOW_RR,[Kconfig])
 
 test x$CONFIG_RTAI_FULL_PRINHER = xy && AC_DEFINE(CONFIG_RTAI_FULL_PRINHER,1,[Kconfig])
+
 case $CONFIG_RTAI_USE_NEWERR in
 	y) CONFIG_RTAI_USE_NEWERR=1 ;;
 	n|*) CONFIG_RTAI_USE_NEWERR=0 ;;
