@@ -233,41 +233,15 @@ do {                                              \
 } while (0)
 
 hidden int    __rem_pio2_large(double*,double*,int,int,int);
-
 hidden int    __rem_pio2(double,double*);
 hidden double __sin(double,double,int);
 hidden double __cos(double,double);
 hidden double __tan(double,double,int);
-hidden double __expo2(double);
-
-hidden int    __rem_pio2f(float,double*);
-hidden float  __sindf(double);
-hidden float  __cosdf(double);
-hidden float  __tandf(double,int);
-hidden float  __expo2f(float);
-
-hidden int __rem_pio2l(long double, long double *);
-hidden long double __sinl(long double, long double, int);
-hidden long double __cosl(long double, long double);
-hidden long double __tanl(long double, long double, int);
-
-hidden long double __polevll(long double, const long double *, int);
-hidden long double __p1evll(long double, const long double *, int);
-
-extern int __signgam;
-hidden double __lgamma_r(double, int *);
-hidden float __lgammaf_r(float, int *);
 
 /* error handling functions */
-hidden float __math_xflowf(uint32_t, float);
-hidden float __math_uflowf(uint32_t);
-hidden float __math_oflowf(uint32_t);
-hidden float __math_divzerof(uint32_t);
-hidden float __math_invalidf(float);
 hidden double __math_xflow(uint32_t, double);
 hidden double __math_uflow(uint32_t);
 hidden double __math_oflow(uint32_t);
-hidden double __math_divzero(uint32_t);
 hidden double __math_invalid(double);
 
 #endif
