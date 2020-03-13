@@ -744,8 +744,8 @@ RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers m
 RTAI_KBUILD_DISTCLEAN=""
 
 dnl Extra options to be passed to the compiler
-RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
-RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+RTAI_USER_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -march=x86-64 -fomit-frame-pointer -pipe"
+RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -mcmodel=kernel -nostdinc -ffreestanding -fno-pic -fno-builtin -fno-common -fno-unwind-tables -fno-asynchronous-unwind-tables -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
@@ -791,6 +791,7 @@ AC_CONFIG_FILES([ \
 	src/ipc/mbx/GNUmakefile \
 	src/malloc/GNUmakefile \
 	src/math/GNUmakefile \
+	src/math/musl/GNUmakefile \
 	scripts/GNUmakefile \
 	scripts/rtai-config \
 	scripts/rtai-load \

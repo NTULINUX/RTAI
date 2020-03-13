@@ -42,13 +42,7 @@ debian/rules
 GNUmakefile.in
 GNUmakefile
 Makefile.in
-/Makefile
-/*/Makefile
-/*/*/Makefile
-/*/ipc/*/Makefile
-/*/malloc/Makefile
-/*/math/Makefile
-/*/sched/Makefile
+Makefile
 
 # Config Temp Files
 .cfok
