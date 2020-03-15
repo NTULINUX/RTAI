@@ -1,4 +1,4 @@
-From 05ad8988fc8491dc0abe4b0d6d2619e4b8723847 Mon Sep 17 00:00:00 2001
+From aef0fec8e29ec16d1404683723cc5ac5a47d2df2 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 7 Oct 2019 19:19:29 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -10,6 +10,11 @@ have these on. BIGSMP and related options are also disabled.
 
 Various other fixes and optimizations are included as well.
 
+DRM drivers (including those that depend on WMI such as
+Intel and Nouveau) are now re-enabled. If you experience
+long latency delays, it is highly recommended to disable
+these drivers as a troubleshooting step.
+
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/Kconfig                        |   5 +-
@@ -17,7 +22,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  arch/x86/Kconfig.debug              |  32 ++++-----
  arch/x86/events/Kconfig             |   1 +
  arch/x86/kvm/Kconfig                |   1 +
- drivers/acpi/Kconfig                |  30 +++++---
+ drivers/acpi/Kconfig                |  26 ++++---
  drivers/acpi/apei/Kconfig           |   2 +-
  drivers/acpi/dptf/Kconfig           |   2 +-
  drivers/acpi/nfit/Kconfig           |   1 +
@@ -26,19 +31,15 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/char/tpm/Kconfig            |   2 +-
  drivers/clk/Kconfig                 |   2 +-
  drivers/clocksource/Kconfig         |  21 +++---
- drivers/cpufreq/Kconfig             |   5 +-
+ drivers/cpufreq/Kconfig             |   1 +
  drivers/cpuidle/Kconfig             |   1 +
  drivers/crypto/Kconfig              |   1 +
  drivers/devfreq/Kconfig             |   1 +
  drivers/firmware/Kconfig            |   2 +-
  drivers/firmware/tegra/Kconfig      |   1 +
- drivers/fsi/Kconfig                 |   2 +
- drivers/gpu/drm/Kconfig             |   2 +-
- drivers/gpu/drm/gma500/Kconfig      |   2 +-
- drivers/gpu/drm/i915/Kconfig        |   2 +-
- drivers/gpu/drm/nouveau/Kconfig     |   2 +-
- drivers/gpu/drm/qxl/Kconfig         |   2 +-
- drivers/gpu/drm/vmwgfx/Kconfig      |   2 +-
+ drivers/fsi/Kconfig                 |   1 +
+ drivers/gpu/drm/i915/Kconfig        |   2 +
+ drivers/gpu/drm/nouveau/Kconfig     |  12 ++--
  drivers/hv/Kconfig                  |   1 +
  drivers/hwspinlock/Kconfig          |   1 +
  drivers/i2c/Kconfig                 |   2 +-
@@ -55,7 +56,6 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/pci/pcie/Kconfig            |   2 +-
  drivers/perf/Kconfig                |   2 +-
  drivers/pinctrl/Kconfig             |   2 +-
- drivers/platform/x86/Kconfig        |   2 +-
  drivers/power/avs/Kconfig           |   1 +
  drivers/power/reset/Kconfig         |   1 +
  drivers/powercap/Kconfig            |   1 +
@@ -66,7 +66,6 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/rpmsg/Kconfig               |   3 +-
  drivers/scsi/ufs/Kconfig            |   2 +-
  drivers/soc/Kconfig                 |   1 +
- drivers/thermal/Kconfig             |   1 +
  drivers/virt/Kconfig                |   1 +
  drivers/virtio/Kconfig              |  14 ++--
  drivers/watchdog/Kconfig            |   1 +
@@ -86,7 +85,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |   6 +-
  samples/Kconfig                     |   1 +
  security/Kconfig                    |   6 +-
- 74 files changed, 287 insertions(+), 195 deletions(-)
+ 68 files changed, 283 insertions(+), 189 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -632,7 +631,7 @@ index 3df51c287844..4971a5b221ac 100644
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5b1938f4b626..3e7446ff18a6 100644
+index 5b1938f4b626..79030050bcca 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -60,6 +60,7 @@ config ACPI_CCA_REQUIRED
@@ -669,24 +668,6 @@ index 5b1938f4b626..3e7446ff18a6 100644
  	select POWER_SUPPLY
  	default y
  	help
-@@ -170,7 +172,7 @@ config ACPI_BATTERY
- 
- config ACPI_BUTTON
- 	tristate "Button"
--	depends on INPUT
-+	depends on INPUT && !IPIPE
- 	default y
- 	help
- 	  This driver handles events on the power, sleep, and lid buttons.
-@@ -184,7 +186,7 @@ config ACPI_BUTTON
- config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86 && BACKLIGHT_CLASS_DEVICE
--	depends on INPUT
-+	depends on INPUT && !IPIPE
- 	select THERMAL
- 	help
- 	  This driver implements the ACPI Extensions For Display Adapters
 @@ -209,6 +211,7 @@ config ACPI_FAN
  
  config ACPI_DOCK
@@ -925,35 +906,25 @@ index cc6062049170..ba1c2f4613de 100644
  	bool
  
 diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index d8addbce40bc..d3eeffdcbbdb 100644
+index d8addbce40bc..371450e4bfb9 100644
 --- a/drivers/cpufreq/Kconfig
 +++ b/drivers/cpufreq/Kconfig
-@@ -2,10 +2,11 @@ menu "CPU Frequency scaling"
+@@ -1,4 +1,5 @@
+ menu "CPU Frequency scaling"
++depends on !IPIPE
  
  config CPU_FREQ
  	bool "CPU Frequency scaling"
-+	depends on !IPIPE
- 	select SRCU
- 	help
--	  CPU Frequency scaling allows you to change the clock speed of 
--	  CPUs on the fly. This is a nice method to save power, because 
-+	  CPU Frequency scaling allows you to change the clock speed of
-+	  CPUs on the fly. This is a nice method to save power, because
- 	  the lower the CPU clock speed, the less power the CPU consumes.
- 
- 	  Note that this driver doesn't automatically change the CPU
 diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 7e48eb5bf0a7..5fc81c3570fc 100644
+index 7e48eb5bf0a7..c2ea48faae46 100644
 --- a/drivers/cpuidle/Kconfig
 +++ b/drivers/cpuidle/Kconfig
-@@ -2,6 +2,7 @@ menu "CPU Idle"
+@@ -1,4 +1,5 @@
+ menu "CPU Idle"
++depends on !IPIPE
  
  config CPU_IDLE
  	bool "CPU idle PM support"
-+	depends on !IPIPE
- 	default y if ACPI || PPC_PSERIES
- 	select CPU_IDLE_GOV_LADDER if (!NO_HZ && !NO_HZ_IDLE)
- 	select CPU_IDLE_GOV_MENU if (NO_HZ || NO_HZ_IDLE)
 diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
 index 342bc777841c..0b22296d716e 100644
 --- a/drivers/crypto/Kconfig
@@ -1001,10 +972,10 @@ index ff2730d5c468..4cc867d3fe25 100644
  config TEGRA_IVC
  	bool "Tegra IVC protocol"
 diff --git a/drivers/fsi/Kconfig b/drivers/fsi/Kconfig
-index 6821ed0cd5e8..4f56ed25d7d3 100644
+index 6821ed0cd5e8..23561e25b594 100644
 --- a/drivers/fsi/Kconfig
 +++ b/drivers/fsi/Kconfig
-@@ -3,9 +3,11 @@
+@@ -3,6 +3,7 @@
  #
  
  menu "FSI support"
@@ -1012,84 +983,60 @@ index 6821ed0cd5e8..4f56ed25d7d3 100644
  
  config FSI
  	tristate "FSI support"
-+	depends on !IPIPE
- 	select CRC4
- 	---help---
- 	  FSI - the FRU Support Interface - is a simple bus for low-level
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index 83cb2a88c204..0a0549e88ce0 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -282,7 +282,7 @@ source "drivers/gpu/drm/pl111/Kconfig"
- 
- menuconfig DRM_LEGACY
- 	bool "Enable legacy drivers (DANGEROUS)"
--	depends on DRM && MMU
-+	depends on DRM && MMU && !IPIPE
- 	select DRM_VM
- 	help
- 	  Enable legacy DRI1 drivers. Those drivers expose unsafe and dangerous
-diff --git a/drivers/gpu/drm/gma500/Kconfig b/drivers/gpu/drm/gma500/Kconfig
-index df11582f1efc..a611cfad3528 100644
---- a/drivers/gpu/drm/gma500/Kconfig
-+++ b/drivers/gpu/drm/gma500/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_GMA500
- 	tristate "Intel GMA5/600 KMS Framebuffer"
--	depends on DRM && PCI && X86 && MMU
-+	depends on DRM && PCI && X86 && MMU && !IPIPE
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
- 	# GMA500 depends on ACPI_VIDEO when ACPI is enabled, just like i915
 diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index e9e64e8e9765..7cd3ff2ef066 100644
+index e9e64e8e9765..57f14648f644 100644
 --- a/drivers/gpu/drm/i915/Kconfig
 +++ b/drivers/gpu/drm/i915/Kconfig
-@@ -1,7 +1,7 @@
- config DRM_I915
- 	tristate "Intel 8xx/9xx/G3x/G4x/HD Graphics"
- 	depends on DRM
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	select INTEL_GTT
- 	select INTERVAL_TREE
- 	# we need shmfs for the swappable backing store, and in particular
+@@ -96,6 +96,7 @@ config DRM_I915_GVT
+         bool "Enable Intel GVT-g graphics virtualization host support"
+         depends on DRM_I915
+         depends on 64BIT
++        depends on !IPIPE
+         default n
+         help
+ 	  Choose this option if you want to enable Intel GVT-g graphics
+@@ -128,5 +129,6 @@ config DRM_I915_GVT_KVMGT
+ menu "drm/i915 Debugging"
+ depends on DRM_I915
+ depends on EXPERT
++depends on !IPIPE
+ source drivers/gpu/drm/i915/Kconfig.debug
+ endmenu
 diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
-index a0c0630a0857..edf91194d887 100644
+index a0c0630a0857..8542bef4802c 100644
 --- a/drivers/gpu/drm/nouveau/Kconfig
 +++ b/drivers/gpu/drm/nouveau/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_NOUVEAU
- 	tristate "Nouveau (NVIDIA) cards"
--	depends on DRM && PCI && MMU
-+	depends on DRM && PCI && MMU && !IPIPE
-         select FW_LOADER
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
-diff --git a/drivers/gpu/drm/qxl/Kconfig b/drivers/gpu/drm/qxl/Kconfig
-index 378da5918e6c..65f5d8d45694 100644
---- a/drivers/gpu/drm/qxl/Kconfig
-+++ b/drivers/gpu/drm/qxl/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_QXL
- 	tristate "QXL virtual GPU"
--	depends on DRM && PCI && MMU
-+	depends on DRM && PCI && MMU && !IPIPE
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
- 	select CRC32
-diff --git a/drivers/gpu/drm/vmwgfx/Kconfig b/drivers/gpu/drm/vmwgfx/Kconfig
-index 8c308dac99c5..c887be0cc07d 100644
---- a/drivers/gpu/drm/vmwgfx/Kconfig
-+++ b/drivers/gpu/drm/vmwgfx/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_VMWGFX
- 	tristate "DRM driver for VMware Virtual GPU"
--	depends on DRM && PCI && X86 && MMU
-+	depends on DRM && PCI && X86 && MMU && !IPIPE
- 	select FB_DEFERRED_IO
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
+@@ -42,14 +42,15 @@ config NOUVEAU_PLATFORM_DRIVER
+ config NOUVEAU_DEBUG
+ 	int "Maximum debug level"
+ 	depends on DRM_NOUVEAU
+-	range 0 7
+-	default 5
++	range 0 7 if !IPIPE
++	range 0 2 if IPIPE
++	default 2
+ 	help
+ 	  Selects the maximum debug level to compile support for.
+ 
+ 	  0 - fatal
+ 	  1 - error
+-	  2 - warning
++	  2 - warning (maximum if IPIPE enabled)
+ 	  3 - info
+ 	  4 - debug
+ 	  5 - trace (recommended)
+@@ -62,8 +63,9 @@ config NOUVEAU_DEBUG
+ config NOUVEAU_DEBUG_DEFAULT
+ 	int "Default debug level"
+ 	depends on DRM_NOUVEAU
+-	range 0 7
+-	default 3
++	range 0 7 if !IPIPE
++	range 0 2 if IPIPE
++	default 1
+ 	help
+ 	  Selects the default debug level
+ 
 diff --git a/drivers/hv/Kconfig b/drivers/hv/Kconfig
 index 247a62604d1f..d6858497460a 100644
 --- a/drivers/hv/Kconfig
@@ -1339,19 +1286,6 @@ index a73c794bed03..83e3802045d7 100644
  
  config GENERIC_PINCTRL_GROUPS
  	bool
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 09035705d0a0..a7b3cbe24329 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -627,7 +627,7 @@ config ASUS_WIRELESS
- 
- config ACPI_WMI
- 	tristate "WMI"
--	depends on ACPI
-+	depends on ACPI && !IPIPE
- 	help
- 	  This driver adds support for the ACPI-WMI (Windows Management
- 	  Instrumentation) mapper device (PNP0C14) found on some systems.
 diff --git a/drivers/power/avs/Kconfig b/drivers/power/avs/Kconfig
 index a67eeace6a89..5d2d8bc3653d 100644
 --- a/drivers/power/avs/Kconfig
@@ -1481,18 +1415,6 @@ index fc9e98047421..b65574cdd0d1 100644
  
  source "drivers/soc/actions/Kconfig"
  source "drivers/soc/amlogic/Kconfig"
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index e3f0d1fd1720..6bca6fc8e643 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -4,6 +4,7 @@
- 
- menuconfig THERMAL
- 	tristate "Generic Thermal sysfs driver"
-+	depends on !IPIPE
- 	help
- 	  Generic Thermal Sysfs driver offers a generic mechanism for
- 	  thermal management. Usually it's made up of one or more thermal
 diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
 index 99ebdde590f8..61e7cdb69899 100644
 --- a/drivers/virt/Kconfig
