@@ -13,7 +13,7 @@ CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
 #
 # Machine (x86)
 #
-CONFIG_RTAI_CPUS="4"
+CONFIG_RTAI_CPUS="8"
 # CONFIG_RTAI_DIAG_TSC_SYNC is not set
 
 #

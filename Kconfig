@@ -42,13 +42,13 @@ menu "Machine (x86)"
 
 config RTAI_CPUS
 	string "Number of CPUs (SMP-only)"
-	default 4
+	default 8
 	help
 	RTAI has native support for Symmetrical Multi-Processing
 	machines. If it is your case, you may want to enter here the
 	number of CPUs of your motherboard.
 
-	The default value is 4.
+	The default value is 8.
 
 config RTAI_DIAG_TSC_SYNC
 	bool "Diagnose out of sync multi processor TSCs"
