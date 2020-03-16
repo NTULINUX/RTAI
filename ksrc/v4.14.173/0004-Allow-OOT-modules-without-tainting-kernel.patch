@@ -1,6 +1,6 @@
-From 0110f87f544f615fb2e037490ce85ddc9ca1ad5f Mon Sep 17 00:00:00 2001
+From 753ad8c7495aab206ba5342f50120824acb645b7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Mon, 7 Oct 2019 19:20:14 -0500
+Date: Mon, 16 Mar 2020 03:44:15 -0500
 Subject: Allow OOT modules without tainting kernel
 
 This kernel is designed to run RTAI, so OOT (out-of-tree)
@@ -14,10 +14,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/module.c b/kernel/module.c
-index ef3ad1051d68..593a09583c5d 100644
+index 0bb8cf939f6c..828187785bcd 100644
 --- a/kernel/module.c
 +++ b/kernel/module.c
-@@ -3037,12 +3037,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
+@@ -3041,12 +3041,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
  		return -ENOEXEC;
  	}
  
