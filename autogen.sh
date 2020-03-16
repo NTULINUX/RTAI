@@ -6,8 +6,7 @@ autoreconf -v --install || \
 	}
 
 # Do a temporary configure to generate initial makefiles
-./configure --prefix=/usr/realtime \
-    --with-linux-dir="/lib/modules/$(uname -r)/build" "$@" || \
+./configure "$@" || \
 	{
 		echo -e "Error running configure.\n" ;	exit 1 ;
 	}

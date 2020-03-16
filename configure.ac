@@ -18,6 +18,7 @@ AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
+AC_PREFIX_DEFAULT(/usr/realtime)
 LT_INIT
 RTAI_VERSION="5.2.3"
 
@@ -62,11 +63,9 @@ AC_MSG_RESULT([$KCONFIG_RESULT])
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
 
-dnl Safe default for kernel source, may be changed with --with-linux-dir
-if test x$CONFIG_RTAI_LINUXDIR = x ; then
-	CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
-fi
-RTAI_LINUX_DIR=$CONFIG_RTAI_LINUXDIR
+dnl Always use this directory unless otherwise specified by --with-linux-dir
+RTAI_LINUX_DIR="/lib/modules/$(uname -r)/build"
+CONFIG_RTAI_LINUXDIR=${RTAI_LINUX_DIR}
 
 AC_MSG_CHECKING([for Linux source tree])
 AC_ARG_WITH(linux-dir,
@@ -77,6 +76,7 @@ AC_ARG_WITH(linux-dir,
 		;;
 	esac
 	RTAI_LINUX_DIR="$withval"
+	CONFIG_RTAI_LINUXDIR="$withval"
 if test \! -r ${RTAI_LINUX_DIR}/arch/x86/Makefile; then
 	echo
 	AC_MSG_ERROR([No Linux kernel tree found in ${RTAI_LINUX_DIR}])
