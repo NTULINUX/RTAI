@@ -1,4 +1,4 @@
-From 827e8e028e75550c4d32c33b17817d946a4031a2 Mon Sep 17 00:00:00 2001
+From 30d291400fc865ea649f4d09a58ce043fc6e6f83 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -46,6 +46,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/infiniband/hw/usnic/Kconfig |  1 +
  drivers/iommu/Kconfig               |  2 +-
  drivers/mailbox/Kconfig             |  1 +
+ drivers/memory/Kconfig              |  1 +
  drivers/misc/mic/Kconfig            |  3 +-
  drivers/misc/vmw_vmci/Kconfig       |  2 +-
  drivers/net/caif/Kconfig            |  3 +-
@@ -61,7 +62,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/pwm/Kconfig                 |  1 +
  drivers/regulator/Kconfig           |  1 +
  drivers/remoteproc/Kconfig          |  4 +-
- drivers/reset/Kconfig               |  2 +-
+ drivers/reset/Kconfig               |  1 +
  drivers/rpmsg/Kconfig               |  3 +-
  drivers/scsi/ufs/Kconfig            |  2 +-
  drivers/soc/Kconfig                 |  1 +
@@ -84,7 +85,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                    |  6 ++-
  samples/Kconfig                     |  1 +
  security/Kconfig                    |  6 ++-
- 67 files changed, 244 insertions(+), 145 deletions(-)
+ 68 files changed, 245 insertions(+), 144 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -1107,6 +1108,18 @@ index c5731e5e3c6c..856e16ab82a9 100644
  	help
  	  Mailbox is a framework to control hardware communication between
  	  on-chip processors through queued messages and interrupt driven
+diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+index ffc350258041..ee9f7fe951d8 100644
+--- a/drivers/memory/Kconfig
++++ b/drivers/memory/Kconfig
+@@ -3,6 +3,7 @@
+ #
+ 
+ menuconfig MEMORY
++	depends on !IPIPE
+ 	bool "Memory Controller drivers"
+ 
+ if MEMORY
 diff --git a/drivers/misc/mic/Kconfig b/drivers/misc/mic/Kconfig
 index 6fd9d367dea7..15c64ae8506e 100644
 --- a/drivers/misc/mic/Kconfig
@@ -1337,18 +1350,17 @@ index bf04479456a0..9978d103b7b7 100644
  	  Support for remote processors (such as DSP coprocessors). These
  	  are mainly used on embedded systems.
 diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
-index e2baecbb9dd3..8f5c51c2e30a 100644
+index e2baecbb9dd3..21c0d75217d0 100644
 --- a/drivers/reset/Kconfig
 +++ b/drivers/reset/Kconfig
-@@ -3,7 +3,7 @@ config ARCH_HAS_RESET_CONTROLLER
+@@ -3,6 +3,7 @@ config ARCH_HAS_RESET_CONTROLLER
  
  menuconfig RESET_CONTROLLER
  	bool "Reset Controller Support"
--	default y if ARCH_HAS_RESET_CONTROLLER
-+	default y if ARCH_HAS_RESET_CONTROLLER && !IPIPE
++	depends on !IPIPE
+ 	default y if ARCH_HAS_RESET_CONTROLLER
  	help
  	  Generic Reset Controller support.
- 
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
 index 0fe6eac46512..4eff9802b4ae 100644
 --- a/drivers/rpmsg/Kconfig
