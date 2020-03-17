@@ -1,4 +1,4 @@
-From dda9fd1ac971cdbd6ee779ed2b66499eb70a0119 Mon Sep 17 00:00:00 2001
+From 827e8e028e75550c4d32c33b17817d946a4031a2 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -17,74 +17,74 @@ these drivers as a troubleshooting step.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
- arch/Kconfig                        |   5 +-
- arch/x86/Kconfig                    |  75 ++++++++++++--------
- arch/x86/Kconfig.debug              |  33 +++++----
- arch/x86/events/Kconfig             |   1 +
- arch/x86/kvm/Kconfig                |   1 +
- drivers/acpi/Kconfig                |  26 ++++---
- drivers/acpi/apei/Kconfig           |   2 +-
- drivers/acpi/dptf/Kconfig           |   2 +-
- drivers/acpi/nfit/Kconfig           |   1 +
- drivers/bus/Kconfig                 |   1 +
- drivers/char/ipmi/Kconfig           |   2 +-
- drivers/char/tpm/Kconfig            |   2 +-
- drivers/clk/Kconfig                 |   2 +-
- drivers/clocksource/Kconfig         |  21 +++---
- drivers/cpufreq/Kconfig             |   1 +
- drivers/cpuidle/Kconfig             |   1 +
- drivers/crypto/Kconfig              |   1 +
- drivers/devfreq/Kconfig             |   1 +
- drivers/firmware/Kconfig            |   2 +-
- drivers/firmware/tegra/Kconfig      |   1 +
- drivers/fsi/Kconfig                 |   1 +
- drivers/gpu/drm/i915/Kconfig        |   2 +
- drivers/gpu/drm/nouveau/Kconfig     |  12 ++--
- drivers/hv/Kconfig                  |   1 +
- drivers/hwspinlock/Kconfig          |   1 +
- drivers/i2c/Kconfig                 |   2 +-
- drivers/infiniband/hw/usnic/Kconfig |   1 +
- drivers/iommu/Kconfig               |   2 +-
- drivers/mailbox/Kconfig             |   1 +
- drivers/misc/mic/Kconfig            |   3 +-
- drivers/misc/vmw_vmci/Kconfig       |   2 +-
- drivers/net/caif/Kconfig            |   3 +-
- drivers/of/Kconfig                  |   1 +
- drivers/pci/Kconfig                 |   9 +--
- drivers/pci/hotplug/Kconfig         |   2 +-
- drivers/pci/pcie/Kconfig            |   2 +-
- drivers/perf/Kconfig                |   2 +-
- drivers/pinctrl/Kconfig             |   2 +-
- drivers/power/avs/Kconfig           |   1 +
- drivers/power/reset/Kconfig         |   1 +
- drivers/powercap/Kconfig            |   1 +
- drivers/pwm/Kconfig                 |   1 +
- drivers/regulator/Kconfig           |   1 +
- drivers/remoteproc/Kconfig          |   4 +-
- drivers/reset/Kconfig               |   2 +-
- drivers/rpmsg/Kconfig               |   3 +-
- drivers/scsi/ufs/Kconfig            |   2 +-
- drivers/soc/Kconfig                 |   1 +
- drivers/virt/Kconfig                |   1 +
- drivers/virtio/Kconfig              |   2 +
- drivers/watchdog/Kconfig            |   1 +
- fs/Kconfig.binfmt                   |   1 +
- init/Kconfig                        |  37 ++++++----
- kernel/ipipe/Kconfig                |  12 +++-
- kernel/irq/Kconfig                  |   4 +-
- kernel/power/Kconfig                |   6 +-
- kernel/rcu/Kconfig.debug            |   8 +--
- kernel/trace/Kconfig                |   3 +-
- lib/Kconfig.debug                   | 102 +++++++++++++++-------------
- lib/Kconfig.kasan                   |   1 +
- lib/Kconfig.kgdb                    |   2 +-
- lib/Kconfig.ubsan                   |   1 +
- lib/xz/Kconfig                      |   5 ++
- mm/Kconfig                          |   3 +-
- mm/Kconfig.debug                    |   6 +-
- samples/Kconfig                     |   1 +
- security/Kconfig                    |   6 +-
- 67 files changed, 272 insertions(+), 177 deletions(-)
+ arch/Kconfig                        |  5 +-
+ arch/x86/Kconfig                    | 75 ++++++++++++++++++-----------
+ arch/x86/Kconfig.debug              | 33 ++++++-------
+ arch/x86/events/Kconfig             |  1 +
+ arch/x86/kvm/Kconfig                |  1 +
+ drivers/acpi/Kconfig                | 26 ++++++----
+ drivers/acpi/apei/Kconfig           |  2 +-
+ drivers/acpi/dptf/Kconfig           |  2 +-
+ drivers/acpi/nfit/Kconfig           |  1 +
+ drivers/bus/Kconfig                 |  1 +
+ drivers/char/ipmi/Kconfig           |  2 +-
+ drivers/char/tpm/Kconfig            |  2 +-
+ drivers/clk/Kconfig                 |  2 +-
+ drivers/clocksource/Kconfig         | 21 ++++----
+ drivers/cpufreq/Kconfig             |  1 +
+ drivers/cpuidle/Kconfig             |  1 +
+ drivers/crypto/Kconfig              |  1 +
+ drivers/devfreq/Kconfig             |  1 +
+ drivers/firmware/Kconfig            |  2 +-
+ drivers/firmware/tegra/Kconfig      |  1 +
+ drivers/fsi/Kconfig                 |  1 +
+ drivers/gpu/drm/i915/Kconfig        |  2 +
+ drivers/gpu/drm/nouveau/Kconfig     | 12 +++--
+ drivers/hv/Kconfig                  |  1 +
+ drivers/hwspinlock/Kconfig          |  1 +
+ drivers/i2c/Kconfig                 |  2 +-
+ drivers/infiniband/hw/usnic/Kconfig |  1 +
+ drivers/iommu/Kconfig               |  2 +-
+ drivers/mailbox/Kconfig             |  1 +
+ drivers/misc/mic/Kconfig            |  3 +-
+ drivers/misc/vmw_vmci/Kconfig       |  2 +-
+ drivers/net/caif/Kconfig            |  3 +-
+ drivers/of/Kconfig                  |  1 +
+ drivers/pci/Kconfig                 |  9 ++--
+ drivers/pci/hotplug/Kconfig         |  2 +-
+ drivers/pci/pcie/Kconfig            |  2 +-
+ drivers/perf/Kconfig                |  2 +-
+ drivers/pinctrl/Kconfig             |  2 +-
+ drivers/power/avs/Kconfig           |  1 +
+ drivers/power/reset/Kconfig         |  1 +
+ drivers/powercap/Kconfig            |  1 +
+ drivers/pwm/Kconfig                 |  1 +
+ drivers/regulator/Kconfig           |  1 +
+ drivers/remoteproc/Kconfig          |  4 +-
+ drivers/reset/Kconfig               |  2 +-
+ drivers/rpmsg/Kconfig               |  3 +-
+ drivers/scsi/ufs/Kconfig            |  2 +-
+ drivers/soc/Kconfig                 |  1 +
+ drivers/virt/Kconfig                |  1 +
+ drivers/virtio/Kconfig              |  2 +
+ drivers/watchdog/Kconfig            |  1 +
+ fs/Kconfig.binfmt                   |  1 +
+ init/Kconfig                        | 39 ++++++++-------
+ kernel/ipipe/Kconfig                | 12 ++++-
+ kernel/irq/Kconfig                  |  4 +-
+ kernel/power/Kconfig                |  6 ++-
+ kernel/rcu/Kconfig.debug            |  8 +--
+ kernel/trace/Kconfig                |  3 +-
+ lib/Kconfig.debug                   | 40 +++++++++------
+ lib/Kconfig.kasan                   |  1 +
+ lib/Kconfig.kgdb                    |  2 +-
+ lib/Kconfig.ubsan                   |  1 +
+ lib/xz/Kconfig                      |  5 ++
+ mm/Kconfig                          |  3 +-
+ mm/Kconfig.debug                    |  6 ++-
+ samples/Kconfig                     |  1 +
+ security/Kconfig                    |  6 ++-
+ 67 files changed, 244 insertions(+), 145 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -1446,7 +1446,7 @@ index b2f82cf6bf86..2debf2a84334 100644
  	  If you say Y here, it will be possible to plug wrapper-driven binary
  	  formats into the kernel. You will like this especially when you use
 diff --git a/init/Kconfig b/init/Kconfig
-index 33cca939377e..f00ecfff20fa 100644
+index 33cca939377e..6f06a736c6a6 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -65,7 +65,7 @@ config CROSS_COMPILE
@@ -1551,7 +1551,16 @@ index 33cca939377e..f00ecfff20fa 100644
  	help
  	  Enabling this option will pass "-Os" instead of "-O2" to
  	  your compiler resulting in a smaller kernel.
-@@ -1174,16 +1180,16 @@ config POSIX_TIMERS
+@@ -1090,8 +1096,6 @@ config BPF
+ 
+ menuconfig EXPERT
+ 	bool "Configure standard kernel features (expert users)"
+-	# Unhide debug options, to make the on-by-default options visible
+-	select DEBUG_KERNEL
+ 	help
+ 	  This option allows certain base kernel options and settings
+           to be disabled or tweaked. This is for specialized
+@@ -1174,16 +1178,16 @@ config POSIX_TIMERS
  	  If unsure say y.
  
  config KALLSYMS
@@ -1572,7 +1581,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	help
  	   Normally kallsyms only contains the symbols of functions for nicer
  	   OOPS messages and backtraces (i.e., symbols from the text and inittext
-@@ -1504,7 +1510,7 @@ config VM_EVENT_COUNTERS
+@@ -1504,7 +1508,7 @@ config VM_EVENT_COUNTERS
  config SLUB_DEBUG
  	default y
  	bool "Enable SLUB debugging support" if EXPERT
@@ -1581,7 +1590,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	help
  	  SLUB has extensive debug support features. Disabling these can
  	  result in significant savings in code size. This also disables
-@@ -1514,7 +1520,7 @@ config SLUB_DEBUG
+@@ -1514,7 +1518,7 @@ config SLUB_DEBUG
  config SLUB_MEMCG_SYSFS_ON
  	default n
  	bool "Enable memcg SLUB sysfs support by default" if EXPERT
@@ -1590,7 +1599,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	help
  	  SLUB creates a directory under /sys/kernel/slab for each
  	  allocation cache to host info and debug files. If memory
-@@ -1606,7 +1612,7 @@ config SLAB_FREELIST_HARDENED
+@@ -1606,7 +1610,7 @@ config SLAB_FREELIST_HARDENED
  
  config SLUB_CPU_PARTIAL
  	default y
@@ -1599,7 +1608,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	bool "SLUB per cpu partial cache"
  	help
  	  Per cpu partial caches accellerate objects allocation and freeing
-@@ -1741,6 +1747,7 @@ config MODULE_FORCE_UNLOAD
+@@ -1741,6 +1745,7 @@ config MODULE_FORCE_UNLOAD
  
  config MODVERSIONS
  	bool "Module versioning support"
@@ -1607,7 +1616,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	help
  	  Usually, you have to use modules compiled with your kernel.
  	  Saying Y here makes it sometimes possible to use modules
-@@ -1766,7 +1773,7 @@ config MODULE_SRCVERSION_ALL
+@@ -1766,7 +1771,7 @@ config MODULE_SRCVERSION_ALL
  
  config MODULE_SIG
  	bool "Module signature verification"
@@ -1616,7 +1625,7 @@ index 33cca939377e..f00ecfff20fa 100644
  	select SYSTEM_DATA_VERIFICATION
  	help
  	  Check modules for valid signatures upon load: the signature
-@@ -1881,7 +1888,7 @@ endchoice
+@@ -1881,7 +1886,7 @@ endchoice
  
  config TRIM_UNUSED_KSYMS
  	bool "Trim unused exported kernel symbols"
@@ -1759,18 +1768,9 @@ index 5f93356dd495..5af0e1637403 100644
  	  Enable the kernel tracing infrastructure.
  
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 8a84a77bde1a..8a86c801a9e1 100644
+index 8a84a77bde1a..ff37109bcbed 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
-@@ -47,7 +47,7 @@ config MESSAGE_LOGLEVEL_DEFAULT
- 
- config BOOT_PRINTK_DELAY
- 	bool "Delay each boot printk message by N milliseconds"
--	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
-+	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY && !IPIPE
- 	help
- 	  This build option allows you to read kernel boot messages
- 	  by inserting a short delay after each one.  The delay is
 @@ -68,6 +68,7 @@ config DYNAMIC_DEBUG
  	default n
  	depends on PRINTK
@@ -1779,15 +1779,6 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  
  	  Compiles debug level messages into the kernel, which would not
-@@ -139,7 +140,7 @@ menu "Compile-time checks and compiler options"
- 
- config DEBUG_INFO
- 	bool "Compile the kernel with debug info"
--	depends on DEBUG_KERNEL && !COMPILE_TEST
-+	depends on DEBUG_KERNEL && !COMPILE_TEST && !IPIPE
- 	help
-           If you say Y here the resulting kernel image will include
- 	  debugging info resulting in a larger kernel image.
 @@ -230,7 +231,7 @@ config FRAME_WARN
  
  config STRIP_ASM_SYMS
@@ -1797,15 +1788,6 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  Strip internal assembler-generated symbols during a link (symbols
  	  that look like '.Lxxx') so they don't pollute the output of
-@@ -238,7 +239,7 @@ config STRIP_ASM_SYMS
- 
- config READABLE_ASM
-         bool "Generate readable assembler code"
--        depends on DEBUG_KERNEL
-+        depends on DEBUG_KERNEL && !IPIPE
-         help
-           Disable some compiler optimizations that tend to generate human unreadable
-           assembler output. This may make the kernel slightly slower, but it helps
 @@ -247,7 +248,8 @@ config READABLE_ASM
  
  config UNUSED_SYMBOLS
@@ -1816,15 +1798,6 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  Unused but exported symbols make the kernel needlessly bigger.  For
  	  that reason most of these unused exports will soon be removed.  This
-@@ -263,7 +265,7 @@ config UNUSED_SYMBOLS
- 
- config PAGE_OWNER
- 	bool "Track page owner"
--	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
-+	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT && !IPIPE
- 	select DEBUG_FS
- 	select STACKTRACE
- 	select STACKDEPOT
 @@ -307,6 +309,7 @@ config HEADERS_CHECK
  
  config DEBUG_SECTION_MISMATCH
@@ -1850,34 +1823,15 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	default n
  	help
  	  Add compile-time checks to validate stack metadata, including frame
-@@ -383,7 +387,7 @@ config STACK_VALIDATION
+@@ -436,6 +440,7 @@ source "kernel/ipipe/Kconfig.debug"
  
- config DEBUG_FORCE_WEAK_PER_CPU
- 	bool "Force weak per-cpu definitions"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
+ config DEBUG_KERNEL
+ 	bool "Kernel debugging"
++	depends on !IPIPE
  	help
- 	  s390 and alpha require percpu variables in modules to be
- 	  defined weak to work around addressing range issue which
-@@ -446,7 +450,7 @@ source mm/Kconfig.debug
- 
- config DEBUG_OBJECTS
- 	bool "Debug object operations"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  If you say Y here, additional code will be inserted into the
- 	  kernel to track the life time of various objects and validate
-@@ -507,7 +511,7 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
- 
- config DEBUG_SLAB
- 	bool "Debug slab memory allocations"
--	depends on DEBUG_KERNEL && SLAB
-+	depends on DEBUG_KERNEL && SLAB && !IPIPE
- 	help
- 	  Say Y here to have the kernel do limited verification on memory
- 	  allocation as well as poisoning memory on free to catch use of freed
-@@ -533,7 +537,7 @@ config SLUB_DEBUG_ON
+ 	  Say Y here if you are developing drivers or trying to debug and
+ 	  identify kernel problems.
+@@ -533,7 +538,7 @@ config SLUB_DEBUG_ON
  config SLUB_STATS
  	default n
  	bool "Enable SLUB performance statistics"
@@ -1886,43 +1840,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  SLUB statistics are useful to debug SLUBs allocation behavior in
  	  order find ways to optimize the allocator. This should never be
-@@ -548,7 +552,7 @@ config HAVE_DEBUG_KMEMLEAK
- 
- config DEBUG_KMEMLEAK
- 	bool "Kernel memory leak detector"
--	depends on DEBUG_KERNEL && HAVE_DEBUG_KMEMLEAK
-+	depends on DEBUG_KERNEL && HAVE_DEBUG_KMEMLEAK && !IPIPE
- 	select DEBUG_FS
- 	select STACKTRACE if STACKTRACE_SUPPORT
- 	select KALLSYMS
-@@ -598,7 +602,7 @@ config DEBUG_KMEMLEAK_DEFAULT_OFF
- 
- config DEBUG_STACK_USAGE
- 	bool "Stack utilization instrumentation"
--	depends on DEBUG_KERNEL && !IA64
-+	depends on DEBUG_KERNEL && !IA64 && !IPIPE
- 	help
- 	  Enables the display of the minimum amount of free stack which each
- 	  task has ever had available in the sysrq-T and sysrq-P debug output.
-@@ -607,7 +611,7 @@ config DEBUG_STACK_USAGE
- 
- config DEBUG_VM
- 	bool "Debug VM"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on extended checks in the virtual-memory system
-           that may impact performance.
-@@ -645,7 +649,7 @@ config ARCH_HAS_DEBUG_VIRTUAL
- 
- config DEBUG_VIRTUAL
- 	bool "Debug VM translations"
--	depends on DEBUG_KERNEL && ARCH_HAS_DEBUG_VIRTUAL
-+	depends on DEBUG_KERNEL && ARCH_HAS_DEBUG_VIRTUAL && !IPIPE
- 	help
- 	  Enable some costly sanity checks in virtual to page code. This can
- 	  catch mistakes with virt_to_page() and friends.
-@@ -698,6 +702,7 @@ config DEBUG_PER_CPU_MAPS
+@@ -698,6 +703,7 @@ config DEBUG_PER_CPU_MAPS
  	bool "Debug access to per_cpu maps"
  	depends on DEBUG_KERNEL
  	depends on SMP
@@ -1930,16 +1848,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  Say Y to verify that the per_cpu map being accessed has
  	  been set up. This adds a fair amount of code to kernel memory
-@@ -707,7 +712,7 @@ config DEBUG_PER_CPU_MAPS
- 
- config DEBUG_HIGHMEM
- 	bool "Highmem debugging"
--	depends on DEBUG_KERNEL && HIGHMEM
-+	depends on DEBUG_KERNEL && HIGHMEM && !IPIPE
- 	help
- 	  This option enables additional error checking for high memory
- 	  systems.  Disable for production systems.
-@@ -746,7 +751,7 @@ config ARCH_HAS_KCOV
+@@ -746,7 +752,7 @@ config ARCH_HAS_KCOV
  
  config KCOV
  	bool "Code coverage for fuzzing"
@@ -1948,7 +1857,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	select DEBUG_FS
  	select GCC_PLUGINS if !COMPILE_TEST
  	select GCC_PLUGIN_SANCOV if !COMPILE_TEST
-@@ -780,7 +785,15 @@ config DEBUG_SHIRQ
+@@ -780,7 +786,15 @@ config DEBUG_SHIRQ
  	  Drivers ought to be able to handle interrupts coming in at those
  	  points; some don't and need to be caught.
  
@@ -1964,7 +1873,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  
  config LOCKUP_DETECTOR
  	bool
-@@ -802,13 +815,6 @@ config HARDLOCKUP_DETECTOR_PERF
+@@ -802,13 +816,6 @@ config HARDLOCKUP_DETECTOR_PERF
  	bool
  	select SOFTLOCKUP_DETECTOR
  
@@ -1978,34 +1887,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  #
  # arch/ can define HAVE_HARDLOCKUP_DETECTOR_ARCH to provide their own hard
  # lockup detector rather than the perf based detector.
-@@ -968,7 +974,7 @@ config PANIC_TIMEOUT
- 
- config SCHED_DEBUG
- 	bool "Collect scheduler debugging info"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && PROC_FS && !IPIPE
- 	default y
- 	help
- 	  If you say Y here, the /proc/sched_debug file will be provided
-@@ -981,7 +987,7 @@ config SCHED_INFO
- 
- config SCHEDSTATS
- 	bool "Collect scheduler statistics"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && PROC_FS && !IPIPE
- 	select SCHED_INFO
- 	help
- 	  If you say Y here, additional code will be inserted into the
-@@ -994,7 +1000,7 @@ config SCHEDSTATS
- 
- config SCHED_STACK_END_CHECK
- 	bool "Detect stack corruption on calls to schedule()"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default n
- 	help
- 	  This option checks for a stack overrun on calls to schedule().
-@@ -1006,6 +1012,7 @@ config SCHED_STACK_END_CHECK
+@@ -1006,6 +1013,7 @@ config SCHED_STACK_END_CHECK
  
  config DEBUG_TIMEKEEPING
  	bool "Enable extra timekeeping sanity checking"
@@ -2013,16 +1895,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  This option will enable additional timekeeping sanity checks
  	  which may be helpful when diagnosing issues where timekeeping
-@@ -1019,7 +1026,7 @@ config DEBUG_TIMEKEEPING
- 
- config DEBUG_PREEMPT
- 	bool "Debug preemptible kernel"
--	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT
-+	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT && !IPIPE
- 	default y
- 	help
- 	  If you say Y here then the kernel will use a debug variant of the
-@@ -1028,6 +1035,7 @@ config DEBUG_PREEMPT
+@@ -1028,6 +1036,7 @@ config DEBUG_PREEMPT
  	  will detect preemption count underflows.
  
  menu "Lock Debugging (spinlocks, mutexes, etc...)"
@@ -2030,109 +1903,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  
  config DEBUG_RT_MUTEXES
  	bool "RT Mutex debugging, deadlock detection"
-@@ -1038,7 +1046,7 @@ config DEBUG_RT_MUTEXES
- 
- config DEBUG_SPINLOCK
- 	bool "Spinlock and rw-lock debugging: basic checks"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select UNINLINE_SPIN_UNLOCK
- 	help
- 	  Say Y here and build SMP to catch missing spinlock initialization
-@@ -1283,7 +1291,7 @@ config WARN_ALL_UNSEEDED_RANDOM
- 
- config DEBUG_KOBJECT
- 	bool "kobject debugging"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  If you say Y here, some extra kobject debugging messages will be sent
- 	  to the syslog. 
-@@ -1330,7 +1338,7 @@ config DEBUG_LIST
- 
- config DEBUG_PI_LIST
- 	bool "Debug priority linked list manipulation"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on extended checks in the priority-ordered
- 	  linked-list (plist) walking routines.  This checks the entire
-@@ -1340,7 +1348,7 @@ config DEBUG_PI_LIST
- 
- config DEBUG_SG
- 	bool "Debug SG table operations"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on checks on scatter-gather tables. This can
- 	  help find problems with drivers that do not properly initialize
-@@ -1350,7 +1358,7 @@ config DEBUG_SG
- 
- config DEBUG_NOTIFIERS
- 	bool "Debug notifier call chains"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on sanity checking for notifier call chains.
- 	  This is most useful for kernel developers to make sure that
-@@ -1360,7 +1368,7 @@ config DEBUG_NOTIFIERS
- 
- config DEBUG_CREDENTIALS
- 	bool "Debug credential management"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on some debug checking for credential
- 	  management.  The additional code keeps track of the number of
-@@ -1377,7 +1385,7 @@ source "kernel/rcu/Kconfig.debug"
- 
- config DEBUG_WQ_FORCE_RR_CPU
- 	bool "Force round-robin CPU selection for unbound work items"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default n
- 	help
- 	  Workqueue used to implicitly guarantee that work items queued
-@@ -1392,8 +1400,7 @@ config DEBUG_WQ_FORCE_RR_CPU
- 
- config DEBUG_BLOCK_EXT_DEVT
-         bool "Force extended block device numbers and spread them"
--	depends on DEBUG_KERNEL
--	depends on BLOCK
-+	depends on DEBUG_KERNEL && BLOCK && !IPIPE
- 	default n
- 	help
- 	  BIG FAT WARNING: ENABLING THIS OPTION MIGHT BREAK BOOTING ON
-@@ -1432,7 +1439,7 @@ config CPU_HOTPLUG_STATE_CONTROL
- 
- config NOTIFIER_ERROR_INJECTION
- 	tristate "Notifier error injection"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select DEBUG_FS
- 	help
- 	  This option provides the ability to inject artificial errors to
-@@ -1507,7 +1514,7 @@ config NETDEV_NOTIFIER_ERROR_INJECT
- 
- config FAULT_INJECTION
- 	bool "Fault-injection framework"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Provide fault-injection framework.
- 	  For more details, see Documentation/fault-injection/.
-@@ -1576,9 +1583,7 @@ config FAULT_INJECTION_STACKTRACE_FILTER
- 
- config LATENCYTOP
- 	bool "Latency measuring infrastructure"
--	depends on DEBUG_KERNEL
--	depends on STACKTRACE_SUPPORT
--	depends on PROC_FS
-+	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT && PROC_FS && !IPIPE
- 	select FRAME_POINTER if !MIPS && !PPC && !S390 && !MICROBLAZE && !ARM_UNWIND && !ARC && !X86
- 	select KALLSYMS
- 	select KALLSYMS_ALL
-@@ -1593,7 +1598,7 @@ source kernel/trace/Kconfig
+@@ -1593,7 +1602,7 @@ source kernel/trace/Kconfig
  
  config PROVIDE_OHCI1394_DMA_INIT
  	bool "Remote debugging over FireWire early on boot"
@@ -2141,7 +1912,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  If you want to debug problems which hang or crash the kernel early
  	  on boot and the crashing machine has a FireWire port, you can use
-@@ -1622,7 +1627,7 @@ config PROVIDE_OHCI1394_DMA_INIT
+@@ -1622,7 +1631,7 @@ config PROVIDE_OHCI1394_DMA_INIT
  
  config DMA_API_DEBUG
  	bool "Enable debugging of DMA-API usage"
@@ -2150,7 +1921,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  	help
  	  Enable this option to debug the use of the DMA API by device drivers.
  	  With this option you will be able to detect common bugs in device
-@@ -1640,11 +1645,11 @@ config DMA_API_DEBUG
+@@ -1640,6 +1649,7 @@ config DMA_API_DEBUG
  	  If unsure, say N.
  
  menu "Runtime Testing"
@@ -2158,23 +1929,7 @@ index 8a84a77bde1a..8a86c801a9e1 100644
  
  config LKDTM
  	tristate "Linux Kernel Dump Test Tool Module"
--	depends on DEBUG_FS
--	depends on BLOCK
-+	depends on DEBUG_FS && BLOCK
- 	default n
- 	help
- 	This module enables testing of the different dumping mechanisms by
-@@ -1677,8 +1682,7 @@ config TEST_SORT
- 
- config KPROBES_SANITY_TEST
- 	bool "Kprobes sanity tests"
--	depends on DEBUG_KERNEL
--	depends on KPROBES
-+	depends on DEBUG_KERNEL && KPROBES
- 	default n
- 	help
- 	  This option provides for testing basic kprobes functionality on
-@@ -1923,7 +1927,7 @@ endmenu # runtime tests
+@@ -1923,7 +1933,7 @@ endmenu # runtime tests
  
  config MEMTEST
  	bool "Memtest"
