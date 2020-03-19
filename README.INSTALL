@@ -67,6 +67,16 @@ $ make
 
 # make install
 
+To create an RTAI .deb package:
+Clean out anything in /usr/src that begins with linux-headers other than
+the headers folder
+
+cd RTAI (ie the level below the /debian. folder)
+./autogen.sh (you have probably already done this)
+./debian/configure 4.14.148 rtai amd64
+sudo dpkg-buildpackage
+(I tried without sudo and got "command not found")
+
 5.) LinuxCNC
 
 === WARNING: Only LinuxCNC git branches 2.8 and master are supported ===
