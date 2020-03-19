@@ -1,82 +1,91 @@
-From ab93364fac93ad35bcc3f18b354e57e64c1d43e7 Mon Sep 17 00:00:00 2001
+From 30d291400fc865ea649f4d09a58ce043fc6e6f83 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Mon, 7 Oct 2019 19:19:29 -0500
+Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
 several very important options for debugging. RTAI may cause
 kernel panics on some systems so it is a good idea to always
-have these on. BIGSMP and related options are also disabled.
+have these on.
 
 Various other fixes and optimizations are included as well.
 
+DRM drivers (including those that depend on WMI such as
+Intel and Nouveau) are now re-enabled. If you experience
+long latency delays, it is highly recommended to disable
+these drivers as a troubleshooting step.
+
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
- arch/Kconfig                        |   5 +-
- arch/x86/Kconfig                    |  69 ++++++++-----
- arch/x86/Kconfig.debug              |  32 +++---
- arch/x86/kvm/Kconfig                |   1 +
- drivers/acpi/Kconfig                |  28 +++--
- drivers/acpi/apei/Kconfig           |   2 +-
- drivers/acpi/dptf/Kconfig           |   2 +-
- drivers/acpi/nfit/Kconfig           |   1 +
- drivers/char/ipmi/Kconfig           |   2 +-
- drivers/char/tpm/Kconfig            |   2 +-
- drivers/cpufreq/Kconfig             |   5 +-
- drivers/cpuidle/Kconfig             |   1 +
- drivers/crypto/Kconfig              |   1 +
- drivers/crypto/qat/Kconfig          |   6 +-
- drivers/devfreq/Kconfig             |   1 +
- drivers/firmware/Kconfig            |   2 +-
- drivers/fsi/Kconfig                 |   1 +
- drivers/gpu/drm/Kconfig             |   2 +-
- drivers/gpu/drm/gma500/Kconfig      |   2 +-
- drivers/gpu/drm/i915/Kconfig        |   2 +-
- drivers/gpu/drm/nouveau/Kconfig     |   2 +-
- drivers/gpu/drm/qxl/Kconfig         |   2 +-
- drivers/gpu/drm/vmwgfx/Kconfig      |   2 +-
- drivers/hwspinlock/Kconfig          |   1 +
- drivers/i2c/Kconfig                 |   2 +-
- drivers/infiniband/hw/usnic/Kconfig |   1 +
- drivers/iommu/Kconfig               |   2 +-
- drivers/mailbox/Kconfig             |   1 +
- drivers/md/Kconfig                  |   2 +-
- drivers/misc/mic/Kconfig            |   6 +-
- drivers/misc/vmw_vmci/Kconfig       |   2 +-
- drivers/net/caif/Kconfig            |   3 +-
- drivers/pci/Kconfig                 |   9 +-
- drivers/pci/hotplug/Kconfig         |   2 +-
- drivers/pci/pcie/Kconfig            |   2 +-
- drivers/platform/x86/Kconfig        |   2 +-
- drivers/power/avs/Kconfig           |   1 +
- drivers/power/reset/Kconfig         |   1 +
- drivers/powercap/Kconfig            |   1 +
- drivers/pwm/Kconfig                 |   1 +
- drivers/regulator/Kconfig           |   1 +
- drivers/remoteproc/Kconfig          |   3 +-
- drivers/reset/Kconfig               |   2 +-
- drivers/rpmsg/Kconfig               |   2 +-
- drivers/scsi/ufs/Kconfig            |   2 +-
- drivers/thermal/Kconfig             |   1 +
- drivers/virt/Kconfig                |   1 +
- drivers/virtio/Kconfig              |  13 ++-
- drivers/watchdog/Kconfig            |   1 +
- fs/Kconfig.binfmt                   |   1 +
- init/Kconfig                        |  33 +++---
- kernel/ipipe/Kconfig                |  12 ++-
- kernel/irq/Kconfig                  |   4 +-
- kernel/power/Kconfig                |   6 +-
- kernel/rcu/Kconfig.debug            |   8 +-
- kernel/trace/Kconfig                |   3 +-
- lib/Kconfig.debug                   | 152 ++++++++++++++++------------
- lib/Kconfig.kasan                   |   1 +
- lib/Kconfig.kgdb                    |   2 +-
- lib/Kconfig.ubsan                   |   1 +
- mm/Kconfig                          |   2 +-
- mm/Kconfig.debug                    |   6 +-
- samples/Kconfig                     |   1 +
- security/Kconfig                    |   6 +-
- 64 files changed, 283 insertions(+), 193 deletions(-)
+ arch/Kconfig                        |  5 +-
+ arch/x86/Kconfig                    | 75 ++++++++++++++++++-----------
+ arch/x86/Kconfig.debug              | 33 ++++++-------
+ arch/x86/events/Kconfig             |  1 +
+ arch/x86/kvm/Kconfig                |  1 +
+ drivers/acpi/Kconfig                | 26 ++++++----
+ drivers/acpi/apei/Kconfig           |  2 +-
+ drivers/acpi/dptf/Kconfig           |  2 +-
+ drivers/acpi/nfit/Kconfig           |  1 +
+ drivers/bus/Kconfig                 |  1 +
+ drivers/char/ipmi/Kconfig           |  2 +-
+ drivers/char/tpm/Kconfig            |  2 +-
+ drivers/clk/Kconfig                 |  2 +-
+ drivers/clocksource/Kconfig         | 21 ++++----
+ drivers/cpufreq/Kconfig             |  1 +
+ drivers/cpuidle/Kconfig             |  1 +
+ drivers/crypto/Kconfig              |  1 +
+ drivers/devfreq/Kconfig             |  1 +
+ drivers/firmware/Kconfig            |  2 +-
+ drivers/firmware/tegra/Kconfig      |  1 +
+ drivers/fsi/Kconfig                 |  1 +
+ drivers/gpu/drm/i915/Kconfig        |  2 +
+ drivers/gpu/drm/nouveau/Kconfig     | 12 +++--
+ drivers/hv/Kconfig                  |  1 +
+ drivers/hwspinlock/Kconfig          |  1 +
+ drivers/i2c/Kconfig                 |  2 +-
+ drivers/infiniband/hw/usnic/Kconfig |  1 +
+ drivers/iommu/Kconfig               |  2 +-
+ drivers/mailbox/Kconfig             |  1 +
+ drivers/memory/Kconfig              |  1 +
+ drivers/misc/mic/Kconfig            |  3 +-
+ drivers/misc/vmw_vmci/Kconfig       |  2 +-
+ drivers/net/caif/Kconfig            |  3 +-
+ drivers/of/Kconfig                  |  1 +
+ drivers/pci/Kconfig                 |  9 ++--
+ drivers/pci/hotplug/Kconfig         |  2 +-
+ drivers/pci/pcie/Kconfig            |  2 +-
+ drivers/perf/Kconfig                |  2 +-
+ drivers/pinctrl/Kconfig             |  2 +-
+ drivers/power/avs/Kconfig           |  1 +
+ drivers/power/reset/Kconfig         |  1 +
+ drivers/powercap/Kconfig            |  1 +
+ drivers/pwm/Kconfig                 |  1 +
+ drivers/regulator/Kconfig           |  1 +
+ drivers/remoteproc/Kconfig          |  4 +-
+ drivers/reset/Kconfig               |  1 +
+ drivers/rpmsg/Kconfig               |  3 +-
+ drivers/scsi/ufs/Kconfig            |  2 +-
+ drivers/soc/Kconfig                 |  1 +
+ drivers/virt/Kconfig                |  1 +
+ drivers/virtio/Kconfig              |  2 +
+ drivers/watchdog/Kconfig            |  1 +
+ fs/Kconfig.binfmt                   |  1 +
+ init/Kconfig                        | 39 ++++++++-------
+ kernel/ipipe/Kconfig                | 12 ++++-
+ kernel/irq/Kconfig                  |  4 +-
+ kernel/power/Kconfig                |  6 ++-
+ kernel/rcu/Kconfig.debug            |  8 +--
+ kernel/trace/Kconfig                |  3 +-
+ lib/Kconfig.debug                   | 40 +++++++++------
+ lib/Kconfig.kasan                   |  1 +
+ lib/Kconfig.kgdb                    |  2 +-
+ lib/Kconfig.ubsan                   |  1 +
+ lib/xz/Kconfig                      |  5 ++
+ mm/Kconfig                          |  3 +-
+ mm/Kconfig.debug                    |  6 ++-
+ samples/Kconfig                     |  1 +
+ security/Kconfig                    |  6 ++-
+ 68 files changed, 245 insertions(+), 144 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..782589f1cb1f 100644
@@ -116,7 +125,7 @@ index 77b3e21c4844..782589f1cb1f 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8409b9073422..3a27b3512ca3 100644
+index 6ac24aa7bbc0..d8dc135ee017 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -147,10 +147,6 @@ config X86
@@ -143,15 +152,15 @@ index 8409b9073422..3a27b3512ca3 100644
  	select IRQ_FORCED_THREADING
  	select PCI_LOCKLESS_CONFIG
  	select PERF_EVENTS
-@@ -428,7 +430,7 @@ config X86_MPPARSE
- 
- config X86_BIGSMP
- 	bool "Support for big SMP systems with more than 8 CPUs"
--	depends on X86_32 && SMP
-+	depends on X86_32 && SMP && !IPIPE
+@@ -421,7 +423,7 @@ config X86_X2APIC
+ config X86_MPPARSE
+ 	bool "Enable MPS table" if ACPI || SFI
+ 	default y
+-	depends on X86_LOCAL_APIC
++	depends on X86_LOCAL_APIC && !IPIPE
  	---help---
- 	  This option is needed for the systems that have more than 8 CPUs
- 
+ 	  For old smp systems that do not have proper acpi support. Newer systems
+ 	  (esp with 64bit cpus) with acpi support, MADT and DSDT will override it
 @@ -439,6 +441,7 @@ config GOLDFISH
  config RETPOLINE
  	bool "Avoid speculative indirect branches in kernel"
@@ -193,6 +202,24 @@ index 8409b9073422..3a27b3512ca3 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
+@@ -872,7 +878,7 @@ config DMI
+ config GART_IOMMU
+ 	bool "Old AMD GART IOMMU support"
+ 	select SWIOTLB
+-	depends on X86_64 && PCI && AMD_NB
++	depends on X86_64 && PCI && AMD_NB && !IPIPE
+ 	---help---
+ 	  Provides a driver for older AMD Athlon64/Opteron/Turion/Sempron
+ 	  GART based hardware IOMMUs.
+@@ -893,7 +899,7 @@ config GART_IOMMU
+ config CALGARY_IOMMU
+ 	bool "IBM Calgary IOMMU support"
+ 	select SWIOTLB
+-	depends on X86_64 && PCI
++	depends on X86_64 && PCI && !IPIPE
+ 	---help---
+ 	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
+ 	  systems. Needed to run systems with more than 3GB of memory
 @@ -944,6 +950,7 @@ config MAXSMP
  config NR_CPUS
  	int "Maximum number of CPUs" if SMP && !MAXSMP
@@ -268,6 +295,15 @@ index 8409b9073422..3a27b3512ca3 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
+@@ -1456,7 +1467,7 @@ config ARCH_HAS_MEM_ENCRYPT
+ 
+ config AMD_MEM_ENCRYPT
+ 	bool "AMD Secure Memory Encryption (SME) support"
+-	depends on X86_64 && CPU_SUP_AMD
++	depends on X86_64 && CPU_SUP_AMD && !IPIPE
+ 	---help---
+ 	  Say yes to enable support for the encryption of system memory.
+ 	  This requires an AMD processor that supports Secure Memory
 @@ -1485,6 +1496,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
@@ -312,7 +348,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1864,7 +1876,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1909,7 +1921,7 @@ endchoice
  
  config EFI
  	bool "EFI runtime service support"
@@ -321,7 +357,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	---help---
-@@ -1922,6 +1934,7 @@ source kernel/Kconfig.hz
+@@ -1967,6 +1979,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -329,7 +365,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -1941,9 +1954,8 @@ config KEXEC_FILE
+@@ -1986,9 +1999,8 @@ config KEXEC_FILE
  	bool "kexec file based system call"
  	select KEXEC_CORE
  	select BUILD_BIN2C
@@ -341,7 +377,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -1972,6 +1984,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -2017,6 +2029,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -349,7 +385,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2033,6 +2046,7 @@ config PHYSICAL_START
+@@ -2078,6 +2091,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -357,7 +393,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2149,7 +2163,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2194,7 +2208,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -366,7 +402,7 @@ index 8409b9073422..3a27b3512ca3 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2223,7 +2237,7 @@ config COMPAT_VDSO
+@@ -2268,7 +2282,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -375,7 +411,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2237,10 +2251,11 @@ choice
+@@ -2282,10 +2296,11 @@ choice
  	  static binaries, you can say None without a performance penalty
  	  to improve security.
  
@@ -388,7 +424,7 @@ index 8409b9073422..3a27b3512ca3 100644
  		help
  		  Actual executable code is located in the fixed vsyscall
  		  address mapping, implementing time() efficiently. Since
-@@ -2250,6 +2265,7 @@ choice
+@@ -2295,6 +2310,7 @@ choice
  
  	config LEGACY_VSYSCALL_EMULATE
  		bool "Emulate"
@@ -396,7 +432,7 @@ index 8409b9073422..3a27b3512ca3 100644
  		help
  		  The kernel traps and emulates calls into the fixed
  		  vsyscall address mapping. This makes the mapping
-@@ -2314,6 +2330,7 @@ config CMDLINE_OVERRIDE
+@@ -2359,6 +2375,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -404,7 +440,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2807,7 +2824,7 @@ source "fs/Kconfig.binfmt"
+@@ -2851,7 +2868,7 @@ source "fs/Kconfig.binfmt"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -413,7 +449,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2825,7 +2842,7 @@ config IA32_AOUT
+@@ -2869,7 +2886,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"
@@ -423,7 +459,7 @@ index 8409b9073422..3a27b3512ca3 100644
  	  Include code to run binaries for the x32 native 32-bit ABI
  	  for 64-bit processors.  An x32 process gets access to the
 diff --git a/arch/x86/Kconfig.debug b/arch/x86/Kconfig.debug
-index 6293a8768a91..9c5a69bbfd09 100644
+index bec0952c5595..96aefe9991db 100644
 --- a/arch/x86/Kconfig.debug
 +++ b/arch/x86/Kconfig.debug
 @@ -77,7 +77,7 @@ config X86_PTDUMP_CORE
@@ -465,8 +501,8 @@ index 6293a8768a91..9c5a69bbfd09 100644
  
  config X86_DECODER_SELFTEST
  	bool "x86 instruction decoder selftest"
--	depends on DEBUG_KERNEL && KPROBES
-+	depends on DEBUG_KERNEL && KPROBES && !IPIPE
+-	depends on DEBUG_KERNEL && INSTRUCTION_DECODER
++	depends on DEBUG_KERNEL && INSTRUCTION_DECODER && !IPIPE
  	depends on !COMPILE_TEST
  	---help---
  	 Perform x86 instruction decoder selftests at build time.
@@ -563,6 +599,25 @@ index 6293a8768a91..9c5a69bbfd09 100644
  	select FRAME_POINTER
  	---help---
  	  This option enables the frame pointer unwinder for unwinding kernel
+@@ -399,7 +399,6 @@ config UNWINDER_FRAME_POINTER
+ 
+ config UNWINDER_GUESS
+ 	bool "Guess unwinder"
+-	depends on EXPERT
+ 	---help---
+ 	  This option enables the "guess" unwinder for unwinding kernel stack
+ 	  traces.  It scans the stack and reports every kernel text address it
+diff --git a/arch/x86/events/Kconfig b/arch/x86/events/Kconfig
+index 9a7a1446cb3a..ddcb4d1ecb9a 100644
+--- a/arch/x86/events/Kconfig
++++ b/arch/x86/events/Kconfig
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ menu "Performance monitoring"
++	depends on !IPIPE
+ 
+ config PERF_EVENTS_INTEL_UNCORE
+ 	tristate "Intel uncore performance events"
 diff --git a/arch/x86/kvm/Kconfig b/arch/x86/kvm/Kconfig
 index 3df51c287844..4971a5b221ac 100644
 --- a/arch/x86/kvm/Kconfig
@@ -576,7 +631,7 @@ index 3df51c287844..4971a5b221ac 100644
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5b1938f4b626..50eef4b2764f 100644
+index 5b1938f4b626..79030050bcca 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -60,6 +60,7 @@ config ACPI_CCA_REQUIRED
@@ -613,24 +668,6 @@ index 5b1938f4b626..50eef4b2764f 100644
  	select POWER_SUPPLY
  	default y
  	help
-@@ -170,7 +172,7 @@ config ACPI_BATTERY
- 
- config ACPI_BUTTON
- 	tristate "Button"
--	depends on INPUT
-+	depends on INPUT && !IPIPE
- 	default y
- 	help
- 	  This driver handles events on the power, sleep, and lid buttons.
-@@ -184,7 +186,7 @@ config ACPI_BUTTON
- config ACPI_VIDEO
- 	tristate "Video"
- 	depends on X86 && BACKLIGHT_CLASS_DEVICE
--	depends on INPUT
-+	depends on INPUT && !IPIPE
- 	select THERMAL
- 	help
- 	  This driver implements the ACPI Extensions For Display Adapters
 @@ -209,6 +211,7 @@ config ACPI_FAN
  
  config ACPI_DOCK
@@ -699,6 +736,15 @@ index 5b1938f4b626..50eef4b2764f 100644
  	help
  	  This driver supports the Hardware Error Device (PNP0C33),
  	  which is used to report some hardware errors notified via
+@@ -426,7 +432,7 @@ config ACPI_HED
+ 
+ config ACPI_CUSTOM_METHOD
+ 	tristate "Allow ACPI methods to be inserted/replaced at run time"
+-	depends on DEBUG_FS
++	depends on DEBUG_FS && !IPIPE
+ 	default n
+ 	help
+ 	  This debug facility allows ACPI AML methods to be inserted and/or
 @@ -441,7 +447,7 @@ config ACPI_CUSTOM_METHOD
  
  config ACPI_BGRT
@@ -771,6 +817,18 @@ index f7c57e33499e..1c32def97b0d 100644
  	select LIBNVDIMM
  	help
  	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+index 3e66f4cc1a59..de575d012f79 100644
+--- a/drivers/bus/Kconfig
++++ b/drivers/bus/Kconfig
+@@ -4,6 +4,7 @@
+ #
+ 
+ menu "Bus devices"
++	depends on !IPIPE
+ 
+ config ARM_CCI
+ 	bool
 diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
 index f6fa056a52fc..764e68bf93b8 100644
 --- a/drivers/char/ipmi/Kconfig
@@ -797,36 +855,76 @@ index a30352202f1f..5a43a6a2877b 100644
  	select SECURITYFS
  	select CRYPTO
  	select CRYPTO_HASH_INFO
+diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+index 1c4e1aa6767e..e11a60f90c6e 100644
+--- a/drivers/clk/Kconfig
++++ b/drivers/clk/Kconfig
+@@ -20,7 +20,7 @@ config COMMON_CLK
+ 	  this option.
+ 
+ menu "Common Clock Framework"
+-	depends on COMMON_CLK
++	depends on COMMON_CLK && !IPIPE
+ 
+ config COMMON_CLK_WM831X
+ 	tristate "Clock driver for WM831x/2x PMICs"
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index cc6062049170..ba1c2f4613de 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -1,5 +1,15 @@
++
++config CLKEVT_I8253
++	bool
++
++config I8253_LOCK
++	bool
++
++config CLKBLD_I8253
++	def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
++
+ menu "Clock Source drivers"
+-	depends on !ARCH_USES_GETTIMEOFFSET
++	depends on !ARCH_USES_GETTIMEOFFSET && !IPIPE
+ 
+ config TIMER_OF
+ 	bool
+@@ -16,15 +26,6 @@ config TIMER_PROBE
+ config CLKSRC_I8253
+ 	bool
+ 
+-config CLKEVT_I8253
+-	bool
+-
+-config I8253_LOCK
+-	bool
+-
+-config CLKBLD_I8253
+-	def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
+-
+ config CLKSRC_MMIO
+ 	bool
+ 
 diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index d8addbce40bc..d3eeffdcbbdb 100644
+index d8addbce40bc..a1ee653fe505 100644
 --- a/drivers/cpufreq/Kconfig
 +++ b/drivers/cpufreq/Kconfig
-@@ -2,10 +2,11 @@ menu "CPU Frequency scaling"
+@@ -1,4 +1,5 @@
+ menu "CPU Frequency scaling"
++	depends on !IPIPE
  
  config CPU_FREQ
  	bool "CPU Frequency scaling"
-+	depends on !IPIPE
- 	select SRCU
- 	help
--	  CPU Frequency scaling allows you to change the clock speed of 
--	  CPUs on the fly. This is a nice method to save power, because 
-+	  CPU Frequency scaling allows you to change the clock speed of
-+	  CPUs on the fly. This is a nice method to save power, because
- 	  the lower the CPU clock speed, the less power the CPU consumes.
- 
- 	  Note that this driver doesn't automatically change the CPU
 diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 7e48eb5bf0a7..5fc81c3570fc 100644
+index 7e48eb5bf0a7..c2ea48faae46 100644
 --- a/drivers/cpuidle/Kconfig
 +++ b/drivers/cpuidle/Kconfig
-@@ -2,6 +2,7 @@ menu "CPU Idle"
+@@ -1,4 +1,5 @@
+ menu "CPU Idle"
++depends on !IPIPE
  
  config CPU_IDLE
  	bool "CPU idle PM support"
-+	depends on !IPIPE
- 	default y if ACPI || PPC_PSERIES
- 	select CPU_IDLE_GOV_LADDER if (!NO_HZ && !NO_HZ_IDLE)
- 	select CPU_IDLE_GOV_MENU if (NO_HZ || NO_HZ_IDLE)
 diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
 index 342bc777841c..0b22296d716e 100644
 --- a/drivers/crypto/Kconfig
@@ -839,39 +937,8 @@ index 342bc777841c..0b22296d716e 100644
  	default y
  	---help---
  	  Say Y here to get to see options for hardware crypto devices and
-diff --git a/drivers/crypto/qat/Kconfig b/drivers/crypto/qat/Kconfig
-index ce3cae40f949..a364b4cdeb86 100644
---- a/drivers/crypto/qat/Kconfig
-+++ b/drivers/crypto/qat/Kconfig
-@@ -47,7 +47,7 @@ config CRYPTO_DEV_QAT_C62X
- 
- config CRYPTO_DEV_QAT_DH895xCCVF
- 	tristate "Support for Intel(R) DH895xCC Virtual Function"
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	select PCI_IOV
- 	select CRYPTO_DEV_QAT
- 
-@@ -60,7 +60,7 @@ config CRYPTO_DEV_QAT_DH895xCCVF
- 
- config CRYPTO_DEV_QAT_C3XXXVF
- 	tristate "Support for Intel(R) C3XXX Virtual Function"
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	select PCI_IOV
- 	select CRYPTO_DEV_QAT
- 	help
-@@ -72,7 +72,7 @@ config CRYPTO_DEV_QAT_C3XXXVF
- 
- config CRYPTO_DEV_QAT_C62XVF
- 	tristate "Support for Intel(R) C62X Virtual Function"
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	select PCI_IOV
- 	select CRYPTO_DEV_QAT
- 	help
 diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
-index 6a172d338f6d..a6a9466dd1f8 100644
+index 4c4ec68b0566..dcc12c2f8448 100644
 --- a/drivers/devfreq/Kconfig
 +++ b/drivers/devfreq/Kconfig
 @@ -1,5 +1,6 @@
@@ -894,92 +961,92 @@ index 42c4ff75281b..05762eeeabb2 100644
  	default n
  	help
  	  Say Y or M here to enable the exporting of the QEMU firmware
+diff --git a/drivers/firmware/tegra/Kconfig b/drivers/firmware/tegra/Kconfig
+index ff2730d5c468..4cc867d3fe25 100644
+--- a/drivers/firmware/tegra/Kconfig
++++ b/drivers/firmware/tegra/Kconfig
+@@ -1,4 +1,5 @@
+ menu "Tegra firmware driver"
++	depends on !IPIPE
+ 
+ config TEGRA_IVC
+ 	bool "Tegra IVC protocol"
 diff --git a/drivers/fsi/Kconfig b/drivers/fsi/Kconfig
-index 6821ed0cd5e8..77fc81e47875 100644
+index 6821ed0cd5e8..23561e25b594 100644
 --- a/drivers/fsi/Kconfig
 +++ b/drivers/fsi/Kconfig
-@@ -6,6 +6,7 @@ menu "FSI support"
+@@ -3,6 +3,7 @@
+ #
+ 
+ menu "FSI support"
++	depends on !IPIPE
  
  config FSI
  	tristate "FSI support"
-+	depends on !IPIPE
- 	select CRC4
- 	---help---
- 	  FSI - the FRU Support Interface - is a simple bus for low-level
-diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
-index 83cb2a88c204..0a0549e88ce0 100644
---- a/drivers/gpu/drm/Kconfig
-+++ b/drivers/gpu/drm/Kconfig
-@@ -282,7 +282,7 @@ source "drivers/gpu/drm/pl111/Kconfig"
- 
- menuconfig DRM_LEGACY
- 	bool "Enable legacy drivers (DANGEROUS)"
--	depends on DRM && MMU
-+	depends on DRM && MMU && !IPIPE
- 	select DRM_VM
- 	help
- 	  Enable legacy DRI1 drivers. Those drivers expose unsafe and dangerous
-diff --git a/drivers/gpu/drm/gma500/Kconfig b/drivers/gpu/drm/gma500/Kconfig
-index df11582f1efc..a611cfad3528 100644
---- a/drivers/gpu/drm/gma500/Kconfig
-+++ b/drivers/gpu/drm/gma500/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_GMA500
- 	tristate "Intel GMA5/600 KMS Framebuffer"
--	depends on DRM && PCI && X86 && MMU
-+	depends on DRM && PCI && X86 && MMU && !IPIPE
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
- 	# GMA500 depends on ACPI_VIDEO when ACPI is enabled, just like i915
 diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index e9e64e8e9765..7cd3ff2ef066 100644
+index e9e64e8e9765..57f14648f644 100644
 --- a/drivers/gpu/drm/i915/Kconfig
 +++ b/drivers/gpu/drm/i915/Kconfig
-@@ -1,7 +1,7 @@
- config DRM_I915
- 	tristate "Intel 8xx/9xx/G3x/G4x/HD Graphics"
- 	depends on DRM
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	select INTEL_GTT
- 	select INTERVAL_TREE
- 	# we need shmfs for the swappable backing store, and in particular
+@@ -96,6 +96,7 @@ config DRM_I915_GVT
+         bool "Enable Intel GVT-g graphics virtualization host support"
+         depends on DRM_I915
+         depends on 64BIT
++        depends on !IPIPE
+         default n
+         help
+ 	  Choose this option if you want to enable Intel GVT-g graphics
+@@ -128,5 +129,6 @@ config DRM_I915_GVT_KVMGT
+ menu "drm/i915 Debugging"
+ depends on DRM_I915
+ depends on EXPERT
++depends on !IPIPE
+ source drivers/gpu/drm/i915/Kconfig.debug
+ endmenu
 diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
-index a0c0630a0857..edf91194d887 100644
+index a0c0630a0857..8542bef4802c 100644
 --- a/drivers/gpu/drm/nouveau/Kconfig
 +++ b/drivers/gpu/drm/nouveau/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_NOUVEAU
- 	tristate "Nouveau (NVIDIA) cards"
--	depends on DRM && PCI && MMU
-+	depends on DRM && PCI && MMU && !IPIPE
-         select FW_LOADER
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
-diff --git a/drivers/gpu/drm/qxl/Kconfig b/drivers/gpu/drm/qxl/Kconfig
-index 378da5918e6c..65f5d8d45694 100644
---- a/drivers/gpu/drm/qxl/Kconfig
-+++ b/drivers/gpu/drm/qxl/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_QXL
- 	tristate "QXL virtual GPU"
--	depends on DRM && PCI && MMU
-+	depends on DRM && PCI && MMU && !IPIPE
- 	select DRM_KMS_HELPER
- 	select DRM_TTM
- 	select CRC32
-diff --git a/drivers/gpu/drm/vmwgfx/Kconfig b/drivers/gpu/drm/vmwgfx/Kconfig
-index 8c308dac99c5..c887be0cc07d 100644
---- a/drivers/gpu/drm/vmwgfx/Kconfig
-+++ b/drivers/gpu/drm/vmwgfx/Kconfig
-@@ -1,6 +1,6 @@
- config DRM_VMWGFX
- 	tristate "DRM driver for VMware Virtual GPU"
--	depends on DRM && PCI && X86 && MMU
-+	depends on DRM && PCI && X86 && MMU && !IPIPE
- 	select FB_DEFERRED_IO
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
+@@ -42,14 +42,15 @@ config NOUVEAU_PLATFORM_DRIVER
+ config NOUVEAU_DEBUG
+ 	int "Maximum debug level"
+ 	depends on DRM_NOUVEAU
+-	range 0 7
+-	default 5
++	range 0 7 if !IPIPE
++	range 0 2 if IPIPE
++	default 2
+ 	help
+ 	  Selects the maximum debug level to compile support for.
+ 
+ 	  0 - fatal
+ 	  1 - error
+-	  2 - warning
++	  2 - warning (maximum if IPIPE enabled)
+ 	  3 - info
+ 	  4 - debug
+ 	  5 - trace (recommended)
+@@ -62,8 +63,9 @@ config NOUVEAU_DEBUG
+ config NOUVEAU_DEBUG_DEFAULT
+ 	int "Default debug level"
+ 	depends on DRM_NOUVEAU
+-	range 0 7
+-	default 3
++	range 0 7 if !IPIPE
++	range 0 2 if IPIPE
++	default 1
+ 	help
+ 	  Selects the default debug level
+ 
+diff --git a/drivers/hv/Kconfig b/drivers/hv/Kconfig
+index 247a62604d1f..d6858497460a 100644
+--- a/drivers/hv/Kconfig
++++ b/drivers/hv/Kconfig
+@@ -1,4 +1,5 @@
+ menu "Microsoft Hyper-V guest support"
++	depends on !IPIPE
+ 
+ config HYPERV
+ 	tristate "Microsoft Hyper-V client drivers"
 diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
 index 6e0a5539a9ea..91fd47ae4c29 100644
 --- a/drivers/hwspinlock/Kconfig
@@ -1041,34 +1108,23 @@ index c5731e5e3c6c..856e16ab82a9 100644
  	help
  	  Mailbox is a framework to control hardware communication between
  	  on-chip processors through queued messages and interrupt driven
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 4a249ee86364..e93c84d486cc 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -251,7 +251,7 @@ config DM_DEBUG_BLOCK_MANAGER_LOCKING
+diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
+index ffc350258041..ee9f7fe951d8 100644
+--- a/drivers/memory/Kconfig
++++ b/drivers/memory/Kconfig
+@@ -3,6 +3,7 @@
+ #
  
- config DM_DEBUG_BLOCK_STACK_TRACING
-        bool "Keep stack trace of persistent data block lock holders"
--       depends on STACKTRACE_SUPPORT && DM_DEBUG_BLOCK_MANAGER_LOCKING
-+       depends on STACKTRACE_SUPPORT && DM_DEBUG_BLOCK_MANAGER_LOCKING && !IPIPE
-        select STACKTRACE
-        ---help---
- 	 Enable this for messages that may help debug problems with the
+ menuconfig MEMORY
++	depends on !IPIPE
+ 	bool "Memory Controller drivers"
+ 
+ if MEMORY
 diff --git a/drivers/misc/mic/Kconfig b/drivers/misc/mic/Kconfig
-index 6fd9d367dea7..9b1f6f79e740 100644
+index 6fd9d367dea7..15c64ae8506e 100644
 --- a/drivers/misc/mic/Kconfig
 +++ b/drivers/misc/mic/Kconfig
-@@ -74,8 +74,7 @@ comment "Intel MIC Card Driver"
- config INTEL_MIC_CARD
- 	tristate "Intel MIC Card Driver"
- 	depends on 64BIT && X86
--	depends on INTEL_MIC_BUS && SCIF_BUS && MIC_COSM && VOP_BUS
--	select VIRTIO
-+	depends on INTEL_MIC_BUS && SCIF_BUS && MIC_COSM && VOP_BUS && VIRTIO
- 	help
- 	  This enables card driver support for the Intel Many Integrated
- 	  Core (MIC) device family. The card driver communicates shutdown/
-@@ -130,9 +129,8 @@ comment "VOP Driver"
+@@ -130,9 +130,8 @@ comment "VOP Driver"
  
  config VOP
  	tristate "VOP Driver"
@@ -1107,8 +1163,20 @@ index f81df91a9ce1..7b38ada49c0c 100644
  	select GENERIC_ALLOCATOR
  	default n
  	---help---
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index 6b8646db110c..346d510622eb 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -3,6 +3,7 @@ config DTC
+ 
+ menuconfig OF
+ 	bool "Device Tree and Open Firmware support"
++	depends on !IPIPE
+ 	help
+ 	  This option enables the device tree infrastructure.
+ 	  It is automatically selected by platforms that need it or can
 diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index c32a77fc8b03..22d8ce2c0b45 100644
+index c32a77fc8b03..47ed14a3aeaf 100644
 --- a/drivers/pci/Kconfig
 +++ b/drivers/pci/Kconfig
 @@ -41,7 +41,7 @@ config PCI_DEBUG
@@ -1151,7 +1219,7 @@ index c32a77fc8b03..22d8ce2c0b45 100644
  config PCI_HYPERV
          tristate "Hyper-V PCI Frontend"
          depends on PCI && X86 && HYPERV && PCI_MSI && PCI_MSI_IRQ_DOMAIN && X86_64
-+	depends on !IPIPE
++        depends on !IPIPE
          help
            The PCI device frontend driver allows the kernel to import arbitrary
            PCI devices from a PCI backend to support PCI driver domains.
@@ -1181,19 +1249,32 @@ index ac53edbc9613..8268928edb4b 100644
  	help
  	  This automatically enables PCI Express Port Bus support. Users can
  	  choose Native Hot-Plug support, Advanced Error Reporting support,
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 09035705d0a0..a7b3cbe24329 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -627,7 +627,7 @@ config ASUS_WIRELESS
+diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+index e5197ffb7422..1cb176f55d5d 100644
+--- a/drivers/perf/Kconfig
++++ b/drivers/perf/Kconfig
+@@ -3,7 +3,7 @@
+ #
  
- config ACPI_WMI
- 	tristate "WMI"
--	depends on ACPI
-+	depends on ACPI && !IPIPE
- 	help
- 	  This driver adds support for the ACPI-WMI (Windows Management
- 	  Instrumentation) mapper device (PNP0C14) found on some systems.
+ menu "Performance monitor support"
+-	depends on PERF_EVENTS
++	depends on PERF_EVENTS && !IPIPE
+ 
+ config ARM_PMU
+ 	depends on ARM || ARM64
+diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
+index a73c794bed03..83e3802045d7 100644
+--- a/drivers/pinctrl/Kconfig
++++ b/drivers/pinctrl/Kconfig
+@@ -6,7 +6,7 @@ config PINCTRL
+ 	bool
+ 
+ menu "Pin controllers"
+-	depends on PINCTRL
++	depends on PINCTRL && !IPIPE
+ 
+ config GENERIC_PINCTRL_GROUPS
+ 	bool
 diff --git a/drivers/power/avs/Kconfig b/drivers/power/avs/Kconfig
 index a67eeace6a89..5d2d8bc3653d 100644
 --- a/drivers/power/avs/Kconfig
@@ -1251,10 +1332,12 @@ index 0fd6195601ba..0d08d64b1718 100644
  	  Generic Voltage and Current Regulator support.
  
 diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index bf04479456a0..50c261ae8c89 100644
+index bf04479456a0..9978d103b7b7 100644
 --- a/drivers/remoteproc/Kconfig
 +++ b/drivers/remoteproc/Kconfig
-@@ -2,10 +2,9 @@ menu "Remoteproc drivers"
+@@ -1,11 +1,11 @@
+ menu "Remoteproc drivers"
++	depends on !IPIPE
  
  config REMOTEPROC
  	tristate "Support for Remote Processor subsystem"
@@ -1267,23 +1350,28 @@ index bf04479456a0..50c261ae8c89 100644
  	  Support for remote processors (such as DSP coprocessors). These
  	  are mainly used on embedded systems.
 diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
-index e2baecbb9dd3..8f5c51c2e30a 100644
+index e2baecbb9dd3..21c0d75217d0 100644
 --- a/drivers/reset/Kconfig
 +++ b/drivers/reset/Kconfig
-@@ -3,7 +3,7 @@ config ARCH_HAS_RESET_CONTROLLER
+@@ -3,6 +3,7 @@ config ARCH_HAS_RESET_CONTROLLER
  
  menuconfig RESET_CONTROLLER
  	bool "Reset Controller Support"
--	default y if ARCH_HAS_RESET_CONTROLLER
-+	default y if ARCH_HAS_RESET_CONTROLLER && !IPIPE
++	depends on !IPIPE
+ 	default y if ARCH_HAS_RESET_CONTROLLER
  	help
  	  Generic Reset Controller support.
- 
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-index 0fe6eac46512..2a54818008bc 100644
+index 0fe6eac46512..4eff9802b4ae 100644
 --- a/drivers/rpmsg/Kconfig
 +++ b/drivers/rpmsg/Kconfig
-@@ -48,7 +48,7 @@ config RPMSG_QCOM_SMD
+@@ -1,4 +1,5 @@
+ menu "Rpmsg drivers"
++depends on !IPIPE
+ 
+ # RPMSG always gets selected by whoever wants it
+ config RPMSG
+@@ -48,7 +49,7 @@ config RPMSG_QCOM_SMD
  
  config RPMSG_VIRTIO
  	tristate
@@ -1305,18 +1393,16 @@ index e27b4d4e6ae2..1b6017170e58 100644
  	select PM_DEVFREQ
  	select DEVFREQ_GOV_SIMPLE_ONDEMAND
  	select NLS
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index e3f0d1fd1720..6bca6fc8e643 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -4,6 +4,7 @@
- 
- menuconfig THERMAL
- 	tristate "Generic Thermal sysfs driver"
+diff --git a/drivers/soc/Kconfig b/drivers/soc/Kconfig
+index fc9e98047421..b65574cdd0d1 100644
+--- a/drivers/soc/Kconfig
++++ b/drivers/soc/Kconfig
+@@ -1,4 +1,5 @@
+ menu "SOC (System On Chip) specific Drivers"
 +	depends on !IPIPE
- 	help
- 	  Generic Thermal Sysfs driver offers a generic mechanism for
- 	  thermal management. Usually it's made up of one or more thermal
+ 
+ source "drivers/soc/actions/Kconfig"
+ source "drivers/soc/amlogic/Kconfig"
 diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
 index 99ebdde590f8..61e7cdb69899 100644
 --- a/drivers/virt/Kconfig
@@ -1330,46 +1416,25 @@ index 99ebdde590f8..61e7cdb69899 100644
  	  Say Y here to get to see options for device drivers that support
  	  virtualization environments.
 diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index cff773f15b7e..356e531959ed 100644
+index cff773f15b7e..5bea7c3ca9f4 100644
 --- a/drivers/virtio/Kconfig
 +++ b/drivers/virtio/Kconfig
-@@ -1,5 +1,6 @@
+@@ -1,11 +1,13 @@
  config VIRTIO
  	tristate
 +	depends on !IPIPE
  	---help---
  	  This option is selected by any driver which implements the virtio
  	  bus, such as CONFIG_VIRTIO_PCI, CONFIG_VIRTIO_MMIO, CONFIG_RPMSG
-@@ -9,8 +10,7 @@ menu "Virtio drivers"
+ 	  or CONFIG_S390_GUEST.
+ 
+ menu "Virtio drivers"
++	depends on !IPIPE
  
  config VIRTIO_PCI
  	tristate "PCI driver for virtio devices"
--	depends on PCI
--	select VIRTIO
-+	depends on PCI && VIRTIO
- 	---help---
- 	  This driver provides support for virtio based paravirtual device
- 	  drivers over PCI.  This requires that your VMM has appropriate PCI
-@@ -60,13 +60,12 @@ config VIRTIO_INPUT
- 
-  config VIRTIO_MMIO
- 	tristate "Platform bus driver for memory mapped virtio devices"
--	depends on HAS_IOMEM && HAS_DMA
-- 	select VIRTIO
-- 	---help---
-- 	 This drivers provides support for memory mapped virtio
-+	depends on HAS_IOMEM && HAS_DMA && VIRTIO
-+	---help---
-+	 This drivers provides support for memory mapped virtio
- 	 platform device driver.
- 
-- 	 If unsure, say N.
-+	 If unsure, say N.
- 
- config VIRTIO_MMIO_CMDLINE_DEVICES
- 	bool "Memory mapped virtio devices parameter parsing"
 diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index f55328a31629..2e3b670c3201 100644
+index fa15a683ae2d..4fdc31da7095 100644
 --- a/drivers/watchdog/Kconfig
 +++ b/drivers/watchdog/Kconfig
 @@ -5,6 +5,7 @@
@@ -1393,9 +1458,27 @@ index b2f82cf6bf86..2debf2a84334 100644
  	  If you say Y here, it will be possible to plug wrapper-driven binary
  	  formats into the kernel. You will like this especially when you use
 diff --git a/init/Kconfig b/init/Kconfig
-index 33cca939377e..a94cbc0bf838 100644
+index 33cca939377e..6f06a736c6a6 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
+@@ -65,7 +65,7 @@ config CROSS_COMPILE
+ 
+ config COMPILE_TEST
+ 	bool "Compile also drivers which will not load"
+-	depends on !UML
++	depends on !UML && !IPIPE
+ 	default n
+ 	help
+ 	  Some drivers can be compiled on a different platform than they are
+@@ -222,7 +222,7 @@ config DEFAULT_HOSTNAME
+ 
+ config SWAP
+ 	bool "Support for paging of anonymous memory (swap)"
+-	depends on MMU && BLOCK
++	depends on MMU && BLOCK && !IPIPE
+ 	default y
+ 	help
+ 	  This option allows you to choose whether you want to have support
 @@ -298,6 +298,7 @@ config FHANDLE
  
  config USELIB
@@ -1480,7 +1563,16 @@ index 33cca939377e..a94cbc0bf838 100644
  	help
  	  Enabling this option will pass "-Os" instead of "-O2" to
  	  your compiler resulting in a smaller kernel.
-@@ -1174,16 +1180,16 @@ config POSIX_TIMERS
+@@ -1090,8 +1096,6 @@ config BPF
+ 
+ menuconfig EXPERT
+ 	bool "Configure standard kernel features (expert users)"
+-	# Unhide debug options, to make the on-by-default options visible
+-	select DEBUG_KERNEL
+ 	help
+ 	  This option allows certain base kernel options and settings
+           to be disabled or tweaked. This is for specialized
+@@ -1174,16 +1178,16 @@ config POSIX_TIMERS
  	  If unsure say y.
  
  config KALLSYMS
@@ -1501,7 +1593,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	help
  	   Normally kallsyms only contains the symbols of functions for nicer
  	   OOPS messages and backtraces (i.e., symbols from the text and inittext
-@@ -1504,7 +1510,7 @@ config VM_EVENT_COUNTERS
+@@ -1504,7 +1508,7 @@ config VM_EVENT_COUNTERS
  config SLUB_DEBUG
  	default y
  	bool "Enable SLUB debugging support" if EXPERT
@@ -1510,7 +1602,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	help
  	  SLUB has extensive debug support features. Disabling these can
  	  result in significant savings in code size. This also disables
-@@ -1514,7 +1520,7 @@ config SLUB_DEBUG
+@@ -1514,7 +1518,7 @@ config SLUB_DEBUG
  config SLUB_MEMCG_SYSFS_ON
  	default n
  	bool "Enable memcg SLUB sysfs support by default" if EXPERT
@@ -1519,7 +1611,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	help
  	  SLUB creates a directory under /sys/kernel/slab for each
  	  allocation cache to host info and debug files. If memory
-@@ -1606,7 +1612,7 @@ config SLAB_FREELIST_HARDENED
+@@ -1606,7 +1610,7 @@ config SLAB_FREELIST_HARDENED
  
  config SLUB_CPU_PARTIAL
  	default y
@@ -1528,7 +1620,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	bool "SLUB per cpu partial cache"
  	help
  	  Per cpu partial caches accellerate objects allocation and freeing
-@@ -1741,6 +1747,7 @@ config MODULE_FORCE_UNLOAD
+@@ -1741,6 +1745,7 @@ config MODULE_FORCE_UNLOAD
  
  config MODVERSIONS
  	bool "Module versioning support"
@@ -1536,7 +1628,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	help
  	  Usually, you have to use modules compiled with your kernel.
  	  Saying Y here makes it sometimes possible to use modules
-@@ -1766,7 +1773,7 @@ config MODULE_SRCVERSION_ALL
+@@ -1766,7 +1771,7 @@ config MODULE_SRCVERSION_ALL
  
  config MODULE_SIG
  	bool "Module signature verification"
@@ -1545,7 +1637,7 @@ index 33cca939377e..a94cbc0bf838 100644
  	select SYSTEM_DATA_VERIFICATION
  	help
  	  Check modules for valid signatures upon load: the signature
-@@ -1881,7 +1888,7 @@ endchoice
+@@ -1881,7 +1886,7 @@ endchoice
  
  config TRIM_UNUSED_KSYMS
  	bool "Trim unused exported kernel symbols"
@@ -1688,18 +1780,9 @@ index 5f93356dd495..5af0e1637403 100644
  	  Enable the kernel tracing infrastructure.
  
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 8a84a77bde1a..b2890e198b6e 100644
+index 8a84a77bde1a..ff37109bcbed 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
-@@ -47,7 +47,7 @@ config MESSAGE_LOGLEVEL_DEFAULT
- 
- config BOOT_PRINTK_DELAY
- 	bool "Delay each boot printk message by N milliseconds"
--	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY
-+	depends on DEBUG_KERNEL && PRINTK && GENERIC_CALIBRATE_DELAY && !IPIPE
- 	help
- 	  This build option allows you to read kernel boot messages
- 	  by inserting a short delay after each one.  The delay is
 @@ -68,6 +68,7 @@ config DYNAMIC_DEBUG
  	default n
  	depends on PRINTK
@@ -1708,15 +1791,6 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  
  	  Compiles debug level messages into the kernel, which would not
-@@ -139,7 +140,7 @@ menu "Compile-time checks and compiler options"
- 
- config DEBUG_INFO
- 	bool "Compile the kernel with debug info"
--	depends on DEBUG_KERNEL && !COMPILE_TEST
-+	depends on DEBUG_KERNEL && !COMPILE_TEST && !IPIPE
- 	help
-           If you say Y here the resulting kernel image will include
- 	  debugging info resulting in a larger kernel image.
 @@ -230,7 +231,7 @@ config FRAME_WARN
  
  config STRIP_ASM_SYMS
@@ -1726,15 +1800,6 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  Strip internal assembler-generated symbols during a link (symbols
  	  that look like '.Lxxx') so they don't pollute the output of
-@@ -238,7 +239,7 @@ config STRIP_ASM_SYMS
- 
- config READABLE_ASM
-         bool "Generate readable assembler code"
--        depends on DEBUG_KERNEL
-+        depends on DEBUG_KERNEL && !IPIPE
-         help
-           Disable some compiler optimizations that tend to generate human unreadable
-           assembler output. This may make the kernel slightly slower, but it helps
 @@ -247,7 +248,8 @@ config READABLE_ASM
  
  config UNUSED_SYMBOLS
@@ -1745,15 +1810,6 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  Unused but exported symbols make the kernel needlessly bigger.  For
  	  that reason most of these unused exports will soon be removed.  This
-@@ -263,7 +265,7 @@ config UNUSED_SYMBOLS
- 
- config PAGE_OWNER
- 	bool "Track page owner"
--	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
-+	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT && !IPIPE
- 	select DEBUG_FS
- 	select STACKTRACE
- 	select STACKDEPOT
 @@ -307,6 +309,7 @@ config HEADERS_CHECK
  
  config DEBUG_SECTION_MISMATCH
@@ -1779,34 +1835,15 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	default n
  	help
  	  Add compile-time checks to validate stack metadata, including frame
-@@ -383,7 +387,7 @@ config STACK_VALIDATION
+@@ -436,6 +440,7 @@ source "kernel/ipipe/Kconfig.debug"
  
- config DEBUG_FORCE_WEAK_PER_CPU
- 	bool "Force weak per-cpu definitions"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
+ config DEBUG_KERNEL
+ 	bool "Kernel debugging"
++	depends on !IPIPE
  	help
- 	  s390 and alpha require percpu variables in modules to be
- 	  defined weak to work around addressing range issue which
-@@ -446,7 +450,7 @@ source mm/Kconfig.debug
- 
- config DEBUG_OBJECTS
- 	bool "Debug object operations"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  If you say Y here, additional code will be inserted into the
- 	  kernel to track the life time of various objects and validate
-@@ -507,7 +511,7 @@ config DEBUG_OBJECTS_ENABLE_DEFAULT
- 
- config DEBUG_SLAB
- 	bool "Debug slab memory allocations"
--	depends on DEBUG_KERNEL && SLAB
-+	depends on DEBUG_KERNEL && SLAB && !IPIPE
- 	help
- 	  Say Y here to have the kernel do limited verification on memory
- 	  allocation as well as poisoning memory on free to catch use of freed
-@@ -533,7 +537,7 @@ config SLUB_DEBUG_ON
+ 	  Say Y here if you are developing drivers or trying to debug and
+ 	  identify kernel problems.
+@@ -533,7 +538,7 @@ config SLUB_DEBUG_ON
  config SLUB_STATS
  	default n
  	bool "Enable SLUB performance statistics"
@@ -1815,43 +1852,7 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  SLUB statistics are useful to debug SLUBs allocation behavior in
  	  order find ways to optimize the allocator. This should never be
-@@ -548,7 +552,7 @@ config HAVE_DEBUG_KMEMLEAK
- 
- config DEBUG_KMEMLEAK
- 	bool "Kernel memory leak detector"
--	depends on DEBUG_KERNEL && HAVE_DEBUG_KMEMLEAK
-+	depends on DEBUG_KERNEL && HAVE_DEBUG_KMEMLEAK && !IPIPE
- 	select DEBUG_FS
- 	select STACKTRACE if STACKTRACE_SUPPORT
- 	select KALLSYMS
-@@ -598,7 +602,7 @@ config DEBUG_KMEMLEAK_DEFAULT_OFF
- 
- config DEBUG_STACK_USAGE
- 	bool "Stack utilization instrumentation"
--	depends on DEBUG_KERNEL && !IA64
-+	depends on DEBUG_KERNEL && !IA64 && !IPIPE
- 	help
- 	  Enables the display of the minimum amount of free stack which each
- 	  task has ever had available in the sysrq-T and sysrq-P debug output.
-@@ -607,7 +611,7 @@ config DEBUG_STACK_USAGE
- 
- config DEBUG_VM
- 	bool "Debug VM"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on extended checks in the virtual-memory system
-           that may impact performance.
-@@ -645,7 +649,7 @@ config ARCH_HAS_DEBUG_VIRTUAL
- 
- config DEBUG_VIRTUAL
- 	bool "Debug VM translations"
--	depends on DEBUG_KERNEL && ARCH_HAS_DEBUG_VIRTUAL
-+	depends on DEBUG_KERNEL && ARCH_HAS_DEBUG_VIRTUAL && !IPIPE
- 	help
- 	  Enable some costly sanity checks in virtual to page code. This can
- 	  catch mistakes with virt_to_page() and friends.
-@@ -698,6 +702,7 @@ config DEBUG_PER_CPU_MAPS
+@@ -698,6 +703,7 @@ config DEBUG_PER_CPU_MAPS
  	bool "Debug access to per_cpu maps"
  	depends on DEBUG_KERNEL
  	depends on SMP
@@ -1859,16 +1860,7 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  Say Y to verify that the per_cpu map being accessed has
  	  been set up. This adds a fair amount of code to kernel memory
-@@ -707,7 +712,7 @@ config DEBUG_PER_CPU_MAPS
- 
- config DEBUG_HIGHMEM
- 	bool "Highmem debugging"
--	depends on DEBUG_KERNEL && HIGHMEM
-+	depends on DEBUG_KERNEL && HIGHMEM && !IPIPE
- 	help
- 	  This option enables additional error checking for high memory
- 	  systems.  Disable for production systems.
-@@ -746,7 +751,7 @@ config ARCH_HAS_KCOV
+@@ -746,7 +752,7 @@ config ARCH_HAS_KCOV
  
  config KCOV
  	bool "Code coverage for fuzzing"
@@ -1877,87 +1869,37 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	select DEBUG_FS
  	select GCC_PLUGINS if !COMPILE_TEST
  	select GCC_PLUGIN_SANCOV if !COMPILE_TEST
-@@ -787,7 +792,7 @@ config LOCKUP_DETECTOR
+@@ -780,7 +786,15 @@ config DEBUG_SHIRQ
+ 	  Drivers ought to be able to handle interrupts coming in at those
+ 	  points; some don't and need to be caught.
  
- config SOFTLOCKUP_DETECTOR
- 	bool "Detect Soft Lockups"
--	depends on DEBUG_KERNEL && !S390
-+	depends on DEBUG_KERNEL && !S390 && !IPIPE
- 	select LOCKUP_DETECTOR
- 	help
- 	  Say Y here to enable the kernel to act as a watchdog to detect
-@@ -815,7 +820,7 @@ config HARDLOCKUP_CHECK_TIMESTAMP
++#
++# Enables a timestamp based low pass filter to compensate for perf based
++# hard lockup detection which runs too fast due to turbo modes.
++#
++config HARDLOCKUP_CHECK_TIMESTAMP
++	bool
++
+ menu "Debug Lockups and Hangs"
++	depends on !IPIPE
+ 
+ config LOCKUP_DETECTOR
+ 	bool
+@@ -802,13 +816,6 @@ config HARDLOCKUP_DETECTOR_PERF
+ 	bool
+ 	select SOFTLOCKUP_DETECTOR
+ 
+-#
+-# Enables a timestamp based low pass filter to compensate for perf based
+-# hard lockup detection which runs too fast due to turbo modes.
+-#
+-config HARDLOCKUP_CHECK_TIMESTAMP
+-	bool
+-
  #
- config HARDLOCKUP_DETECTOR
- 	bool "Detect Hard Lockups"
--	depends on DEBUG_KERNEL && !S390
-+	depends on DEBUG_KERNEL && !S390 && !IPIPE
- 	depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select LOCKUP_DETECTOR
- 	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF
-@@ -873,7 +878,7 @@ config BOOTPARAM_SOFTLOCKUP_PANIC_VALUE
- 
- config DETECT_HUNG_TASK
- 	bool "Detect Hung Tasks"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default SOFTLOCKUP_DETECTOR
- 	help
- 	  Say Y here to enable the kernel to detect "hung tasks",
-@@ -927,7 +932,7 @@ config BOOTPARAM_HUNG_TASK_PANIC_VALUE
- 
- config WQ_WATCHDOG
- 	bool "Detect Workqueue Stalls"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Say Y here to enable stall detection on workqueues.  If a
- 	  worker pool doesn't make forward progress on a pending work
-@@ -940,6 +945,7 @@ endmenu # "Debug lockups and hangs"
- 
- config PANIC_ON_OOPS
- 	bool "Panic on Oops"
-+	default y
- 	help
- 	  Say Y here to enable the kernel to panic when it oopses. This
- 	  has the same effect as setting oops=panic on the kernel command
-@@ -949,7 +955,7 @@ config PANIC_ON_OOPS
- 	  anything erroneous after an oops which could result in data
- 	  corruption or other issues.
- 
--	  Say N if unsure.
-+	  Say Y if unsure.
- 
- config PANIC_ON_OOPS_VALUE
- 	int
-@@ -968,7 +974,7 @@ config PANIC_TIMEOUT
- 
- config SCHED_DEBUG
- 	bool "Collect scheduler debugging info"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && PROC_FS && !IPIPE
- 	default y
- 	help
- 	  If you say Y here, the /proc/sched_debug file will be provided
-@@ -981,7 +987,7 @@ config SCHED_INFO
- 
- config SCHEDSTATS
- 	bool "Collect scheduler statistics"
--	depends on DEBUG_KERNEL && PROC_FS
-+	depends on DEBUG_KERNEL && PROC_FS && !IPIPE
- 	select SCHED_INFO
- 	help
- 	  If you say Y here, additional code will be inserted into the
-@@ -994,7 +1000,7 @@ config SCHEDSTATS
- 
- config SCHED_STACK_END_CHECK
- 	bool "Detect stack corruption on calls to schedule()"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default n
- 	help
- 	  This option checks for a stack overrun on calls to schedule().
-@@ -1006,6 +1012,7 @@ config SCHED_STACK_END_CHECK
+ # arch/ can define HAVE_HARDLOCKUP_DETECTOR_ARCH to provide their own hard
+ # lockup detector rather than the perf based detector.
+@@ -1006,6 +1013,7 @@ config SCHED_STACK_END_CHECK
  
  config DEBUG_TIMEKEEPING
  	bool "Enable extra timekeeping sanity checking"
@@ -1965,214 +1907,15 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  This option will enable additional timekeeping sanity checks
  	  which may be helpful when diagnosing issues where timekeeping
-@@ -1019,7 +1026,7 @@ config DEBUG_TIMEKEEPING
+@@ -1028,6 +1036,7 @@ config DEBUG_PREEMPT
+ 	  will detect preemption count underflows.
  
- config DEBUG_PREEMPT
- 	bool "Debug preemptible kernel"
--	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT
-+	depends on DEBUG_KERNEL && PREEMPT && TRACE_IRQFLAGS_SUPPORT && !IPIPE
- 	default y
- 	help
- 	  If you say Y here then the kernel will use a debug variant of the
-@@ -1031,14 +1038,14 @@ menu "Lock Debugging (spinlocks, mutexes, etc...)"
+ menu "Lock Debugging (spinlocks, mutexes, etc...)"
++	depends on !IPIPE
  
  config DEBUG_RT_MUTEXES
  	bool "RT Mutex debugging, deadlock detection"
--	depends on DEBUG_KERNEL && RT_MUTEXES
-+	depends on DEBUG_KERNEL && RT_MUTEXES && !IPIPE
- 	help
- 	 This allows rt mutex semantics violations and rt mutex related
- 	 deadlocks (lockups) to be detected and reported automatically.
- 
- config DEBUG_SPINLOCK
- 	bool "Spinlock and rw-lock debugging: basic checks"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select UNINLINE_SPIN_UNLOCK
- 	help
- 	  Say Y here and build SMP to catch missing spinlock initialization
-@@ -1048,7 +1055,7 @@ config DEBUG_SPINLOCK
- 
- config DEBUG_MUTEXES
- 	bool "Mutex debugging: basic checks"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	 This feature allows mutex semantics violations to be detected and
- 	 reported.
-@@ -1056,6 +1063,7 @@ config DEBUG_MUTEXES
- config DEBUG_WW_MUTEX_SLOWPATH
- 	bool "Wait/wound mutex debugging: Slowpath testing"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	depends on !IPIPE
- 	select DEBUG_LOCK_ALLOC
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
-@@ -1073,6 +1081,7 @@ config DEBUG_WW_MUTEX_SLOWPATH
- config DEBUG_LOCK_ALLOC
- 	bool "Lock debugging: detect incorrect freeing of live locks"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	depends on !IPIPE
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
- 	select DEBUG_RT_MUTEXES if RT_MUTEXES
-@@ -1088,6 +1097,7 @@ config DEBUG_LOCK_ALLOC
- config PROVE_LOCKING
- 	bool "Lock debugging: prove locking correctness"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	depends on !IPIPE
- 	select LOCKDEP
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
-@@ -1134,6 +1144,7 @@ config PROVE_LOCKING
- config LOCKDEP
- 	bool
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	depends on !IPIPE
- 	select STACKTRACE
- 	select FRAME_POINTER if !MIPS && !PPC && !ARM_UNWIND && !S390 && !MICROBLAZE && !ARC && !SCORE && !X86
- 	select KALLSYMS
-@@ -1145,6 +1156,7 @@ config LOCKDEP_SMALL
- config LOCK_STAT
- 	bool "Lock usage statistics"
- 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-+	depends on !IPIPE
- 	select LOCKDEP
- 	select DEBUG_SPINLOCK
- 	select DEBUG_MUTEXES
-@@ -1191,7 +1203,7 @@ config DEBUG_LOCKDEP
- config DEBUG_ATOMIC_SLEEP
- 	bool "Sleep inside atomic section checking"
- 	select PREEMPT_COUNT
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  If you say Y here, various routines which may sleep will become very
- 	  noisy if they are called inside atomic sections: when a spinlock is
-@@ -1200,7 +1212,7 @@ config DEBUG_ATOMIC_SLEEP
- 
- config DEBUG_LOCKING_API_SELFTESTS
- 	bool "Locking API boot-time self-tests"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Say Y here if you want the kernel to run a short self-test during
- 	  bootup. The self-test checks whether common types of locking bugs
-@@ -1211,7 +1223,7 @@ config DEBUG_LOCKING_API_SELFTESTS
- 
- config LOCK_TORTURE_TEST
- 	tristate "torture tests for locking"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select TORTURE_TEST
- 	default n
- 	help
-@@ -1226,6 +1238,7 @@ config LOCK_TORTURE_TEST
- 
- config WW_MUTEX_SELFTEST
- 	tristate "Wait/wound mutex selftests"
-+	depends on !IPIPE
- 	help
- 	  This option provides a kernel module that runs tests on the
- 	  on the struct ww_mutex locking API.
-@@ -1283,10 +1296,10 @@ config WARN_ALL_UNSEEDED_RANDOM
- 
- config DEBUG_KOBJECT
- 	bool "kobject debugging"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  If you say Y here, some extra kobject debugging messages will be sent
--	  to the syslog. 
-+	  to the syslog.
- 
- config DEBUG_KOBJECT_RELEASE
- 	bool "kobject release debugging"
-@@ -1330,7 +1343,7 @@ config DEBUG_LIST
- 
- config DEBUG_PI_LIST
- 	bool "Debug priority linked list manipulation"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on extended checks in the priority-ordered
- 	  linked-list (plist) walking routines.  This checks the entire
-@@ -1340,7 +1353,7 @@ config DEBUG_PI_LIST
- 
- config DEBUG_SG
- 	bool "Debug SG table operations"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on checks on scatter-gather tables. This can
- 	  help find problems with drivers that do not properly initialize
-@@ -1350,7 +1363,7 @@ config DEBUG_SG
- 
- config DEBUG_NOTIFIERS
- 	bool "Debug notifier call chains"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on sanity checking for notifier call chains.
- 	  This is most useful for kernel developers to make sure that
-@@ -1360,7 +1373,7 @@ config DEBUG_NOTIFIERS
- 
- config DEBUG_CREDENTIALS
- 	bool "Debug credential management"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this to turn on some debug checking for credential
- 	  management.  The additional code keeps track of the number of
-@@ -1377,7 +1390,7 @@ source "kernel/rcu/Kconfig.debug"
- 
- config DEBUG_WQ_FORCE_RR_CPU
- 	bool "Force round-robin CPU selection for unbound work items"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default n
- 	help
- 	  Workqueue used to implicitly guarantee that work items queued
-@@ -1392,8 +1405,7 @@ config DEBUG_WQ_FORCE_RR_CPU
- 
- config DEBUG_BLOCK_EXT_DEVT
-         bool "Force extended block device numbers and spread them"
--	depends on DEBUG_KERNEL
--	depends on BLOCK
-+	depends on DEBUG_KERNEL && BLOCK && !IPIPE
- 	default n
- 	help
- 	  BIG FAT WARNING: ENABLING THIS OPTION MIGHT BREAK BOOTING ON
-@@ -1432,7 +1444,7 @@ config CPU_HOTPLUG_STATE_CONTROL
- 
- config NOTIFIER_ERROR_INJECTION
- 	tristate "Notifier error injection"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select DEBUG_FS
- 	help
- 	  This option provides the ability to inject artificial errors to
-@@ -1507,7 +1519,7 @@ config NETDEV_NOTIFIER_ERROR_INJECT
- 
- config FAULT_INJECTION
- 	bool "Fault-injection framework"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  Provide fault-injection framework.
- 	  For more details, see Documentation/fault-injection/.
-@@ -1576,9 +1588,7 @@ config FAULT_INJECTION_STACKTRACE_FILTER
- 
- config LATENCYTOP
- 	bool "Latency measuring infrastructure"
--	depends on DEBUG_KERNEL
--	depends on STACKTRACE_SUPPORT
--	depends on PROC_FS
-+	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT && PROC_FS && !IPIPE
- 	select FRAME_POINTER if !MIPS && !PPC && !S390 && !MICROBLAZE && !ARM_UNWIND && !ARC && !X86
- 	select KALLSYMS
- 	select KALLSYMS_ALL
-@@ -1593,7 +1603,7 @@ source kernel/trace/Kconfig
+@@ -1593,7 +1602,7 @@ source kernel/trace/Kconfig
  
  config PROVIDE_OHCI1394_DMA_INIT
  	bool "Remote debugging over FireWire early on boot"
@@ -2181,7 +1924,7 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  If you want to debug problems which hang or crash the kernel early
  	  on boot and the crashing machine has a FireWire port, you can use
-@@ -1622,7 +1632,7 @@ config PROVIDE_OHCI1394_DMA_INIT
+@@ -1622,7 +1631,7 @@ config PROVIDE_OHCI1394_DMA_INIT
  
  config DMA_API_DEBUG
  	bool "Enable debugging of DMA-API usage"
@@ -2190,218 +1933,15 @@ index 8a84a77bde1a..b2890e198b6e 100644
  	help
  	  Enable this option to debug the use of the DMA API by device drivers.
  	  With this option you will be able to detect common bugs in device
-@@ -1643,8 +1653,7 @@ menu "Runtime Testing"
+@@ -1640,6 +1649,7 @@ config DMA_API_DEBUG
+ 	  If unsure, say N.
+ 
+ menu "Runtime Testing"
++	depends on !IPIPE
  
  config LKDTM
  	tristate "Linux Kernel Dump Test Tool Module"
--	depends on DEBUG_FS
--	depends on BLOCK
-+	depends on DEBUG_FS && BLOCK && !IPIPE
- 	default n
- 	help
- 	This module enables testing of the different dumping mechanisms by
-@@ -1659,6 +1668,7 @@ config LKDTM
- config TEST_LIST_SORT
- 	tristate "Linked list sorting test"
- 	depends on DEBUG_KERNEL || m
-+	depends on !IPIPE
- 	help
- 	  Enable this to turn on 'list_sort()' function test. This test is
- 	  executed only once during system boot (so affects only boot time),
-@@ -1669,6 +1679,7 @@ config TEST_LIST_SORT
- config TEST_SORT
- 	tristate "Array-based sort test"
- 	depends on DEBUG_KERNEL || m
-+	depends on !IPIPE
- 	help
- 	  This option enables the self-test function of 'sort()' at boot,
- 	  or at module load time.
-@@ -1677,8 +1688,7 @@ config TEST_SORT
- 
- config KPROBES_SANITY_TEST
- 	bool "Kprobes sanity tests"
--	depends on DEBUG_KERNEL
--	depends on KPROBES
-+	depends on DEBUG_KERNEL && KPROBES && !IPIPE
- 	default n
- 	help
- 	  This option provides for testing basic kprobes functionality on
-@@ -1689,7 +1699,7 @@ config KPROBES_SANITY_TEST
- 
- config BACKTRACE_SELF_TEST
- 	tristate "Self test for the backtrace code"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	default n
- 	help
- 	  This option provides a kernel module that can be used to test
-@@ -1704,21 +1714,21 @@ config BACKTRACE_SELF_TEST
- 
- config RBTREE_TEST
- 	tristate "Red-Black tree test"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	help
- 	  A benchmark measuring the performance of the rbtree library.
- 	  Also includes rbtree invariant checks.
- 
- config INTERVAL_TREE_TEST
- 	tristate "Interval tree test"
--	depends on DEBUG_KERNEL
-+	depends on DEBUG_KERNEL && !IPIPE
- 	select INTERVAL_TREE
- 	help
- 	  A benchmark measuring the performance of the interval tree library
- 
- config PERCPU_TEST
- 	tristate "Per cpu operations test"
--	depends on m && DEBUG_KERNEL
-+	depends on m && DEBUG_KERNEL && !IPIPE
- 	help
- 	  Enable this option to build test module which validates per-cpu
- 	  operations.
-@@ -1727,6 +1737,7 @@ config PERCPU_TEST
- 
- config ATOMIC64_SELFTEST
- 	tristate "Perform an atomic64_t self-test"
-+	depends on !IPIPE
- 	help
- 	  Enable this option to test the atomic64_t functions at boot or
- 	  at module load time.
-@@ -1735,7 +1746,7 @@ config ATOMIC64_SELFTEST
- 
- config ASYNC_RAID6_TEST
- 	tristate "Self test for hardware accelerated raid6 recovery"
--	depends on ASYNC_RAID6_RECOV
-+	depends on ASYNC_RAID6_RECOV && !IPIPE
- 	select ASYNC_MEMCPY
- 	---help---
- 	  This is a one-shot self test that permutes through the
-@@ -1748,18 +1759,23 @@ config ASYNC_RAID6_TEST
- 
- config TEST_HEXDUMP
- 	tristate "Test functions located in the hexdump module at runtime"
-+	depends on !IPIPE
- 
- config TEST_STRING_HELPERS
- 	tristate "Test functions located in the string_helpers module at runtime"
-+	depends on !IPIPE
- 
- config TEST_KSTRTOX
- 	tristate "Test kstrto*() family of functions at runtime"
-+	depends on !IPIPE
- 
- config TEST_PRINTF
- 	tristate "Test printf() family of functions at runtime"
-+	depends on !IPIPE
- 
- config TEST_BITMAP
- 	tristate "Test bitmap_*() family of functions at runtime"
-+	depends on !IPIPE
- 	default n
- 	help
- 	  Enable this option to test the bitmap functions at boot.
-@@ -1768,9 +1784,11 @@ config TEST_BITMAP
- 
- config TEST_UUID
- 	tristate "Test functions located in the uuid module at runtime"
-+	depends on !IPIPE
- 
- config TEST_RHASHTABLE
- 	tristate "Perform selftest on resizable hash table"
-+	depends on !IPIPE
- 	default n
- 	help
- 	  Enable this option to test the rhashtable functions at boot.
-@@ -1779,6 +1797,7 @@ config TEST_RHASHTABLE
- 
- config TEST_HASH
- 	tristate "Perform selftest on hash functions"
-+	depends on !IPIPE
- 	default n
- 	help
- 	  Enable this option to test the kernel's integer (<linux/hash.h>),
-@@ -1791,7 +1810,7 @@ config TEST_HASH
- config TEST_PARMAN
- 	tristate "Perform selftest on priority array manager"
- 	default n
--	depends on PARMAN
-+	depends on PARMAN && !IPIPE
- 	help
- 	  Enable this option to test priority array manager on boot
- 	  (or module load).
-@@ -1801,7 +1820,7 @@ config TEST_PARMAN
- config TEST_LKM
- 	tristate "Test module loading with 'hello world' module"
- 	default n
--	depends on m
-+	depends on m && !IPIPE
- 	help
- 	  This builds the "test_module" module that emits "Hello, world"
- 	  on printk when loaded. It is designed to be used for basic
-@@ -1815,7 +1834,7 @@ config TEST_LKM
- config TEST_USER_COPY
- 	tristate "Test user/kernel boundary protections"
- 	default n
--	depends on m
-+	depends on m && !IPIPE
- 	help
- 	  This builds the "test_user_copy" module that runs sanity checks
- 	  on the copy_to/from_user infrastructure, making sure basic
-@@ -1828,7 +1847,7 @@ config TEST_USER_COPY
- config TEST_BPF
- 	tristate "Test BPF filter functionality"
- 	default n
--	depends on m && NET
-+	depends on m && NET && !IPIPE
- 	help
- 	  This builds the "test_bpf" module that runs various test vectors
- 	  against the BPF interpreter or BPF JIT compiler depending on the
-@@ -1842,7 +1861,7 @@ config TEST_BPF
- config TEST_FIRMWARE
- 	tristate "Test firmware loading via userspace interface"
- 	default n
--	depends on FW_LOADER
-+	depends on FW_LOADER && !IPIPE
- 	help
- 	  This builds the "test_firmware" module that creates a userspace
- 	  interface for testing firmware loading. This can be used to
-@@ -1855,7 +1874,7 @@ config TEST_FIRMWARE
- config TEST_SYSCTL
- 	tristate "sysctl test driver"
- 	default n
--	depends on PROC_SYSCTL
-+	depends on PROC_SYSCTL && !IPIPE
- 	help
- 	  This builds the "test_sysctl" module. This driver enables to test the
- 	  proc sysctl interfaces available to drivers safely without affecting
-@@ -1866,6 +1885,7 @@ config TEST_SYSCTL
- config TEST_UDELAY
- 	tristate "udelay test driver"
- 	default n
-+	depends on !IPIPE
- 	help
- 	  This builds the "udelay_test" module that helps to make sure
- 	  that udelay() is working properly.
-@@ -1875,7 +1895,7 @@ config TEST_UDELAY
- config TEST_STATIC_KEYS
- 	tristate "Test static keys"
- 	default n
--	depends on m
-+	depends on m && !IPIPE
- 	help
- 	  Test the static key interfaces.
- 
-@@ -1884,7 +1904,7 @@ config TEST_STATIC_KEYS
- config TEST_KMOD
- 	tristate "kmod stress tester"
- 	default n
--	depends on m
-+	depends on m && !IPIPE
- 	depends on BLOCK && (64BIT || LBDAF)	  # for XFS, BTRFS
- 	depends on NETDEVICES && NET_CORE && INET # for TUN
- 	depends on BLOCK
-@@ -1923,7 +1943,7 @@ endmenu # runtime tests
+@@ -1923,7 +1933,7 @@ endmenu # runtime tests
  
  config MEMTEST
  	bool "Memtest"
@@ -2447,8 +1987,44 @@ index a669c193b878..17a668f8aefd 100644
  	help
  	  This option enables undefined behaviour sanity checker
  	  Compile-time instrumentation is used to detect various undefined
+diff --git a/lib/xz/Kconfig b/lib/xz/Kconfig
+index 12d2d777f36b..06552fb30990 100644
+--- a/lib/xz/Kconfig
++++ b/lib/xz/Kconfig
+@@ -16,26 +16,31 @@ config XZ_DEC_X86
+ config XZ_DEC_POWERPC
+ 	bool "PowerPC BCJ filter decoder" if EXPERT
+ 	default y
++	depends on PPC
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_IA64
+ 	bool "IA-64 BCJ filter decoder" if EXPERT
+ 	default y
++	depends on IA64
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_ARM
+ 	bool "ARM BCJ filter decoder" if EXPERT
+ 	default y
++	depends on ARM
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_ARMTHUMB
+ 	bool "ARM-Thumb BCJ filter decoder" if EXPERT
+ 	default y
++	depends on ARM_THUMB || ARM_THUMBEE
+ 	select XZ_DEC_BCJ
+ 
+ config XZ_DEC_SPARC
+ 	bool "SPARC BCJ filter decoder" if EXPERT
+ 	default y
++	depends on SPARC
+ 	select XZ_DEC_BCJ
+ 
+ endif
 diff --git a/mm/Kconfig b/mm/Kconfig
-index cc4d633947bf..a5641711e929 100644
+index cc4d633947bf..6b281b40d774 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -160,7 +160,7 @@ config HAVE_BOOTMEM_INFO_NODE
@@ -2460,6 +2036,14 @@ index cc4d633947bf..a5641711e929 100644
  
  config MEMORY_HOTPLUG_SPARSE
  	def_bool y
+@@ -753,6 +753,7 @@ config ARCH_HAS_PKEYS
+ config PERCPU_STATS
+ 	bool "Collect percpu memory statistics"
+ 	default n
++	depends on !IPIPE
+ 	help
+ 	  This feature collects and exposes statistics via debugfs. The
+ 	  information includes global and per chunk statistics, which can
 diff --git a/mm/Kconfig.debug b/mm/Kconfig.debug
 index e5e606ee5f71..1368ae779904 100644
 --- a/mm/Kconfig.debug
@@ -2547,5 +2131,5 @@ index 87f2a6f842fd..1dd3ec658282 100644
  	imply STRICT_DEVMEM
  	help
 -- 
-2.22.0
+2.25.1
 

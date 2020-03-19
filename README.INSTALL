@@ -6,14 +6,14 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 $ git clone https://github.com/NTULINUX/RTAI.git
 
-2.) Patch kernel with IPIPE, in this case we use 4.14.148
+2.) Patch kernel with IPIPE, in this case we use 4.14.173
 
 # rm -rf /usr/src/000*.patch /usr/src/linux
 # cd /usr/src
-# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.148.tar.xz
-# tar xf linux-4.14.148.tar.xz
-# ln -sfv linux-4.14.148 linux
-# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.14.148/*.patch /usr/src/
+# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.173.tar.xz
+# tar xf linux-4.14.173.tar.xz
+# ln -sfv linux-4.14.173 linux
+# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.14.173/*.patch /usr/src/
 # cd linux
 # patch -p1 < ../0001*.patch
 # patch -p1 < ../0002*.patch
@@ -24,7 +24,7 @@ $ git clone https://github.com/NTULINUX/RTAI.git
 
 Configure to your needs
 
-# make
+# make bzImage && make modules
 # make install && make modules_install
 
 === WARNING: Debian and Debian-based distro developers ===
@@ -73,7 +73,7 @@ $ make
 
 Configure LinuxCNC:
 
-$ cd src
+$ cd linuxcnc/src
 $ ./autogen.sh
 $ ./configure
 

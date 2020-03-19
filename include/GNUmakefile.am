@@ -14,7 +14,6 @@ nobase_include_HEADERS = \
 		rtai_fifos.h \
 		rtai_lxrt.h \
 		rtai_malloc.h \
-		rtai_math.h \
 		rtai_mbx.h \
 		rtai_msg.h \
 		rtai_nam2num.h \

@@ -11,6 +11,7 @@ CVS
 *.la
 *.swp
 *~
+src/math/musl/obj
 src/sched/fifos.c
 src/sched/kvmem.c
 src/sched/malloc.c
@@ -70,6 +71,3 @@ scripts/kconfig/libkconfig.so
 scripts/kconfig/lxdialog/lxdialog
 scripts/kconfig/mconf
 scripts/kconfig/zconf.tab.c
-
-# Grabbed in automatically from src/math Makefile
-src/math/musl

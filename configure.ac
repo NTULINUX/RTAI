@@ -18,6 +18,7 @@ AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
+AC_PREFIX_DEFAULT(/usr/realtime)
 LT_INIT
 RTAI_VERSION="5.2.3"
 
@@ -62,11 +63,9 @@ AC_MSG_RESULT([$KCONFIG_RESULT])
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
 
-dnl Safe default for kernel source, may be changed with --with-linux-dir
-if test x$CONFIG_RTAI_LINUXDIR = x ; then
-	CONFIG_RTAI_LINUXDIR="/lib/modules/$(uname -r)/build"
-fi
-RTAI_LINUX_DIR=$CONFIG_RTAI_LINUXDIR
+dnl Always use this directory unless otherwise specified by --with-linux-dir
+RTAI_LINUX_DIR="/lib/modules/$(uname -r)/build"
+CONFIG_RTAI_LINUXDIR=${RTAI_LINUX_DIR}
 
 AC_MSG_CHECKING([for Linux source tree])
 AC_ARG_WITH(linux-dir,
@@ -77,6 +76,7 @@ AC_ARG_WITH(linux-dir,
 		;;
 	esac
 	RTAI_LINUX_DIR="$withval"
+	CONFIG_RTAI_LINUXDIR="$withval"
 if test \! -r ${RTAI_LINUX_DIR}/arch/x86/Makefile; then
 	echo
 	AC_MSG_ERROR([No Linux kernel tree found in ${RTAI_LINUX_DIR}])
@@ -535,7 +535,7 @@ AC_ARG_ENABLE(cpus,
 	esac])
 if test x$CONFIG_RTAI_CPUS = x ; then
 	# Use a reasonable default if unset
-	CONFIG_RTAI_CPUS=4
+	CONFIG_RTAI_CPUS=8
 fi
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
 if test $CONFIG_RTAI_CPUS -lt 1 -o $CONFIG_RTAI_CPUS -gt 16 ; then
@@ -744,8 +744,8 @@ RTAI_KBUILD_CLEAN='rm -f *.ko *.mod.c .*.cmd *.o Module.symvers Module.markers m
 RTAI_KBUILD_DISTCLEAN=""
 
 dnl Extra options to be passed to the compiler
-RTAI_USER_CFLAGS="-O2 -fomit-frame-pointer -pipe"
-RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ffreestanding -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mfpmath=sse -msse -msse2 -Wno-undef"
+RTAI_USER_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -O2 -march=x86-64 -fomit-frame-pointer -pipe"
+RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -mcmodel=kernel -nostdinc -ffreestanding -fno-pic -fno-builtin -fno-common -fno-unwind-tables -fno-asynchronous-unwind-tables -frounding-math -fsignaling-nans -mieee-fp -mhard-float -mpreferred-stack-boundary=4 -mstackrealign -mfpmath=sse -msse -msse2"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
@@ -791,6 +791,7 @@ AC_CONFIG_FILES([ \
 	src/ipc/mbx/GNUmakefile \
 	src/malloc/GNUmakefile \
 	src/math/GNUmakefile \
+	src/math/musl/GNUmakefile \
 	scripts/GNUmakefile \
 	scripts/rtai-config \
 	scripts/rtai-load \

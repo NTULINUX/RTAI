@@ -10,27 +10,25 @@
 
 moduledir = @RTAI_MODULE_DIR@
 
-musl:
-	git clone --depth=1 git://git.musl-libc.org/musl \
-	&& cd musl && sed -i 's/-fPIC//g' Makefile \
-	&& CFLAGS="-O2 -mcmodel=kernel -fno-common -fno-pic" ./configure --disable-shared && $(MAKE) \
-	&& ar -dv lib/libc.a fwrite.o write.o fputs.o sprintf.o strcpy.o strlen.o memcpy.o memset.o \
-	&& ar -dv lib/libc.a cpow.o cpowf.o cpowl.o && cp lib/libc.a lib/libm.a
+libm:
+	$(MAKE) -C musl
 
-rtai_math.ko: musl
+rtai_math.ko: libm
 rtai_math.ko: @RTAI_KBUILD_ENV@
-rtai_math.ko: libm.c export_musl.h
+rtai_math.ko: rtai_libm.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
 	@RTAI_KBUILD_BOTTOM@
-	@echo -e "\nIgnore the many undefined symbol warnings above.\n"
+	rm -f libm
+	@echo -e "\nIgnore the undefined symbol warnings above.\n"
 	mv $@ $@.tmp
-	$(LD) -r -static -o $@ $@.tmp $(top_srcdir)/src/math/musl/lib/libm.a
+	$(LD) -r -static -o $@ $@.tmp musl/lib/libm.a
 	rm -f $@.tmp
 
 clean-local:
+	rm -f libm
+	$(MAKE) -C musl clean
 	@RTAI_KBUILD_CLEAN@
-	rm -rf musl
 
 all-local: rtai_math.ko
 	$(mkinstalldirs) $(top_srcdir)/modules

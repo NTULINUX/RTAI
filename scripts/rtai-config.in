@@ -67,10 +67,6 @@ while [[ "${#}" -gt "0" ]] ; do
 		--linux-ver*)
 			echo "${RTAI_LINUX_VERSION}"
 			;;
-		--full-linux-ver*)
-			source "${RTAI_LINUX_DIR}/.config"
-			echo "${RTAI_LINUX_VERSION}${CONFIG_LOCALVERSION}"
-			;;
 		--version)
 			echo "${RTAI_VERSION}"
 			;;
@@ -89,7 +85,6 @@ while [[ "${#}" -gt "0" ]] ; do
 	--lxrt-ldflags
 	--linux-dir
 	--linux-version
-	--full-linux-version
 	--module-dir
 	--library-dir
 	--version"

@@ -1,6 +1,6 @@
-From e5ac260c5e59d0557b2a9a2b90aaedbd5fcfad4f Mon Sep 17 00:00:00 2001
+From bf21dfc8295a632de3413ca407fecd656b90c2d9 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Mon, 7 Oct 2019 19:18:31 -0500
+Date: Mon, 16 Mar 2020 03:40:27 -0500
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
@@ -262,7 +262,7 @@ index 22d5e5be874a..7826f99d73c3 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 5e67035970c2..dc6309a39b16 100644
+index 08eb93a815a2..4369d4139412 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -86,6 +86,7 @@ int sysctl_sched_rt_runtime = 950000;
@@ -273,7 +273,7 @@ index 5e67035970c2..dc6309a39b16 100644
  
  /*
   * __task_rq_lock - lock the rq @p resides on.
-@@ -2773,55 +2774,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+@@ -2774,55 +2775,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
  /*
   * context_switch - switch to the new MM and the new thread's register state.
   */
@@ -370,5 +370,5 @@ index 5e67035970c2..dc6309a39b16 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.22.0
+2.25.1
 
