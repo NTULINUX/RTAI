@@ -9,7 +9,7 @@ BASE_OBJS = $(patsubst $(srcdir)/%,%.o,$(basename $(BASE_SRCS)))
 ALL_OBJS = $(addprefix obj/, $(sort $(BASE_OBJS)))
 LIBM_OBJS = $(filter obj/%,$(ALL_OBJS))
 
-CFLAGS = @RTAI_FP_CFLAGS@ -std=c99 -fexcess-precision=standard -pedantic
+CFLAGS = @RTAI_FP_CFLAGS@ -std=c99 -pedantic
 CFLAGS += -ffunction-sections -fdata-sections -Iobj/include -I$(srcdir)/include
 CFLAGS += -D_XOPEN_SOURCE=700 -Wa,--noexecstack -Wall -Werror
 
