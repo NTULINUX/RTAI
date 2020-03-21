@@ -6,14 +6,14 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 $ git clone https://github.com/NTULINUX/RTAI.git
 
-2.) Patch kernel with IPIPE, in this case we use 4.14.173
+2.) Patch kernel with IPIPE, in this case we use 4.14.174
 
 # rm -rf /usr/src/000*.patch /usr/src/linux
 # cd /usr/src
-# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.173.tar.xz
-# tar xf linux-4.14.173.tar.xz
-# ln -sfv linux-4.14.173 linux
-# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.14.173/*.patch /usr/src/
+# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.14.174.tar.xz
+# tar xf linux-4.14.174.tar.xz
+# ln -sfv linux-4.14.174 linux
+# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.14.174/*.patch /usr/src/
 # cd linux
 # patch -p1 < ../0001*.patch
 # patch -p1 < ../0002*.patch
