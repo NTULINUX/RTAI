@@ -1,4 +1,4 @@
-From 7ca47272a222fedaa4daaa288f2f7bd66d3ea240 Mon Sep 17 00:00:00 2001
+From 270d198c5e306f20f2420fbe65a6bb54f05222f3 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:39:58 -0500
 Subject: IPIPE 4.14 core release 8
@@ -90,7 +90,6 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/irqflags.h                |   12 +
  include/linux/irqnr.h                   |    4 +
  include/linux/kernel.h                  |    7 +-
- include/linux/kvm_host.h                |    4 +
  include/linux/preempt.h                 |   25 +-
  include/linux/printk.h                  |   11 +
  include/linux/rwlock.h                  |    8 +-
@@ -157,7 +156,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                        |    4 +
  mm/mprotect.c                           |   11 +-
  mm/vmalloc.c                            |    2 +
- 150 files changed, 10075 insertions(+), 395 deletions(-)
+ 149 files changed, 10071 insertions(+), 395 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -7372,21 +7371,6 @@ index bb7baecef002..5b8ef675cf45 100644
  #endif
  
  #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
-diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
-index 30376715a607..46d90f8cc8b9 100644
---- a/include/linux/kvm_host.h
-+++ b/include/linux/kvm_host.h
-@@ -219,6 +219,10 @@ struct kvm_vcpu {
- 	struct kvm *kvm;
- #ifdef CONFIG_PREEMPT_NOTIFIERS
- 	struct preempt_notifier preempt_notifier;
-+#endif
-+#ifdef CONFIG_IPIPE
-+	struct ipipe_vm_notifier ipipe_notifier;
-+	bool ipipe_put_vcpu;
- #endif
- 	int cpu;
- 	int vcpu_id;
 diff --git a/include/linux/preempt.h b/include/linux/preempt.h
 index 5bd3f151da78..5590141e8602 100644
 --- a/include/linux/preempt.h
