@@ -73,7 +73,7 @@ the headers folder
 
 cd RTAI (ie the level below the /debian. folder)
 ./autogen.sh (you have probably already done this)
-./debian/configure 4.14.148 rtai amd64
+./debian/configure 4.14.174 rtai amd64
 sudo dpkg-buildpackage
 (I tried without sudo and got "command not found")
 
