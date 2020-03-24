@@ -11,7 +11,7 @@ FEATURESET = @FEATURESET@
 # linux-headers package got installed to satisfy the build-dependency.
 FLAVOR=$(shell basename $(KERNEL_DIR) | sed -re 's/^linux-headers-$(KERNEL_VERSION)-$(FEATURESET)-//')
 
-KERNEL_DIR = $(shell ls -1d /usr/src/linux-headers-$(KERNEL_VERSION)-$(FEATURESET)-*)
+KERNEL_DIR = $(shell ls -1d /usr/src/linux-headers-$(KERNEL_VERSION)-$(FEATURESET)*)
 
 ARCH = $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 HOST = $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
@@ -31,8 +31,7 @@ build-stamp:
 	dh_testdir
 
 	# Build RTAI
-	# Shouldn't this line be ./autogen.sh $(CONFIGURE) instead?
-	./configure $(CONFIGURE)
+	./autogen.sh $(CONFIGURE)
 	$(MAKE) V=1
 	touch build-stamp
 

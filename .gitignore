@@ -35,8 +35,6 @@ m4/*
 latency
 display
 .libm.o.d
-debian/control
-debian/rules
 
 # Generated Makefiles
 GNUmakefile.in
@@ -63,7 +61,7 @@ stamp-h1
 # Executables
 src/sched/calibrate
 
-# KConfig Generated files
+# Kconfig Generated files
 scripts/kconfig/.config*
 scripts/kconfig/.ncurses
 scripts/kconfig/lex.zconf.c
@@ -71,3 +69,11 @@ scripts/kconfig/libkconfig.so
 scripts/kconfig/lxdialog/lxdialog
 scripts/kconfig/mconf
 scripts/kconfig/zconf.tab.c
+
+# Debian files
+build-stamp
+debian/.debhelper
+debian/control
+debian/rules
+debian/rtai*
+debian/files

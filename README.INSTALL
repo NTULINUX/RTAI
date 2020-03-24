@@ -27,22 +27,6 @@ Configure to your needs
 # make bzImage && make modules
 # make install && make modules_install
 
-=== WARNING: Debian and Debian-based distro developers ===
-
-If you are using kernel sources from git:
-
-Running simply `make deb-pkg` in the kernel source will add a "+" sign to the
-kernel version, regardless if CONFIG_LOCALVERSION is set in the kernel config.
-Using `make deb-pkg LOCALVERSION=<string>` when CONFIG_LOCALVERSION is empty will
-break compatibility of `rtai-config --full-linux-version` as that script uses
-CONFIG_LOCALVERSION from the kernel config, not what gets passed to `make deb-pkg`
-
-For building the kernel .deb package, the way to solve this by setting the kernel
-local version using the kernel's Kconfig interface located at "General setup ->
-Prompt: Local version - append to kernel release" then building the package using
-`deb-pkg LOCALVERSION=""` as this will prevent anything from being added to the
-kernel version. This method keeps functionality of `rtai-config --full-linux-version`
-
 3.) Update grub
 
 Refer to your distribution documentation to do this. Generally for newer distros:
@@ -67,15 +51,31 @@ $ make
 
 # make install
 
-To create an RTAI .deb package:
-Clean out anything in /usr/src that begins with linux-headers other than
-the headers folder
+=== To create an RTAI .deb package ===
 
-cd RTAI (ie the level below the /debian. folder)
-./autogen.sh (you have probably already done this)
-./debian/configure 4.14.174 rtai amd64
-sudo dpkg-buildpackage
-(I tried without sudo and got "command not found")
+Remove any previously installed RTAI packages:
+
+# apt-get purge linux-*-rtai* rtai-modules*
+
+Notice: You must run the command above from inside a directory that
+does not contain any .deb packages, otherwise you may see errors such as:
+
+E: Unable to locate package linux-4.14.174-rtai_4.14.174-rtai-1_amd64.changes
+
+$ cd ~/RTAI
+
+$ ./autogen.sh
+
+$ ./debian/configure 4.14.174 rtai
+
+FIXME: In some cases (undetermined as of yet) you may need to use this
+command instead:
+
+$ ./debian/configure 4.14.174 rtai amd64
+
+Now you are ready to build the actual package:
+
+$ dpkg-buildpackage -uc -us
 
 5.) LinuxCNC
 
