@@ -1,4 +1,4 @@
-From 1d8bfa0ec076a9811788ae48c9d9738d7c9e3051 Mon Sep 17 00:00:00 2001
+From a6b23c6dc48390e1076f23ee5ceb54940cf7b643 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -17,40 +17,35 @@ these drivers as a troubleshooting step.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
- arch/Kconfig                    |  5 ++-
- arch/x86/Kconfig                | 64 +++++++++++++++++++++------------
- arch/x86/Kconfig.debug          | 16 ++++-----
+ arch/Kconfig                    |  3 ++
+ arch/x86/Kconfig                | 70 +++++++++++++++++++++------------
+ arch/x86/Kconfig.debug          | 16 ++++----
  arch/x86/events/Kconfig         |  1 +
  arch/x86/kvm/Kconfig            |  1 +
- drivers/acpi/Kconfig            | 26 +++++++++-----
- drivers/acpi/apei/Kconfig       |  2 +-
+ drivers/acpi/Kconfig            | 24 +++++++----
  drivers/acpi/dptf/Kconfig       |  2 +-
  drivers/acpi/nfit/Kconfig       |  1 +
  drivers/bus/Kconfig             |  1 +
  drivers/char/ipmi/Kconfig       |  2 +-
  drivers/char/tpm/Kconfig        |  2 +-
  drivers/clk/Kconfig             |  2 +-
- drivers/clocksource/Kconfig     | 21 +++++------
+ drivers/clocksource/Kconfig     | 21 +++++-----
  drivers/cpufreq/Kconfig         |  1 +
  drivers/cpuidle/Kconfig         |  1 +
  drivers/crypto/Kconfig          |  1 +
  drivers/devfreq/Kconfig         |  1 +
- drivers/firmware/Kconfig        |  2 +-
  drivers/firmware/tegra/Kconfig  |  1 +
  drivers/fsi/Kconfig             |  1 +
- drivers/gpu/drm/i915/Kconfig    |  2 ++
- drivers/gpu/drm/nouveau/Kconfig | 12 ++++---
+ drivers/gpu/drm/i915/Kconfig    |  2 +
+ drivers/gpu/drm/nouveau/Kconfig | 12 +++---
  drivers/hv/Kconfig              |  1 +
  drivers/hwspinlock/Kconfig      |  1 +
  drivers/i2c/Kconfig             |  2 +-
  drivers/iommu/Kconfig           |  2 +-
  drivers/mailbox/Kconfig         |  1 +
  drivers/memory/Kconfig          |  1 +
- drivers/misc/mic/Kconfig        |  3 +-
- drivers/misc/vmw_vmci/Kconfig   |  2 +-
- drivers/net/caif/Kconfig        |  3 +-
  drivers/of/Kconfig              |  1 +
- drivers/pci/Kconfig             |  9 ++---
+ drivers/pci/Kconfig             |  9 +++--
  drivers/pci/hotplug/Kconfig     |  2 +-
  drivers/pci/pcie/Kconfig        |  2 +-
  drivers/perf/Kconfig            |  2 +-
@@ -60,44 +55,34 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/powercap/Kconfig        |  1 +
  drivers/pwm/Kconfig             |  1 +
  drivers/regulator/Kconfig       |  1 +
- drivers/remoteproc/Kconfig      |  4 +--
+ drivers/remoteproc/Kconfig      |  1 +
  drivers/reset/Kconfig           |  1 +
- drivers/rpmsg/Kconfig           |  3 +-
+ drivers/rpmsg/Kconfig           |  1 +
  drivers/scsi/ufs/Kconfig        |  2 +-
  drivers/soc/Kconfig             |  1 +
  drivers/virt/Kconfig            |  1 +
- drivers/virtio/Kconfig          |  2 ++
+ drivers/virtio/Kconfig          |  1 +
  drivers/watchdog/Kconfig        |  1 +
  fs/Kconfig.binfmt               |  1 +
- init/Kconfig                    | 29 ++++++++-------
- kernel/ipipe/Kconfig            | 14 +++++++-
- kernel/irq/Kconfig              |  4 +--
- kernel/power/Kconfig            |  6 ++--
+ init/Kconfig                    | 29 ++++++++------
+ kernel/ipipe/Kconfig            | 14 ++++++-
+ kernel/irq/Kconfig              |  4 +-
+ kernel/power/Kconfig            |  3 +-
  kernel/rcu/Kconfig.debug        |  2 +-
  kernel/trace/Kconfig            |  1 +
- lib/Kconfig.debug               | 37 +++++++++++--------
- lib/Kconfig.kasan               |  1 +
+ lib/Kconfig.debug               | 37 ++++++++++-------
  lib/Kconfig.ubsan               |  1 +
  lib/xz/Kconfig                  |  5 +++
  mm/Kconfig                      |  3 +-
- mm/Kconfig.debug                |  2 ++
+ mm/Kconfig.debug                |  2 +
  samples/Kconfig                 |  1 +
- security/Kconfig                |  6 ++--
- 66 files changed, 219 insertions(+), 116 deletions(-)
+ security/Kconfig                |  6 ++-
+ 60 files changed, 209 insertions(+), 106 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
-index 77b3e21c4844..782589f1cb1f 100644
+index 77b3e21c4844..414628a9d3e0 100644
 --- a/arch/Kconfig
 +++ b/arch/Kconfig
-@@ -402,7 +402,7 @@ config HAVE_GCC_PLUGINS
- menuconfig GCC_PLUGINS
- 	bool "GCC plugins"
- 	depends on HAVE_GCC_PLUGINS
--	depends on !COMPILE_TEST
-+	depends on !COMPILE_TEST && !IPIPE
- 	help
- 	  GCC plugins are loadable modules that provide extra features to the
- 	  compiler. They are useful for runtime instrumentation and static analysis.
 @@ -570,6 +570,7 @@ config CC_STACKPROTECTOR_REGULAR
  
  config CC_STACKPROTECTOR_STRONG
@@ -123,9 +108,34 @@ index 77b3e21c4844..782589f1cb1f 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 6ac24aa7bbc0..200b81d0ec04 100644
+index 6ac24aa7bbc0..a7ade657b2ea 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
+@@ -103,13 +103,13 @@ config X86
+ 	select GENERIC_STRNLEN_USER
+ 	select GENERIC_TIME_VSYSCALL
+ 	select HARDLOCKUP_CHECK_TIMESTAMP	if X86_64
+-	select HAVE_ACPI_APEI			if ACPI
++	select HAVE_ACPI_APEI			if ACPI && !IPIPE
+ 	select HAVE_ACPI_APEI_NMI		if ACPI
+ 	select HAVE_ALIGNED_STRUCT_PAGE		if SLUB
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_HUGE_VMAP		if X86_64 || X86_PAE
+ 	select HAVE_ARCH_JUMP_LABEL
+-	select HAVE_ARCH_KASAN			if X86_64
++	select HAVE_ARCH_KASAN			if X86_64 && !IPIPE
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
+@@ -139,7 +139,7 @@ config X86
+ 	select HAVE_FTRACE_MCOUNT_RECORD
+ 	select HAVE_FUNCTION_GRAPH_TRACER
+ 	select HAVE_FUNCTION_TRACER
+-	select HAVE_GCC_PLUGINS
++	select HAVE_GCC_PLUGINS			if !IPIPE
+ 	select HAVE_HW_BREAKPOINT
+ 	select HAVE_IDE
+ 	select HAVE_IOREMAP_PROT
 @@ -147,10 +147,6 @@ config X86
  	select HAVE_IRQ_TIME_ACCOUNTING
  	select HAVE_IPIPE_SUPPORT		if X86_64
@@ -519,7 +529,7 @@ index 3df51c287844..4971a5b221ac 100644
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5b1938f4b626..79030050bcca 100644
+index 5b1938f4b626..15395932f64b 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -60,6 +60,7 @@ config ACPI_CCA_REQUIRED
@@ -633,15 +643,6 @@ index 5b1938f4b626..79030050bcca 100644
  	default n
  	help
  	  This debug facility allows ACPI AML methods to be inserted and/or
-@@ -441,7 +447,7 @@ config ACPI_CUSTOM_METHOD
- 
- config ACPI_BGRT
- 	bool "Boottime Graphics Resource Table support"
--	depends on EFI && (X86 || ARM64)
-+	depends on EFI && (X86 || ARM64) && !IPIPE
-         help
- 	  This driver adds support for exposing the ACPI Boottime Graphics
- 	  Resource Table, which allows the operating system to obtain
 @@ -470,7 +476,7 @@ config ACPI_WATCHDOG
  
  config ACPI_EXTLOG
@@ -667,19 +668,6 @@ index 5b1938f4b626..79030050bcca 100644
  	select CONFIGFS_FS
  	help
  	  Select this option to enable support for ACPI configuration from
-diff --git a/drivers/acpi/apei/Kconfig b/drivers/acpi/apei/Kconfig
-index 52ae5438edeb..a871a3f546ae 100644
---- a/drivers/acpi/apei/Kconfig
-+++ b/drivers/acpi/apei/Kconfig
-@@ -10,7 +10,7 @@ config ACPI_APEI
- 	select MISC_FILESYSTEMS
- 	select PSTORE
- 	select UEFI_CPER
--	depends on HAVE_ACPI_APEI
-+	depends on HAVE_ACPI_APEI && !IPIPE
- 	help
- 	  APEI allows to report errors (for example from the chipset)
- 	  to the operating system. This improves NMI handling
 diff --git a/drivers/acpi/dptf/Kconfig b/drivers/acpi/dptf/Kconfig
 index 90a2fd979282..bc4189889638 100644
 --- a/drivers/acpi/dptf/Kconfig
@@ -836,19 +824,6 @@ index 4c4ec68b0566..dcc12c2f8448 100644
  	select SRCU
  	select PM_OPP
  	help
-diff --git a/drivers/firmware/Kconfig b/drivers/firmware/Kconfig
-index 42c4ff75281b..05762eeeabb2 100644
---- a/drivers/firmware/Kconfig
-+++ b/drivers/firmware/Kconfig
-@@ -186,7 +186,7 @@ config RASPBERRYPI_FIRMWARE
- config FW_CFG_SYSFS
- 	tristate "QEMU fw_cfg device support in sysfs"
- 	depends on SYSFS && (ARM || ARM64 || PPC_PMAC || SPARC || X86)
--	depends on HAS_IOPORT_MAP
-+	depends on HAS_IOPORT_MAP && !IPIPE
- 	default n
- 	help
- 	  Say Y or M here to enable the exporting of the QEMU firmware
 diff --git a/drivers/firmware/tegra/Kconfig b/drivers/firmware/tegra/Kconfig
 index ff2730d5c468..4cc867d3fe25 100644
 --- a/drivers/firmware/tegra/Kconfig
@@ -996,49 +971,6 @@ index ffc350258041..ee9f7fe951d8 100644
  	bool "Memory Controller drivers"
  
  if MEMORY
-diff --git a/drivers/misc/mic/Kconfig b/drivers/misc/mic/Kconfig
-index 6fd9d367dea7..15c64ae8506e 100644
---- a/drivers/misc/mic/Kconfig
-+++ b/drivers/misc/mic/Kconfig
-@@ -130,9 +130,8 @@ comment "VOP Driver"
- 
- config VOP
- 	tristate "VOP Driver"
--	depends on 64BIT && PCI && X86 && VOP_BUS
-+	depends on 64BIT && PCI && X86 && VOP_BUS && VIRTIO
- 	select VHOST_RING
--	select VIRTIO
- 	help
- 	  This enables VOP (Virtio over PCIe) Driver support for the Intel
- 	  Many Integrated Core (MIC) family of PCIe form factor coprocessor
-diff --git a/drivers/misc/vmw_vmci/Kconfig b/drivers/misc/vmw_vmci/Kconfig
-index 39c2ecadb273..34de99aff944 100644
---- a/drivers/misc/vmw_vmci/Kconfig
-+++ b/drivers/misc/vmw_vmci/Kconfig
-@@ -4,7 +4,7 @@
- 
- config VMWARE_VMCI
- 	tristate "VMware VMCI Driver"
--	depends on X86 && PCI
-+	depends on X86 && PCI && !IPIPE
- 	help
- 	  This is VMware's Virtual Machine Communication Interface.  It enables
- 	  high-speed communication between host and guest in a virtual
-diff --git a/drivers/net/caif/Kconfig b/drivers/net/caif/Kconfig
-index f81df91a9ce1..7b38ada49c0c 100644
---- a/drivers/net/caif/Kconfig
-+++ b/drivers/net/caif/Kconfig
-@@ -43,9 +43,8 @@ config CAIF_HSI
- 
- config CAIF_VIRTIO
- 	tristate "CAIF virtio transport driver"
--	depends on CAIF && HAS_DMA
-+	depends on CAIF && HAS_DMA && VIRTIO
- 	select VHOST_RING
--	select VIRTIO
- 	select GENERIC_ALLOCATOR
- 	default n
- 	---help---
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
 index 6b8646db110c..346d510622eb 100644
 --- a/drivers/of/Kconfig
@@ -1208,23 +1140,15 @@ index 0fd6195601ba..0d08d64b1718 100644
  	  Generic Voltage and Current Regulator support.
  
 diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index bf04479456a0..9978d103b7b7 100644
+index bf04479456a0..dc870599571d 100644
 --- a/drivers/remoteproc/Kconfig
 +++ b/drivers/remoteproc/Kconfig
-@@ -1,11 +1,11 @@
+@@ -1,4 +1,5 @@
  menu "Remoteproc drivers"
 +	depends on !IPIPE
  
  config REMOTEPROC
  	tristate "Support for Remote Processor subsystem"
--	depends on HAS_DMA
-+	depends on HAS_DMA && VIRTIO
- 	select CRC32
- 	select FW_LOADER
--	select VIRTIO
- 	help
- 	  Support for remote processors (such as DSP coprocessors). These
- 	  are mainly used on embedded systems.
 diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
 index e2baecbb9dd3..21c0d75217d0 100644
 --- a/drivers/reset/Kconfig
@@ -1238,24 +1162,15 @@ index e2baecbb9dd3..21c0d75217d0 100644
  	help
  	  Generic Reset Controller support.
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-index 0fe6eac46512..4eff9802b4ae 100644
+index 0fe6eac46512..4d12c4f82d18 100644
 --- a/drivers/rpmsg/Kconfig
 +++ b/drivers/rpmsg/Kconfig
 @@ -1,4 +1,5 @@
  menu "Rpmsg drivers"
-+depends on !IPIPE
++	depends on !IPIPE
  
  # RPMSG always gets selected by whoever wants it
  config RPMSG
-@@ -48,7 +49,7 @@ config RPMSG_QCOM_SMD
- 
- config RPMSG_VIRTIO
- 	tristate
-+	depends on VIRTIO
- 	select RPMSG
--	select VIRTIO
- 
- endmenu
 diff --git a/drivers/scsi/ufs/Kconfig b/drivers/scsi/ufs/Kconfig
 index e27b4d4e6ae2..1b6017170e58 100644
 --- a/drivers/scsi/ufs/Kconfig
@@ -1292,16 +1207,10 @@ index 99ebdde590f8..61e7cdb69899 100644
  	  Say Y here to get to see options for device drivers that support
  	  virtualization environments.
 diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index cff773f15b7e..5bea7c3ca9f4 100644
+index cff773f15b7e..b590336733d6 100644
 --- a/drivers/virtio/Kconfig
 +++ b/drivers/virtio/Kconfig
-@@ -1,11 +1,13 @@
- config VIRTIO
- 	tristate
-+	depends on !IPIPE
- 	---help---
- 	  This option is selected by any driver which implements the virtio
- 	  bus, such as CONFIG_VIRTIO_PCI, CONFIG_VIRTIO_MMIO, CONFIG_RPMSG
+@@ -6,6 +6,7 @@ config VIRTIO
  	  or CONFIG_S390_GUEST.
  
  menu "Virtio drivers"
@@ -1540,7 +1449,7 @@ index a117adf7084b..ea84542fcc6f 100644
  	---help---
  
 diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index dd2b5a4d89a5..00007dd41191 100644
+index dd2b5a4d89a5..8331a86fdac4 100644
 --- a/kernel/power/Kconfig
 +++ b/kernel/power/Kconfig
 @@ -1,6 +1,6 @@
@@ -1551,21 +1460,7 @@ index dd2b5a4d89a5..00007dd41191 100644
  	default y
  	---help---
  	  Allow the system to enter sleep states in which main memory is
-@@ -29,11 +29,12 @@ config SUSPEND_SKIP_SYNC
- 	  user-space before invoking suspend.  Say Y if that's your case.
- 
- config HIBERNATE_CALLBACKS
-+	depends on !IPIPE
- 	bool
- 
- config HIBERNATION
- 	bool "Hibernation (aka 'suspend to disk')"
--	depends on SWAP && ARCH_HIBERNATION_POSSIBLE
-+	depends on SWAP && ARCH_HIBERNATION_POSSIBLE && !IPIPE
- 	select HIBERNATE_CALLBACKS
- 	select LZO_COMPRESS
- 	select LZO_DECOMPRESS
-@@ -143,6 +144,7 @@ config PM_WAKELOCKS_GC
+@@ -143,6 +143,7 @@ config PM_WAKELOCKS_GC
  
  config PM
  	bool "Device power management core functionality"
@@ -1759,18 +1654,6 @@ index 8a84a77bde1a..8b0f4e4fdb00 100644
  	---help---
  	  This option adds a kernel parameter 'memtest', which allows memtest
  	  to be set.
-diff --git a/lib/Kconfig.kasan b/lib/Kconfig.kasan
-index 3d35d062970d..507adf6d287b 100644
---- a/lib/Kconfig.kasan
-+++ b/lib/Kconfig.kasan
-@@ -6,6 +6,7 @@ if HAVE_ARCH_KASAN
- config KASAN
- 	bool "KASan: runtime memory debugger"
- 	depends on SLUB || (SLAB && !DEBUG_SLAB)
-+	depends on !IPIPE
- 	select CONSTRUCTORS
- 	select STACKDEPOT
- 	help
 diff --git a/lib/Kconfig.ubsan b/lib/Kconfig.ubsan
 index a669c193b878..17a668f8aefd 100644
 --- a/lib/Kconfig.ubsan
