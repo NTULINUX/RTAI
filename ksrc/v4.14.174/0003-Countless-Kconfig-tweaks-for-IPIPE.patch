@@ -1,4 +1,4 @@
-From a6b23c6dc48390e1076f23ee5ceb54940cf7b643 Mon Sep 17 00:00:00 2001
+From 5582b2a090e7fc55b02c462c8f9a87b846dd5fb3 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -22,7 +22,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  arch/x86/Kconfig.debug          | 16 ++++----
  arch/x86/events/Kconfig         |  1 +
  arch/x86/kvm/Kconfig            |  1 +
- drivers/acpi/Kconfig            | 24 +++++++----
+ drivers/acpi/Kconfig            | 22 +++++++----
  drivers/acpi/dptf/Kconfig       |  2 +-
  drivers/acpi/nfit/Kconfig       |  1 +
  drivers/bus/Kconfig             |  1 +
@@ -77,7 +77,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig.debug                |  2 +
  samples/Kconfig                 |  1 +
  security/Kconfig                |  6 ++-
- 60 files changed, 209 insertions(+), 106 deletions(-)
+ 60 files changed, 208 insertions(+), 105 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..414628a9d3e0 100644
@@ -529,7 +529,7 @@ index 3df51c287844..4971a5b221ac 100644
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5b1938f4b626..15395932f64b 100644
+index 5b1938f4b626..3c2d5135c414 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -60,6 +60,7 @@ config ACPI_CCA_REQUIRED
@@ -582,15 +582,6 @@ index 5b1938f4b626..15395932f64b 100644
  	depends on X86 || IA64 || ARM64
  	select ACPI_PROCESSOR_IDLE
  	select ACPI_CPU_FREQ_PSS if X86 || IA64
-@@ -301,7 +305,7 @@ config ACPI_THERMAL
- config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
--	depends on (X86 || IA64 || ARM64)
-+	depends on (X86 || IA64 || ARM64) && !IPIPE
- 	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
- 
- config ACPI_CUSTOM_DSDT_FILE
 @@ -336,6 +340,7 @@ config ACPI_TABLE_UPGRADE
  
  config ACPI_DEBUG
@@ -1792,5 +1783,5 @@ index 87f2a6f842fd..1dd3ec658282 100644
  	imply STRICT_DEVMEM
  	help
 -- 
-2.26.0.rc2
+2.26.0
 
