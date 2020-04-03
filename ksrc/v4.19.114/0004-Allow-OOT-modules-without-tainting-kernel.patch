@@ -1,0 +1,37 @@
+From 5c32880ee2e410e741412cd2bf9dcda7514ea15f Mon Sep 17 00:00:00 2001
+From: Alec Ari <neotheuser@ymail.com>
+Date: Thu, 2 Apr 2020 19:57:35 -0500
+Subject: Allow OOT modules without tainting kernel
+
+This kernel is designed to run RTAI, so OOT (out-of-tree)
+modules are expected to load. The kernel may still get tainted,
+just never for this particular reason. A tainted kernel should
+be a sign of an actual problem, OOT is TOO trigger-happy (lol.)
+
+Signed-off-by: Alec Ari <neotheuser@ymail.com>
+---
+ kernel/module.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/module.c b/kernel/module.c
+index 40cfad871077..3cd6ed23c0e5 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -3045,12 +3045,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
+ 		return -ENOEXEC;
+ 	}
+ 
++	/* Don't taint the kernel just because we're running RTAI
+ 	if (!get_modinfo(info, "intree")) {
+ 		if (!test_taint(TAINT_OOT_MODULE))
+ 			pr_warn("%s: loading out-of-tree module taints kernel.\n",
+ 				mod->name);
+ 		add_taint_module(mod, TAINT_OOT_MODULE, LOCKDEP_STILL_OK);
+-	}
++	} */
+ 
+ 	check_modinfo_retpoline(mod, info);
+ 
+-- 
+2.26.0
+
