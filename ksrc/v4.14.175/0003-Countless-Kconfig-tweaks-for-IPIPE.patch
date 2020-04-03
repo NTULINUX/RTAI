@@ -1,4 +1,4 @@
-From 5582b2a090e7fc55b02c462c8f9a87b846dd5fb3 Mon Sep 17 00:00:00 2001
+From 31c2c974ede4b6a9ed580682d6496342ecfcb7ef Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -17,67 +17,71 @@ these drivers as a troubleshooting step.
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
- arch/Kconfig                    |  3 ++
- arch/x86/Kconfig                | 70 +++++++++++++++++++++------------
- arch/x86/Kconfig.debug          | 16 ++++----
- arch/x86/events/Kconfig         |  1 +
- arch/x86/kvm/Kconfig            |  1 +
- drivers/acpi/Kconfig            | 22 +++++++----
- drivers/acpi/dptf/Kconfig       |  2 +-
- drivers/acpi/nfit/Kconfig       |  1 +
- drivers/bus/Kconfig             |  1 +
- drivers/char/ipmi/Kconfig       |  2 +-
- drivers/char/tpm/Kconfig        |  2 +-
- drivers/clk/Kconfig             |  2 +-
- drivers/clocksource/Kconfig     | 21 +++++-----
- drivers/cpufreq/Kconfig         |  1 +
- drivers/cpuidle/Kconfig         |  1 +
- drivers/crypto/Kconfig          |  1 +
- drivers/devfreq/Kconfig         |  1 +
- drivers/firmware/tegra/Kconfig  |  1 +
- drivers/fsi/Kconfig             |  1 +
- drivers/gpu/drm/i915/Kconfig    |  2 +
- drivers/gpu/drm/nouveau/Kconfig | 12 +++---
- drivers/hv/Kconfig              |  1 +
- drivers/hwspinlock/Kconfig      |  1 +
- drivers/i2c/Kconfig             |  2 +-
- drivers/iommu/Kconfig           |  2 +-
- drivers/mailbox/Kconfig         |  1 +
- drivers/memory/Kconfig          |  1 +
- drivers/of/Kconfig              |  1 +
- drivers/pci/Kconfig             |  9 +++--
- drivers/pci/hotplug/Kconfig     |  2 +-
- drivers/pci/pcie/Kconfig        |  2 +-
- drivers/perf/Kconfig            |  2 +-
- drivers/pinctrl/Kconfig         |  2 +-
- drivers/power/avs/Kconfig       |  1 +
- drivers/power/reset/Kconfig     |  1 +
- drivers/powercap/Kconfig        |  1 +
- drivers/pwm/Kconfig             |  1 +
- drivers/regulator/Kconfig       |  1 +
- drivers/remoteproc/Kconfig      |  1 +
- drivers/reset/Kconfig           |  1 +
- drivers/rpmsg/Kconfig           |  1 +
- drivers/scsi/ufs/Kconfig        |  2 +-
- drivers/soc/Kconfig             |  1 +
- drivers/virt/Kconfig            |  1 +
- drivers/virtio/Kconfig          |  1 +
- drivers/watchdog/Kconfig        |  1 +
- fs/Kconfig.binfmt               |  1 +
- init/Kconfig                    | 29 ++++++++------
- kernel/ipipe/Kconfig            | 14 ++++++-
- kernel/irq/Kconfig              |  4 +-
- kernel/power/Kconfig            |  3 +-
- kernel/rcu/Kconfig.debug        |  2 +-
- kernel/trace/Kconfig            |  1 +
- lib/Kconfig.debug               | 37 ++++++++++-------
- lib/Kconfig.ubsan               |  1 +
- lib/xz/Kconfig                  |  5 +++
- mm/Kconfig                      |  3 +-
- mm/Kconfig.debug                |  2 +
- samples/Kconfig                 |  1 +
- security/Kconfig                |  6 ++-
- 60 files changed, 208 insertions(+), 105 deletions(-)
+ arch/Kconfig                         |  3 ++
+ arch/x86/Kconfig                     | 72 +++++++++++++++++-----------
+ arch/x86/Kconfig.debug               | 16 +++----
+ arch/x86/events/Kconfig              |  1 +
+ arch/x86/kvm/Kconfig                 |  1 +
+ drivers/acpi/Kconfig                 | 22 ++++++---
+ drivers/acpi/dptf/Kconfig            |  2 +-
+ drivers/acpi/nfit/Kconfig            |  1 +
+ drivers/bus/Kconfig                  |  1 +
+ drivers/char/ipmi/Kconfig            |  2 +-
+ drivers/char/tpm/Kconfig             |  2 +-
+ drivers/clk/Kconfig                  |  2 +-
+ drivers/clocksource/Kconfig          | 21 ++++----
+ drivers/cpufreq/Kconfig              |  1 +
+ drivers/cpuidle/Kconfig              |  1 +
+ drivers/crypto/Kconfig               |  1 +
+ drivers/devfreq/Kconfig              |  1 +
+ drivers/firmware/tegra/Kconfig       |  1 +
+ drivers/fsi/Kconfig                  |  1 +
+ drivers/gpu/drm/i915/Kconfig         |  2 +
+ drivers/gpu/drm/nouveau/Kconfig      | 12 +++--
+ drivers/hv/Kconfig                   |  1 +
+ drivers/hwspinlock/Kconfig           |  1 +
+ drivers/i2c/Kconfig                  |  2 +-
+ drivers/iommu/Kconfig                |  2 +-
+ drivers/mailbox/Kconfig              |  1 +
+ drivers/memory/Kconfig               |  1 +
+ drivers/mfd/Kconfig                  |  3 +-
+ drivers/net/ethernet/stmicro/Kconfig |  2 +-
+ drivers/of/Kconfig                   |  1 +
+ drivers/pci/Kconfig                  |  9 ++--
+ drivers/pci/hotplug/Kconfig          |  2 +-
+ drivers/pci/pcie/Kconfig             |  2 +-
+ drivers/perf/Kconfig                 |  2 +-
+ drivers/pinctrl/Kconfig              |  2 +-
+ drivers/power/avs/Kconfig            |  1 +
+ drivers/power/reset/Kconfig          |  1 +
+ drivers/powercap/Kconfig             |  1 +
+ drivers/pwm/Kconfig                  |  1 +
+ drivers/regulator/Kconfig            |  1 +
+ drivers/remoteproc/Kconfig           |  1 +
+ drivers/reset/Kconfig                |  1 +
+ drivers/rpmsg/Kconfig                |  1 +
+ drivers/scsi/ufs/Kconfig             |  2 +-
+ drivers/soc/Kconfig                  |  1 +
+ drivers/usb/chipidea/Kconfig         |  2 +-
+ drivers/virt/Kconfig                 |  1 +
+ drivers/virtio/Kconfig               |  1 +
+ drivers/watchdog/Kconfig             |  1 +
+ fs/Kconfig.binfmt                    |  1 +
+ init/Kconfig                         | 29 ++++++-----
+ kernel/ipipe/Kconfig                 | 14 +++++-
+ kernel/irq/Kconfig                   |  4 +-
+ kernel/power/Kconfig                 |  3 +-
+ kernel/rcu/Kconfig.debug             |  2 +-
+ kernel/trace/Kconfig                 |  1 +
+ lib/Kconfig.debug                    | 37 ++++++++------
+ lib/Kconfig.ubsan                    |  1 +
+ lib/xz/Kconfig                       |  5 ++
+ mm/Kconfig                           |  3 +-
+ mm/Kconfig.debug                     |  2 +
+ samples/Kconfig                      |  1 +
+ security/Kconfig                     |  6 ++-
+ sound/soc/Kconfig                    |  1 +
+ 64 files changed, 213 insertions(+), 110 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..414628a9d3e0 100644
@@ -108,7 +112,7 @@ index 77b3e21c4844..414628a9d3e0 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 6ac24aa7bbc0..a7ade657b2ea 100644
+index 6ac24aa7bbc0..88b485f5b22b 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -103,13 +103,13 @@ config X86
@@ -194,6 +198,15 @@ index 6ac24aa7bbc0..a7ade657b2ea 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
+@@ -616,7 +620,7 @@ config X86_INTEL_LPSS
+ 
+ config X86_AMD_PLATFORM_DEVICE
+ 	bool "AMD ACPI2Platform devices support"
+-	depends on ACPI
++	depends on ACPI && !IPIPE
+ 	select COMMON_CLK
+ 	select PINCTRL
+ 	---help---
 @@ -730,6 +734,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
@@ -962,6 +975,34 @@ index ffc350258041..ee9f7fe951d8 100644
  	bool "Memory Controller drivers"
  
  if MEMORY
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index fc5e4fef89d2..b83f8ad790f9 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1270,9 +1270,8 @@ config MFD_PALMAS
+ 
+ config TPS6105X
+ 	tristate "TI TPS61050/61052 Boost Converters"
+-	depends on I2C
++	depends on I2C && REGULATOR
+ 	select REGMAP_I2C
+-	select REGULATOR
+ 	select MFD_CORE
+ 	select REGULATOR_FIXED_VOLTAGE
+ 	help
+diff --git a/drivers/net/ethernet/stmicro/Kconfig b/drivers/net/ethernet/stmicro/Kconfig
+index ecd7a5edef5d..259c4abf0247 100644
+--- a/drivers/net/ethernet/stmicro/Kconfig
++++ b/drivers/net/ethernet/stmicro/Kconfig
+@@ -5,7 +5,7 @@
+ config NET_VENDOR_STMICRO
+ 	bool "STMicroelectronics devices"
+ 	default y
+-	depends on HAS_IOMEM
++	depends on HAS_IOMEM && !IPIPE
+ 	---help---
+ 	  If you have a network (Ethernet) card based on Synopsys Ethernet IP
+ 	  Cores, say Y.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
 index 6b8646db110c..346d510622eb 100644
 --- a/drivers/of/Kconfig
@@ -1185,6 +1226,20 @@ index fc9e98047421..b65574cdd0d1 100644
  
  source "drivers/soc/actions/Kconfig"
  source "drivers/soc/amlogic/Kconfig"
+diff --git a/drivers/usb/chipidea/Kconfig b/drivers/usb/chipidea/Kconfig
+index 51f4157bbecf..01364b5db043 100644
+--- a/drivers/usb/chipidea/Kconfig
++++ b/drivers/usb/chipidea/Kconfig
+@@ -1,8 +1,8 @@
+ config USB_CHIPIDEA
+ 	tristate "ChipIdea Highspeed Dual Role Controller"
+ 	depends on ((USB_EHCI_HCD && USB_GADGET) || (USB_EHCI_HCD && !USB_GADGET) || (!USB_EHCI_HCD && USB_GADGET)) && HAS_DMA
++	depends on RESET_CONTROLLER
+ 	select EXTCON
+-	select RESET_CONTROLLER
+ 	help
+ 	  Say Y here if your system has a dual role high speed USB
+ 	  controller based on ChipIdea silicon IP. It supports:
 diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
 index 99ebdde590f8..61e7cdb69899 100644
 --- a/drivers/virt/Kconfig
@@ -1782,6 +1837,18 @@ index 87f2a6f842fd..1dd3ec658282 100644
  	select BUG
  	imply STRICT_DEVMEM
  	help
+diff --git a/sound/soc/Kconfig b/sound/soc/Kconfig
+index c0abad2067e1..a66be407fb1d 100644
+--- a/sound/soc/Kconfig
++++ b/sound/soc/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig SND_SOC
+ 	tristate "ALSA for SoC audio support"
++	depends on !IPIPE
+ 	select SND_PCM
+ 	select AC97_BUS if SND_SOC_AC97_BUS
+ 	select SND_JACK
 -- 
 2.26.0
 
