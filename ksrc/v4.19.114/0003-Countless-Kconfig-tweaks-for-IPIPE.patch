@@ -1,4 +1,4 @@
-From 9bbca9a12505fed52126290b01e4ac44d01b8744 Mon Sep 17 00:00:00 2001
+From 907f1ca1118d651f01db24e508005461eb05a97b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Thu, 2 Apr 2020 19:56:35 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -25,6 +25,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/acpi/Kconfig                 | 22 +++++---
  drivers/acpi/dptf/Kconfig            |  2 +-
  drivers/acpi/nfit/Kconfig            |  1 +
+ drivers/ata/Kconfig                  |  3 +-
  drivers/bus/Kconfig                  |  1 +
  drivers/char/ipmi/Kconfig            |  2 +-
  drivers/char/tpm/Kconfig             |  2 +-
@@ -80,7 +81,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |  2 +-
  security/Kconfig                     |  6 ++-
  sound/soc/Kconfig                    |  1 +
- 63 files changed, 210 insertions(+), 112 deletions(-)
+ 64 files changed, 212 insertions(+), 113 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index a336548487e6..267a63a4f0d4 100644
@@ -685,6 +686,20 @@ index f7c57e33499e..1c32def97b0d 100644
  	select LIBNVDIMM
  	help
  	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index 99698d7fe585..567ed495daec 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -94,7 +94,8 @@ config SATA_AHCI
+ 
+ config SATA_MOBILE_LPM_POLICY
+ 	int "Default SATA Link Power Management policy for mobile chipsets"
+-	range 0 4
++	range 0 4 if !IPIPE
++	range 1 1 if IPIPE
+ 	default 0
+ 	depends on SATA_AHCI
+ 	help
 diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
 index 1851112ccc29..d405ccd607e6 100644
 --- a/drivers/bus/Kconfig
