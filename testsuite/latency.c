@@ -51,9 +51,9 @@ static double dot(double *a, double *b, int n)
 }
 
 static volatile int end;
-void endme(int sig) { end = 1; }
+void endme() { end = 1; }
 
-int main(char *argv[])
+int main(void)
 {
 	int diff;
 	int skip;
@@ -62,7 +62,6 @@ int main(char *argv[])
 	int max_diff;
 	int period;
 	int i;
-	RTIME t, svt;
 	RTIME expected, exectime[3];
 	MBX *mbx;
 	RT_TASK *task, *latchk;
@@ -96,7 +95,6 @@ int main(char *argv[])
 	rt_make_hard_real_time();
 	rt_task_make_periodic(task, expected = rt_get_tscnt() + 10*period, period);
 
-	svt = rt_get_cpu_time_ns();
 	samp.ovrn = i = 0;
 	while (!end) {
 		min_diff = 1000000000;
