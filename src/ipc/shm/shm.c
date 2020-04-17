@@ -264,14 +264,12 @@ static int rtai_shm_f_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	unsigned long name;
 	int size;
-	if (!vma->vm_ops) {
-		vma->vm_ops = &rtai_shm_vm_ops;
-		vma->vm_flags |= VM_LOCKED;
-		name = (unsigned long)(vma->vm_private_data = rtai_tskext(current, TSKEXT1));
-		rtai_tskext(current, TSKEXT1) = rtai_tskext(current, TSKEXT0) ? current : NULL;
-		return (size = rt_get_type(name)) < 0 ? rkmmap(ALIGN2PAGE(rt_get_adr(name)), -size, vma) : rvmmap(rt_get_adr(name), size, vma);
-	}
-	return -EFAULT;
+
+	vma->vm_ops = &rtai_shm_vm_ops;
+	vma->vm_flags |= VM_LOCKED;
+	name = (unsigned long)(vma->vm_private_data = rtai_tskext(current, TSKEXT1));
+	rtai_tskext(current, TSKEXT1) = rtai_tskext(current, TSKEXT0) ? current : NULL;
+	return (size = rt_get_type(name)) < 0 ? rkmmap(ALIGN2PAGE(rt_get_adr(name)), -size, vma) : rvmmap(rt_get_adr(name), size, vma);
 }
 
 static struct file_operations rtai_shm_fops = {
