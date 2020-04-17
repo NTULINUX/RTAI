@@ -1,4 +1,4 @@
-From de10a76bf4dcdff4889ee463bfb00dfbecd070c3 Mon Sep 17 00:00:00 2001
+From 5571ed0892f9fc0ae1da32f2ff75cb03d36c8270 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 16 Mar 2020 03:42:24 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -18,8 +18,8 @@ these drivers as a troubleshooting step.
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/Kconfig                         |  3 ++
- arch/x86/Kconfig                     | 72 +++++++++++++++++-----------
- arch/x86/Kconfig.debug               | 16 +++----
+ arch/x86/Kconfig                     | 74 +++++++++++++++++-----------
+ arch/x86/Kconfig.debug               | 16 +++---
  arch/x86/events/Kconfig              |  1 +
  arch/x86/kvm/Kconfig                 |  1 +
  drivers/acpi/Kconfig                 | 22 ++++++---
@@ -81,7 +81,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |  1 +
  security/Kconfig                     |  7 ++-
  sound/soc/Kconfig                    |  1 +
- 64 files changed, 214 insertions(+), 110 deletions(-)
+ 64 files changed, 215 insertions(+), 111 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index 77b3e21c4844..414628a9d3e0 100644
@@ -112,7 +112,7 @@ index 77b3e21c4844..414628a9d3e0 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 6ac24aa7bbc0..88b485f5b22b 100644
+index 6ac24aa7bbc0..161d62cdc3ed 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -103,13 +103,13 @@ config X86
@@ -125,8 +125,9 @@ index 6ac24aa7bbc0..88b485f5b22b 100644
  	select HAVE_ALIGNED_STRUCT_PAGE		if SLUB
  	select HAVE_ARCH_AUDITSYSCALL
  	select HAVE_ARCH_HUGE_VMAP		if X86_64 || X86_PAE
- 	select HAVE_ARCH_JUMP_LABEL
+-	select HAVE_ARCH_JUMP_LABEL
 -	select HAVE_ARCH_KASAN			if X86_64
++	select HAVE_ARCH_JUMP_LABEL		if !IPIPE
 +	select HAVE_ARCH_KASAN			if X86_64 && !IPIPE
  	select HAVE_ARCH_KGDB
  	select HAVE_ARCH_MMAP_RND_BITS		if MMU
