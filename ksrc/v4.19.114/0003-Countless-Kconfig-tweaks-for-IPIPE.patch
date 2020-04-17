@@ -1,4 +1,4 @@
-From 907f1ca1118d651f01db24e508005461eb05a97b Mon Sep 17 00:00:00 2001
+From d455026db60f525ed44a712d529cec034c0c2d4c Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Thu, 2 Apr 2020 19:56:35 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -79,9 +79,9 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/Kconfig                           |  3 +-
  mm/Kconfig.debug                     |  2 +
  samples/Kconfig                      |  2 +-
- security/Kconfig                     |  6 ++-
+ security/Kconfig                     |  7 ++-
  sound/soc/Kconfig                    |  1 +
- 64 files changed, 212 insertions(+), 113 deletions(-)
+ 64 files changed, 213 insertions(+), 113 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index a336548487e6..267a63a4f0d4 100644
@@ -1788,10 +1788,18 @@ index ad1ec7016d4c..9aec662a6b58 100644
  	  You can build and test sample kernel code here.
  
 diff --git a/security/Kconfig b/security/Kconfig
-index d9aa521b5206..39b7cce6edcb 100644
+index d9aa521b5206..e6af6a994adc 100644
 --- a/security/Kconfig
 +++ b/security/Kconfig
-@@ -22,6 +22,7 @@ config SECURITY
+@@ -8,6 +8,7 @@ source security/keys/Kconfig
+ 
+ config SECURITY_DMESG_RESTRICT
+ 	bool "Restrict unprivileged access to the kernel syslog"
++	depends on !IPIPE
+ 	default n
+ 	help
+ 	  This enforces restrictions on unprivileged users reading the kernel
+@@ -22,6 +23,7 @@ config SECURITY
  	bool "Enable different security models"
  	depends on SYSFS
  	depends on MULTIUSER
@@ -1799,7 +1807,7 @@ index d9aa521b5206..39b7cce6edcb 100644
  	help
  	  This allows you to choose different security modules to be
  	  configured into your kernel.
-@@ -38,6 +39,7 @@ config SECURITY_WRITABLE_HOOKS
+@@ -38,6 +40,7 @@ config SECURITY_WRITABLE_HOOKS
  
  config SECURITYFS
  	bool "Enable the securityfs filesystem"
@@ -1807,7 +1815,7 @@ index d9aa521b5206..39b7cce6edcb 100644
  	help
  	  This will build the securityfs filesystem.  It is currently used by
  	  the TPM bios character driver and IMA, an integrity provider.  It is
-@@ -57,7 +59,7 @@ config SECURITY_NETWORK
+@@ -57,7 +60,7 @@ config SECURITY_NETWORK
  config PAGE_TABLE_ISOLATION
  	bool "Remove the kernel mapping in user mode"
  	default y
@@ -1816,7 +1824,7 @@ index d9aa521b5206..39b7cce6edcb 100644
  	help
  	  This feature reduces the number of hardware side channels by
  	  ensuring that the majority of kernel addresses are not mapped
-@@ -152,7 +154,7 @@ config HAVE_HARDENED_USERCOPY_ALLOCATOR
+@@ -152,7 +155,7 @@ config HAVE_HARDENED_USERCOPY_ALLOCATOR
  
  config HARDENED_USERCOPY
  	bool "Harden memory copies between kernel and userspace"
