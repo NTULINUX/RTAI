@@ -132,6 +132,8 @@ __ISREL_DEF(greaterequall, >=, long double)
 #define isgreater(x, y)         __tg_pred_2(x, y, __isgreater)
 #define isgreaterequal(x, y)    __tg_pred_2(x, y, __isgreaterequal)
 
+double      acos(double);
+double      asin(double);
 double      atan(double);
 double      atan2(double, double);
 double      ceil(double);
@@ -139,8 +141,11 @@ double      cos(double);
 double      exp(double);
 double      fabs(double);
 double      floor(double);
+double      fmax(double, double);
+double      fmin(double, double);
 double      fmod(double, double);
 double      pow(double, double);
+double      round(double);
 double      scalbn(double, int);
 double      sin(double);
 double      sqrt(double);
