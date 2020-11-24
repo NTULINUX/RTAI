@@ -1,12 +1,13 @@
-From 9fe87739fe7f295ddf141097da9b49edfe42d32a Mon Sep 17 00:00:00 2001
+From 13572d653bc0430c8b8f6e68af0a3440f8f0d51d Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 24 Nov 2020 00:32:21 -0600
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
-several very important options for debugging. RTAI may cause
-kernel panics on some systems so it is a good idea to always
-have these on.
+several very important options for debugging, or those required
+for base RTAI functionality. RTAI may cause kernel panics
+so it is a good idea to always have these debugging features on.
+The options enabled do not cause an increase in overhead.
 
 Various other fixes and optimizations are included as well.
 
