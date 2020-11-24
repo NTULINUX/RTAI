@@ -29,12 +29,6 @@
 
 MODULE_LICENSE("GPL");
 
-void __stack_chk_fail(void)
-{
-	panic("rtai_math.ko stack-protector: Kernel stack is corrupted in: %p\n",
-	__builtin_return_address(0));
-}
-
 double acos(double x);
 double asin(double x);
 double atan(double x);
