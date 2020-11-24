@@ -1,4 +1,4 @@
-From fdee01d8e1e551163c910806652bc380db338f8b Mon Sep 17 00:00:00 2001
+From 9fe87739fe7f295ddf141097da9b49edfe42d32a Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 24 Nov 2020 00:32:21 -0600
 Subject: Countless Kconfig tweaks for IPIPE
@@ -68,7 +68,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/watchdog/Kconfig             |  1 +
  fs/Kconfig.binfmt                    |  1 +
  init/Kconfig                         | 31 +++++++-----
- kernel/ipipe/Kconfig                 | 14 ++++-
+ kernel/ipipe/Kconfig                 | 18 ++++++-
  kernel/irq/Kconfig                   |  2 +-
  kernel/power/Kconfig                 |  3 +-
  kernel/rcu/Kconfig.debug             |  2 +-
@@ -81,7 +81,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |  2 +-
  security/Kconfig                     |  7 ++-
  sound/soc/Kconfig                    |  1 +
- 64 files changed, 213 insertions(+), 113 deletions(-)
+ 64 files changed, 217 insertions(+), 113 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
 index a336548487e6..267a63a4f0d4 100644
@@ -1453,16 +1453,19 @@ index 77ae948b7e98..e0bb438e31b1 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f1f5..a50e221aa97a 100644
+index d17edb89f1f5..d3cb20f26a8d 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -6,7 +6,19 @@ config HAVE_IPIPE_SUPPORT
+@@ -6,7 +6,23 @@ config HAVE_IPIPE_SUPPORT
  config IPIPE
  	bool "Interrupt pipeline"
  	depends on HAVE_IPIPE_SUPPORT
 -	default n
 +	default y
 +	select ACPI
++	select PCI
++	select MODULES
++	select MODULE_UNLOAD
 +	select BUG
 +	select DEBUG_BUGVERBOSE
 +	select HIGH_RES_TIMERS
@@ -1472,6 +1475,7 @@ index d17edb89f1f5..a50e221aa97a 100644
 +	select PROC_FS
 +	select SCHED_OMIT_FRAME_POINTER
 +	select X86_FAST_FEATURE_TESTS if EMBEDDED
++	select POSIX_TIMERS if EXPERT
 +	select X86_IO_APIC
 +	select X86_PM_TIMER
  	---help---
