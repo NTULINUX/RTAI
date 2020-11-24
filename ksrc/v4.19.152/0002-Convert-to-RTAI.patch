@@ -1,6 +1,6 @@
-From 53c42648dd9732b09e64b1d8a76f2bfcbc7919ae Mon Sep 17 00:00:00 2001
+From aebeff1a5bfc40a24b3c8cf8fcde9682290a4c6b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Thu, 2 Apr 2020 19:28:22 -0500
+Date: Tue, 24 Nov 2020 00:31:45 -0600
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
@@ -13,10 +13,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  5 files changed, 79 insertions(+), 98 deletions(-)
 
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
-index afe730649a5f..50029a01f068 100644
+index 81e0889a8298..f36feb92726d 100644
 --- a/arch/x86/kernel/ipipe.c
 +++ b/arch/x86/kernel/ipipe.c
-@@ -279,15 +279,9 @@ EXPORT_SYMBOL_GPL(ipipe_set_irq_affinity);
+@@ -263,15 +263,9 @@ EXPORT_SYMBOL_GPL(ipipe_set_irq_affinity);
  
  void ipipe_send_ipi(unsigned int ipi, cpumask_t cpumask)
  {
@@ -262,10 +262,10 @@ index 5354cddb643d..56df773b0971 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ced9b460acaa..e208fc5c5584 100644
+index 986d97ee83f2..21f03c93a31e 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2792,55 +2792,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+@@ -2794,55 +2794,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
  /*
   * context_switch - switch to the new MM and the new thread's register state.
   */
@@ -361,5 +361,5 @@ index ced9b460acaa..e208fc5c5584 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.26.0
+2.29.2
 

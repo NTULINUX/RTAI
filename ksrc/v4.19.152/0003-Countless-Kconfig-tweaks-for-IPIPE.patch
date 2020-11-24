@@ -1,6 +1,6 @@
-From d455026db60f525ed44a712d529cec034c0c2d4c Mon Sep 17 00:00:00 2001
+From fdee01d8e1e551163c910806652bc380db338f8b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Thu, 2 Apr 2020 19:56:35 -0500
+Date: Tue, 24 Nov 2020 00:32:21 -0600
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -105,7 +105,7 @@ index a336548487e6..267a63a4f0d4 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index f17679112af9..d9fa8e53b677 100644
+index 62ce599346fa..3bb8c506bffa 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -113,13 +113,13 @@ config X86
@@ -182,7 +182,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -611,7 +615,7 @@ config X86_INTEL_QUARK
+@@ -612,7 +616,7 @@ config X86_INTEL_QUARK
  
  config X86_INTEL_LPSS
  	bool "Intel Low Power Subsystem Support"
@@ -191,7 +191,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
-@@ -623,7 +627,7 @@ config X86_INTEL_LPSS
+@@ -624,7 +628,7 @@ config X86_INTEL_LPSS
  
  config X86_AMD_PLATFORM_DEVICE
  	bool "AMD ACPI2Platform devices support"
@@ -200,7 +200,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select COMMON_CLK
  	select PINCTRL
  	---help---
-@@ -738,6 +742,7 @@ config SCHED_OMIT_FRAME_POINTER
+@@ -739,6 +743,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
  	bool "Linux guest support"
@@ -208,7 +208,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -890,7 +895,7 @@ config GART_IOMMU
+@@ -891,7 +896,7 @@ config GART_IOMMU
  	bool "Old AMD GART IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -217,7 +217,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  Provides a driver for older AMD Athlon64/Opteron/Turion/Sempron
  	  GART based hardware IOMMUs.
-@@ -912,7 +917,7 @@ config CALGARY_IOMMU
+@@ -913,7 +918,7 @@ config CALGARY_IOMMU
  	bool "IBM Calgary IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -226,7 +226,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
  	  systems. Needed to run systems with more than 3GB of memory
-@@ -976,8 +981,9 @@ config NR_CPUS_RANGE_END
+@@ -977,8 +982,9 @@ config NR_CPUS_RANGE_END
  config NR_CPUS_RANGE_END
  	int
  	depends on X86_64
@@ -238,7 +238,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default    1 if !SMP
  
  config NR_CPUS_DEFAULT
-@@ -992,6 +998,7 @@ config NR_CPUS_DEFAULT
+@@ -993,6 +999,7 @@ config NR_CPUS_DEFAULT
  	depends on X86_64
  	default 8192 if  MAXSMP
  	default   64 if  SMP
@@ -246,7 +246,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default    1 if !SMP
  
  config NR_CPUS
-@@ -1004,16 +1011,19 @@ config NR_CPUS
+@@ -1005,16 +1012,19 @@ config NR_CPUS
  	  supported value is 8192, otherwise the maximum value is 512.  The
  	  minimum value which makes sense is 2.
  
@@ -269,7 +269,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1218,7 +1228,7 @@ config X86_ESPFIX64
+@@ -1219,7 +1229,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -278,7 +278,7 @@ index f17679112af9..d9fa8e53b677 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1251,6 +1261,7 @@ config TOSHIBA
+@@ -1252,6 +1262,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -286,7 +286,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1495,7 +1506,7 @@ config ARCH_HAS_MEM_ENCRYPT
+@@ -1496,7 +1507,7 @@ config ARCH_HAS_MEM_ENCRYPT
  
  config AMD_MEM_ENCRYPT
  	bool "AMD Secure Memory Encryption (SME) support"
@@ -295,7 +295,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select DYNAMIC_PHYSICAL_MASK
  	---help---
  	  Say yes to enable support for the encryption of system memory.
-@@ -1525,6 +1536,7 @@ config NUMA
+@@ -1526,6 +1537,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -303,7 +303,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1640,8 +1652,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1641,8 +1653,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -313,7 +313,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1843,6 +1854,7 @@ config ARCH_RANDOM
+@@ -1844,6 +1855,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -321,7 +321,7 @@ index f17679112af9..d9fa8e53b677 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1872,7 +1884,7 @@ config X86_INTEL_MPX
+@@ -1873,7 +1885,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -330,7 +330,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1900,7 +1912,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1901,7 +1913,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -339,7 +339,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1959,7 +1971,7 @@ endchoice
+@@ -1960,7 +1972,7 @@ endchoice
  
  config EFI
  	bool "EFI runtime service support"
@@ -348,7 +348,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	---help---
-@@ -2017,6 +2029,7 @@ source kernel/Kconfig.hz
+@@ -2018,6 +2030,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -356,7 +356,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -2039,6 +2052,7 @@ config KEXEC_FILE
+@@ -2040,6 +2053,7 @@ config KEXEC_FILE
  	depends on X86_64
  	depends on CRYPTO=y
  	depends on CRYPTO_SHA256=y
@@ -364,7 +364,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -2070,6 +2084,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -2071,6 +2085,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -372,7 +372,7 @@ index f17679112af9..d9fa8e53b677 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2131,6 +2146,7 @@ config PHYSICAL_START
+@@ -2132,6 +2147,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -380,7 +380,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2254,7 +2270,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2255,7 +2271,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -389,7 +389,7 @@ index f17679112af9..d9fa8e53b677 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2328,7 +2344,7 @@ config COMPAT_VDSO
+@@ -2329,7 +2345,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -398,7 +398,7 @@ index f17679112af9..d9fa8e53b677 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2342,10 +2358,11 @@ choice
+@@ -2343,10 +2359,11 @@ choice
  	  static binaries, you can say None without a performance penalty
  	  to improve security.
  
@@ -411,7 +411,7 @@ index f17679112af9..d9fa8e53b677 100644
  		help
  		  The kernel traps and emulates calls into the fixed
  		  vsyscall address mapping. This makes the mapping
-@@ -2410,6 +2427,7 @@ config CMDLINE_OVERRIDE
+@@ -2411,6 +2428,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -419,7 +419,7 @@ index f17679112af9..d9fa8e53b677 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2902,7 +2920,7 @@ menu "Binary Emulations"
+@@ -2903,7 +2921,7 @@ menu "Binary Emulations"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -428,7 +428,7 @@ index f17679112af9..d9fa8e53b677 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2920,7 +2938,7 @@ config IA32_AOUT
+@@ -2921,7 +2939,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"
@@ -1846,5 +1846,5 @@ index 1cf11cf51e1d..3e16909d7895 100644
  	select AC97_BUS if SND_SOC_AC97_BUS
  	select SND_JACK
 -- 
-2.26.0
+2.29.2
 
