@@ -4,10 +4,8 @@ IMPORTANT NOTICE: STOP COPYING MY WORK FROM THIS TREE WITHOUT CREDITING ME!
 
 ### Only AMD64 CPUs are supported!
 
-Starting with IPIPE 4.14.71 from Xenomai, native 32-bit support has been disabled.
-IA32 emulation and X32 ABI have been disabled due to build errors.
+Xenomai has dropped 32-bit IPIPE support since kernel 4.14.71. The earliest kernel series
+supported in this tree is 4.19.
 
-Currently, only LinuxCNC git branches `2.8` and `master` are fully compatible
-with this tree. Andypugh has fixed all issues in LinuxCNC mainline, so big
-shoutout to him! The first stable LinuxCNC 2.8 release will have all the required
-fixes included, but for now you must use LinuxCNC git sources.
+IA32 emulation and X32 ABI have been disabled in Kconfig due to various build errors.
+32-bit binaries will not work.

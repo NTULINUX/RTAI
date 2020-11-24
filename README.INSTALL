@@ -6,14 +6,14 @@ Commands marked with # specify root, commands marked with $ are user commands.
 
 $ git clone https://github.com/NTULINUX/RTAI.git
 
-2.) Patch kernel with IPIPE, in this case we use 4.19.114
+2.) Patch kernel with IPIPE, in this case we use 4.19.152
 
 # rm -rf /usr/src/000*.patch /usr/src/linux
 # cd /usr/src
-# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.19.114.tar.xz
-# tar xf linux-4.19.114.tar.xz
-# ln -sfv linux-4.19.114 linux
-# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.19.114/*.patch /usr/src/
+# wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.19.152.tar.xz
+# tar xf linux-4.19.152.tar.xz
+# ln -sfv linux-4.19.152 linux
+# cp -aLv /path/to/this/RTAI-git-tree/ksrc/patches/v4.19.152/*.patch /usr/src/
 # cd linux
 # patch -p1 < ../0001*.patch
 # patch -p1 < ../0002*.patch
@@ -60,26 +60,24 @@ Remove any previously installed RTAI packages:
 Notice: You must run the command above from inside a directory that
 does not contain any .deb packages, otherwise you may see errors such as:
 
-E: Unable to locate package linux-4.19.114-rtai_4.19.114-rtai-1_amd64.changes
+E: Unable to locate package linux-4.19.152-rtai_4.19.152-rtai-1_amd64.changes
 
 $ cd ~/RTAI
 
 $ ./autogen.sh
 
-$ ./debian/configure 4.19.114 rtai
+$ ./debian/configure 4.19.152 rtai
 
 FIXME: In some cases (undetermined as of yet) you may need to use this
 command instead:
 
-$ ./debian/configure 4.19.114 rtai amd64
+$ ./debian/configure 4.19.152 rtai amd64
 
 Now you are ready to build the actual package:
 
 $ dpkg-buildpackage -uc -us
 
 5.) LinuxCNC
-
-=== WARNING: Only LinuxCNC git branches 2.8 and master are supported ===
 
 Configure LinuxCNC:
 
