@@ -45,6 +45,7 @@ double pow(double x, double y);
 double round(double x);
 double scalbn(double x, int n);
 double sin(double x);
+double sincos(double x, double *sin, double *cos);
 double sqrt(double x);
 double tan(double x);
 
@@ -64,6 +65,7 @@ EXPORT_SYMBOL(pow);
 EXPORT_SYMBOL(round);
 EXPORT_SYMBOL(scalbn);
 EXPORT_SYMBOL(sin);
+EXPORT_SYMBOL(sincos);
 EXPORT_SYMBOL(sqrt);
 EXPORT_SYMBOL(tan);
 
