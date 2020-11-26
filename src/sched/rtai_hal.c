@@ -764,17 +764,12 @@ static void rtai_proc_unregister (void)
 	remove_proc_entry("rtai", 0);
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0)
-extern cpumask_var_t cpu_isolated_map;
-#define set_cpu_isolated_map()  do { } while(0)
-#else
 #include <linux/sched/isolation.h>
 static cpumask_var_t cpu_isolated_map;
 #define set_cpu_isolated_map() \
 	do { \
 		cpumask_andnot(cpu_isolated_map, cpu_possible_mask, housekeeping_cpumask(HK_FLAG_DOMAIN)); \
 	} while(0)
-#endif
 
 extern struct ipipe_domain ipipe_root;
 extern void (*dispatch_irq_head)(unsigned int);
