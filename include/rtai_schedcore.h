@@ -527,7 +527,6 @@ static inline XHDL *__set_exit_handler(RT_TASK *task, void (*fun) (void *, int),
 }
 
 static inline int rtai_init_features (void)
-
 {
 #ifdef CONFIG_RTAI_SEM_BUILTIN
     __rtai_sem_init();
@@ -544,18 +543,12 @@ static inline int rtai_init_features (void)
 #ifdef CONFIG_RTAI_SHM_BUILTIN
     __rtai_shm_init();
 #endif /* CONFIG_RTAI_SHM_BUILTIN */
-#ifdef CONFIG_RTAI_MATH_BUILTIN
-    __rtai_math_init();
-#endif /* CONFIG_RTAI_MATH_BUILTIN */
 
 	return 0;
 }
 
-static inline void rtai_cleanup_features (void) {
-
-#ifdef CONFIG_RTAI_MATH_BUILTIN
-    __rtai_math_exit();
-#endif /* CONFIG_RTAI_MATH_BUILTIN */
+static inline void rtai_cleanup_features (void)
+{
 #ifdef CONFIG_RTAI_SHM_BUILTIN
     __rtai_shm_exit();
 #endif /* CONFIG_RTAI_SHM_BUILTIN */
