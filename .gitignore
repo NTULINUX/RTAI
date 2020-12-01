@@ -3,8 +3,9 @@ CVS
 
 # Build Files
 *.o
+*.d
 *.cmd
-*.mod.c
+*.mod.*
 *.ko
 *.a
 *.lo
