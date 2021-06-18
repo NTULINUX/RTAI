@@ -1281,6 +1281,9 @@ static void rt_start_timers(void)
 {
 	unsigned long flags, cpuid;
 
+#if CONFIG_RTAI_RTC_FREQ == 0
+	rt_linux_hrt_next_shot = _rt_linux_hrt_next_shot;
+#endif
 	rt_request_timers(rt_timer_handler);
 	flags = rt_global_save_flags_and_cli();
 	for (cpuid = 0; cpuid < RTAI_NR_CPUS; cpuid++) {
@@ -1498,11 +1501,22 @@ RT_TASK *rt_alloc_dynamic_task(void)
 
 /* +++++++++++++++ SUPPORT FOR LINUX TASKS AND KERNEL THREADS +++++++++++++++ */
 
+#include <asm/asm-offsets.h>
+static atomic_t diag_syscall_nr[NR_syscalls];
+
 //#define ECHO_SYSW
 #ifdef ECHO_SYSW
 #define SYSW_DIAG_MSG(x) x
 #else
 #define SYSW_DIAG_MSG(x)
+#define SYSW_DIAG_CNT(nr) do { atomic_inc(&diag_syscall_nr[nr]); } while (0)
+static inline void DISPLAY_SYSW_COUNTS(void)
+{
+	int i;
+	for (i = 0; i < sizeof(diag_syscall_nr)/sizeof(atomic_t); i++) {
+		if (atomic_read(&diag_syscall_nr[i])) printk("< SYSCALL NR %3d, SWITCH COUNT %9d >\n", i, atomic_read(&diag_syscall_nr[i]));
+	}
+}
 #endif
 
 static RT_TRAP_HANDLER lxrt_old_trap_handler;
@@ -1582,7 +1596,7 @@ static void rtai_fun_set_active_mm(int cpuid)
 #define rtai_set_active_mm() \
 	do { \
 		for (cpuid = 0; cpuid < RTAI_NR_CPUS; cpuid++) { \
-			kthread_run((void *)rtai_fun_set_active_mm, (void *)cpuid, "RTAI_ACTIVE_MM"); \
+			kthread_run((void *)rtai_fun_set_active_mm, (void *)(long)cpuid, "RTAI_ACTIVE_MM"); \
 		} \
 	} while (0)	
 
@@ -1643,6 +1657,21 @@ struct mm_struct *rtai_active_mm;
 
 #define rt_drop_active_mm() \
 	do { if (!lnxtsk->mm) mmdrop(active_mm); } while (0)
+#endif
+
+//#define DONOTHING_ACTIVE_MM
+#ifdef DONOTHING_ACTIVE_MM
+#define rtai_set_active_mm() \
+	do { } while (0)
+
+#define rtai_drop_active_mm() \
+	do { } while (0)
+
+#define rt_set_active_mm() \
+	do { } while (0)
+
+#define rt_drop_active_mm() \
+	do { } while (0)
 #endif
 
 static inline void fast_schedule(struct task_struct *task)
@@ -1844,7 +1873,7 @@ static void wake_up_srq_handler(unsigned srq)
 	set_tsk_need_resched(current);
 }
 
-static unsigned long traptrans, systrans, linux_srv_calls;
+static atomic_t traptrans, systrans, linux_srv_calls;
 
 static int lxrt_handle_trap(int vec, int signo, struct pt_regs *regs, void *dummy_data)
 {
@@ -1861,12 +1890,13 @@ static int lxrt_handle_trap(int vec, int signo, struct pt_regs *regs, void *dumm
 	}
 
 	if (rt_task->is_hard > 0) {
-		if (!traptrans++) {
+		if (!atomic_read(&traptrans)) {
 			rt_printk("\nLXRT CHANGED MODE (TRAP), PID = %d, NAME = %s, VEC = %d, SIGNO = %d.\n", (rt_task->lnxtsk)->pid, (rt_task->lnxtsk)->comm, vec, signo);
 		}
-		SYSW_DIAG_MSG(rt_printk("\n%d: FORCING IT SOFT (TRAP), PID = %d, NAME = %s, VEC = %d, SIGNO = %d.\n", traptrans, (rt_task->lnxtsk)->pid, (rt_task->lnxtsk)->comm, vec, signo););
+		atomic_inc(&traptrans);
+		SYSW_DIAG_MSG(rt_printk("\n%d: FORCING IT SOFT (TRAP), PID = %d, NAME = %s, VEC = %d, SIGNO = %d.\n", atomic_read(&traptrans), (rt_task->lnxtsk)->pid, (rt_task->lnxtsk)->comm, vec, signo););
 		give_back_to_linux(rt_task, -1);
-		SYSW_DIAG_MSG(rt_printk("%d:  FORCED IT SOFT (TRAP), PID = %d, NAME = %s, VEC = %d, SIGNO = %d.\n", traptrans, (rt_task->lnxtsk)->pid, (rt_task->lnxtsk)->comm, vec, signo););
+		SYSW_DIAG_MSG(rt_printk("%d:  FORCED IT SOFT (TRAP), PID = %d, NAME = %s, VEC = %d, SIGNO = %d.\n", atomic_read(&traptrans), (rt_task->lnxtsk)->pid, (rt_task->lnxtsk)->comm, vec, signo););
 	}
 
 	return 0;
@@ -1929,20 +1959,23 @@ static int lxrt_intercept_linux_syscall(struct pt_regs *regs, RT_TASK *task)
 	if (task) {
 		if (task->is_hard > 0) {
 			if (task->linux_syscall_server) {
-				if (!linux_srv_calls++) {
+				if (!atomic_read(&linux_srv_calls)) {
 					SYSW_DIAG_MSG(rt_printk("\nFIRST SYSCALL TO LINUX SERVER, PID = %d, NAME = %s, SYSCALL = %d.\n", (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
 				}
-				SYSW_DIAG_MSG(rt_printk("\n%d: SYSCALL TO LINUX SERVER, PID = %d, NAME = %s, SYSCALL = %d.\n", linux_srv_calls, (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
+				atomic_inc(&linux_srv_calls);
+				SYSW_DIAG_MSG(rt_printk("\n%d: SYSCALL TO LINUX SERVER, PID = %d, NAME = %s, SYSCALL = %d.\n", atomic_read(linux_srv_calls), (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
 				rt_exec_linux_syscall(task, ((RT_TASK *)task->linux_syscall_server)->linux_syscall_server, regs);
-				SYSW_DIAG_MSG(rt_printk("%d:     LINUX SERVER DID IT, PID = %d, NAME = %s, SYSCALL = %d.\n", linux_srv_calls, (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
+				SYSW_DIAG_MSG(rt_printk("%d:     LINUX SERVER DID IT, PID = %d, NAME = %s, SYSCALL = %d.\n", atomic_read(linux_srv_calls), (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
 				return 1;
 			}
-			if (!systrans++) {
+			if (!atomic_read(&systrans)) {
 				rt_printk("\nLXRT CHANGED MODE (SYSCALL), PID = %d, NAME = %s, SYSCALL = %lu.\n", (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR);
 			}
-			SYSW_DIAG_MSG(rt_printk("\n%d: FORCING IT SOFT (SYSCALL), PID = %d, NAME = %s, SYSCALL = %d.\n", systrans, (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
+			atomic_inc(&systrans);
+			SYSW_DIAG_CNT(regs->LINUX_SYSCALL_NR);
+			SYSW_DIAG_MSG(rt_printk("\n%d: FORCING IT SOFT (SYSCALL), PID = %d, NAME = %s, SYSCALL = %d.\n", atomic_read(&systrans), (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
 			give_back_to_linux(task, -1);
-			SYSW_DIAG_MSG(rt_printk("%d:  FORCED IT SOFT (SYSCALL), PID = %d, NAME = %s, SYSCALL = %d.\n", systrans, (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
+			SYSW_DIAG_MSG(rt_printk("%d:  FORCED IT SOFT (SYSCALL), PID = %d, NAME = %s, SYSCALL = %d.\n", atomic_read(&systrans), (task->lnxtsk)->pid, (task->lnxtsk)->comm, regs->LINUX_SYSCALL_NR););
 		}
 	}
 	hal_test_and_fast_flush_pipeline();
@@ -2045,7 +2078,7 @@ static int PROC_READ_FUN(rtai_read_sched)
 
 	PROC_PRINT("Kstack heap: size = %10d, used = %10lu; <%s>.\n\n", rtai_kstack_heap_size, rt_get_heap_mem_used(&rtai_kstack_heap), RTAI_USES_TLSF ? "TLSF" : "BSD");
 
-	PROC_PRINT("Number of forced hard/soft/hard transitions: traps %lu, syscalls %lu\n\n", traptrans, systrans);
+	PROC_PRINT("Number of forced hard/soft/hard transitions: traps %d, syscalls %d\n\n", atomic_read(&traptrans), atomic_read(&systrans));
 
 	PROC_PRINT("Priority  Period(ns)  FPU  Sig  State  CPU  Task  HD/SF  PID  RT_TASK *  TIME\n" );
 	PROC_PRINT("------------------------------------------------------------------------------\n" );
@@ -2206,7 +2239,6 @@ static void rtai_isr_sched_handle(int cpuid) /* Called with interrupts off */
 }
 EXPORT_SYMBOL(rtai_isr_sched_handle);
 
-extern struct rtai_realtime_irq_s rtai_realtime_irq[];
 static void rtai_hirq_dispatcher(unsigned int irq)
 {
 	unsigned long cpuid;
@@ -2580,9 +2612,6 @@ static int __rtai_lxrt_init(void)
 	retval = rtai_init_features(); /* see rtai_schedcore.h */
 
 exit:
-#if CONFIG_RTAI_RTC_FREQ == 0
-	rt_linux_hrt_next_shot = _rt_linux_hrt_next_shot;
-#endif
 	rt_start_timers();
 	calibrate_latencies();
 
@@ -2602,6 +2631,9 @@ mem_end:
 	goto exit;
 }
 
+extern struct semaphore kthread_server_sem;
+extern volatile int kthread_server_stop;
+
 static void __rtai_lxrt_exit(void)
 {
 	unregister_reboot_notifier(&lxrt_reboot_notifier);
@@ -2610,9 +2642,10 @@ static void __rtai_lxrt_exit(void)
 	rt_linux_hrt_next_shot = NULL;
 #endif
 
-	rtai_tskext(kthread_server_thread, TSKEXT3) = (void *)1;
-	rt_task_resume(rtai_tskext_t(kthread_server_thread, TSKEXT0));
-	while (rtai_tskext(kthread_server_thread, TSKEXT3)) msleep(5);
+	kthread_server_stop = 1;
+	up(&kthread_server_sem);
+	while (kthread_server_stop) msleep(10);
+	msleep(10);
 
 	lxrt_killall();
 
@@ -2640,7 +2673,8 @@ static void __rtai_lxrt_exit(void)
 	ipipe_clear_foreign_stack(&rtai_domain);
 #endif
 
-	printk(KERN_INFO "RTAI[sched]: unloaded (forced hard/soft/hard transitions: traps %lu, syscalls %lu).\n", traptrans, systrans);
+	printk(KERN_INFO "RTAI[sched]: unloaded (forced hard/soft/hard transitions: traps %d, syscalls %d).\n", atomic_read(&traptrans), atomic_read(&systrans));
+	if (atomic_read(&systrans)) DISPLAY_SYSW_COUNTS();
 }
 
 module_init(__rtai_lxrt_init);

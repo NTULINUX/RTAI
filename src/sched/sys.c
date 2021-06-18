@@ -50,7 +50,7 @@ Nov. 2001, Jan Kiszka (Jan.Kiszka@web.de) fix a tiny bug in __task_init.
 #include <rtai_msg.h>
 #include <rtai_schedcore.h>
 
-#define MAX_FUN_EXT  16
+#define MAX_FUN_EXT 32
 struct rt_fun_entry *rt_fun_ext[MAX_FUN_EXT];
 EXPORT_SYMBOL(rt_fun_ext);
 
@@ -272,10 +272,10 @@ static int __task_delete(RT_TASK *rt_task)
 	if (current != (lnxtsk = rt_task->lnxtsk)) {
 		return -EPERM;
 	}
-	rtai_tskext(lnxtsk, TSKEXT0) = rtai_tskext(lnxtsk, TSKEXT1) = 0;
 	if (rt_task->is_hard > 0) {
-		give_back_to_linux(rt_task, 0);
+		rt_make_soft_real_time(rt_task);
 	}
+	rtai_tskext(lnxtsk, TSKEXT0) = rtai_tskext(lnxtsk, TSKEXT1) = 0;
 	if (clr_rtext(rt_task)) {
 		return -EFAULT;
 	}
@@ -846,8 +846,9 @@ long kernel_calibrator_spv(long period, long loops, RT_TASK *task)
 
 struct kthread_fun_args { void *fun; void *args; struct task_struct **thread; };
 struct klist_t kthread_to_create;
-static RT_TASK *kthread_server_task;
 static spinlock_t kthread_server_spinlock;
+struct semaphore kthread_server_sem;
+volatile int kthread_server_stop;
 
 void rt_thread_create(void *fun, void *args, struct task_struct **thread)
 {
@@ -865,13 +866,13 @@ void rt_thread_create(void *fun, void *args, struct task_struct **thread)
 		rt_spin_lock_irq(&kthread_server_spinlock);
 		kthread_to_create.task[kthread_to_create.in++ & (MAX_WAKEUP_SRQ - 1)] = fun_args;
 		rt_spin_unlock_irq(&kthread_server_spinlock);
-		rt_task_resume(kthread_server_task);
+		up(&kthread_server_sem);
 	}
 	return;
 }
 EXPORT_SYMBOL(rt_thread_create);
 	
-RT_TASK *rt_thread_init(unsigned long name, int priority, int make_hard, int policy, int cpus_allowed)
+RT_TASK *rt_thread_init(unsigned long name, int priority, int max_msg_size, int policy, int cpus_allowed)
 {
 	int linux_rt_priority;
 	RT_TASK *task;
@@ -884,10 +885,12 @@ RT_TASK *rt_thread_init(unsigned long name, int priority, int make_hard, int pol
 	}
 	rtai_set_linux_task_priority(current, policy, linux_rt_priority);
 	init_fpu(current);
-	
-	if ((task = __task_init(name ? name : rt_get_name(NULL), priority, 0, 0, cpus_allowed)) && make_hard > 0) {
-		rt_make_hard_real_time(task);
-	} 
+
+	if ((task = __task_init(name ? name : rt_get_name(NULL), priority, 0, 0, cpus_allowed)) == NULL) {
+		return NULL;
+	}
+	rt_make_hard_real_time(task);
+
 	num2nam(name, namestr + 9);
 	strlcpy(current->comm, namestr, sizeof(current->comm)); // race chances?
 	return task;
@@ -913,11 +916,11 @@ int kthread_server(void *args)
 	struct kthread_fun_args *fun_args;
 	struct task_struct *lnxthread;
 
-	kthread_server_task = rt_thread_init(nam2num("THRSRV"), 0, 0, SCHED_FIFO, 0xF);
+	sema_init(&kthread_server_sem, 0);
 	strlcpy(current->comm, "RTAI_KTHRD_SRVR", sizeof(current->comm));
-	do {
-		soft_kthread_server_suspend(kthread_server_task);
-		while (kthread_to_create.out != kthread_to_create.in) {
+	while (!kthread_server_stop) {
+		if (down_interruptible(&kthread_server_sem));
+		while (!kthread_server_stop && kthread_to_create.out != kthread_to_create.in) {
 			fun_args = kthread_to_create.task[kthread_to_create.out++ & (MAX_WAKEUP_SRQ - 1)];
 			lnxthread = kthread_run(fun_args->fun, fun_args->args, "RTAI_KTHREAD");
 			if (fun_args->thread) {
@@ -925,9 +928,8 @@ int kthread_server(void *args)
 			}
 			rt_free(fun_args);
 		}
-	} while (!rtai_tskext(current, TSKEXT3));
-	__task_delete(kthread_server_task);
-	rtai_tskext(current, TSKEXT3) = NULL;
+	}
+	kthread_server_stop = 0;
         return 0;
 }
 

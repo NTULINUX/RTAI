@@ -55,7 +55,7 @@ static inline void *_rt_shm_alloc(unsigned long name, int size, int suprt)
 	void *adr;
 
 //	suprt = USE_GFP_ATOMIC; // to force some testing
-	if (!(adr = rt_get_adr_cnt(name)) && size > 0 && suprt >= 0 && RT_SHM_OP_PERM()) {
+	if (!(adr = rt_get_adr_cnt(name)) && size > 0 && suprt >= 0 && suprt < sizeof(SUPRT)/sizeof(int) && RT_SHM_OP_PERM()) {
 		size = ((size - 1) & PAGE_MASK) + PAGE_SIZE;
 		if ((adr = suprt ? rkmalloc(&size, SUPRT[suprt]) : rvmalloc(size))) {
 			if (!rt_register(name, adr, suprt ? -size : size, 0)) {
@@ -249,7 +249,7 @@ static int rtai_shm_f_ioctl(struct inode *inode, struct file *file, unsigned int
 		}
 #ifdef CONFIG_RTAI_MALLOC
 		case HEAP_SET: {
-			struct { unsigned long name; long arg; } arg;
+			struct { unsigned long name; long arg; } arg = { 0, 0 };
 			rt_copy_from_user(&arg, (void *)uarg, sizeof(arg));
 			rt_set_heap(arg.name, (void *)arg.arg);
 			return 0;

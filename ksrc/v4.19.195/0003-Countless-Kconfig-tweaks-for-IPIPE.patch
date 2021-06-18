@@ -1,6 +1,6 @@
-From 13572d653bc0430c8b8f6e68af0a3440f8f0d51d Mon Sep 17 00:00:00 2001
+From 647dfffb9a9c7821b53f81d3aeec6c85925722eb Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 24 Nov 2020 00:32:21 -0600
+Date: Fri, 18 Jun 2021 18:43:12 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -85,10 +85,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  64 files changed, 217 insertions(+), 113 deletions(-)
 
 diff --git a/arch/Kconfig b/arch/Kconfig
-index a336548487e6..267a63a4f0d4 100644
+index e3a030f7a722..6fdbb76c2783 100644
 --- a/arch/Kconfig
 +++ b/arch/Kconfig
-@@ -455,7 +455,7 @@ config STACKPROTECTOR
+@@ -462,7 +462,7 @@ config STACKPROTECTOR
  
  config STACKPROTECTOR_STRONG
  	bool "Strong Stack Protector"
@@ -97,7 +97,7 @@ index a336548487e6..267a63a4f0d4 100644
  	depends on $(cc-option,-fstack-protector-strong)
  	default y
  	help
-@@ -838,6 +838,7 @@ config ARCH_HAS_REFCOUNT
+@@ -845,6 +845,7 @@ config ARCH_HAS_REFCOUNT
  
  config REFCOUNT_FULL
  	bool "Perform full reference count validation at the expense of speed"
@@ -106,7 +106,7 @@ index a336548487e6..267a63a4f0d4 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 62ce599346fa..3bb8c506bffa 100644
+index 3fe30b82cda8..bf7987a040c4 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -113,13 +113,13 @@ config X86
@@ -183,7 +183,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -612,7 +616,7 @@ config X86_INTEL_QUARK
+@@ -613,7 +617,7 @@ config X86_INTEL_QUARK
  
  config X86_INTEL_LPSS
  	bool "Intel Low Power Subsystem Support"
@@ -192,7 +192,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
-@@ -624,7 +628,7 @@ config X86_INTEL_LPSS
+@@ -625,7 +629,7 @@ config X86_INTEL_LPSS
  
  config X86_AMD_PLATFORM_DEVICE
  	bool "AMD ACPI2Platform devices support"
@@ -201,7 +201,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select COMMON_CLK
  	select PINCTRL
  	---help---
-@@ -739,6 +743,7 @@ config SCHED_OMIT_FRAME_POINTER
+@@ -740,6 +744,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
  	bool "Linux guest support"
@@ -209,7 +209,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -891,7 +896,7 @@ config GART_IOMMU
+@@ -892,7 +897,7 @@ config GART_IOMMU
  	bool "Old AMD GART IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -218,7 +218,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  Provides a driver for older AMD Athlon64/Opteron/Turion/Sempron
  	  GART based hardware IOMMUs.
-@@ -913,7 +918,7 @@ config CALGARY_IOMMU
+@@ -914,7 +919,7 @@ config CALGARY_IOMMU
  	bool "IBM Calgary IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -227,7 +227,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
  	  systems. Needed to run systems with more than 3GB of memory
-@@ -977,8 +982,9 @@ config NR_CPUS_RANGE_END
+@@ -978,8 +983,9 @@ config NR_CPUS_RANGE_END
  config NR_CPUS_RANGE_END
  	int
  	depends on X86_64
@@ -239,7 +239,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default    1 if !SMP
  
  config NR_CPUS_DEFAULT
-@@ -993,6 +999,7 @@ config NR_CPUS_DEFAULT
+@@ -994,6 +1000,7 @@ config NR_CPUS_DEFAULT
  	depends on X86_64
  	default 8192 if  MAXSMP
  	default   64 if  SMP
@@ -247,7 +247,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default    1 if !SMP
  
  config NR_CPUS
-@@ -1005,16 +1012,19 @@ config NR_CPUS
+@@ -1006,16 +1013,19 @@ config NR_CPUS
  	  supported value is 8192, otherwise the maximum value is 512.  The
  	  minimum value which makes sense is 2.
  
@@ -270,7 +270,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1219,7 +1229,7 @@ config X86_ESPFIX64
+@@ -1220,7 +1230,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -279,7 +279,7 @@ index 62ce599346fa..3bb8c506bffa 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1252,6 +1262,7 @@ config TOSHIBA
+@@ -1253,6 +1263,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -287,7 +287,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1496,7 +1507,7 @@ config ARCH_HAS_MEM_ENCRYPT
+@@ -1497,7 +1508,7 @@ config ARCH_HAS_MEM_ENCRYPT
  
  config AMD_MEM_ENCRYPT
  	bool "AMD Secure Memory Encryption (SME) support"
@@ -296,7 +296,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select DYNAMIC_PHYSICAL_MASK
  	---help---
  	  Say yes to enable support for the encryption of system memory.
-@@ -1526,6 +1537,7 @@ config NUMA
+@@ -1527,6 +1538,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -304,7 +304,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1641,8 +1653,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1642,8 +1654,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -314,7 +314,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1844,6 +1855,7 @@ config ARCH_RANDOM
+@@ -1845,6 +1856,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -322,7 +322,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1873,7 +1885,7 @@ config X86_INTEL_MPX
+@@ -1874,7 +1886,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -331,7 +331,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1901,7 +1913,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1902,7 +1914,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -340,7 +340,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1960,7 +1972,7 @@ endchoice
+@@ -1961,7 +1973,7 @@ endchoice
  
  config EFI
  	bool "EFI runtime service support"
@@ -349,7 +349,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	---help---
-@@ -2018,6 +2030,7 @@ source kernel/Kconfig.hz
+@@ -2019,6 +2031,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -357,7 +357,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -2040,6 +2053,7 @@ config KEXEC_FILE
+@@ -2041,6 +2054,7 @@ config KEXEC_FILE
  	depends on X86_64
  	depends on CRYPTO=y
  	depends on CRYPTO_SHA256=y
@@ -365,7 +365,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -2071,6 +2085,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -2072,6 +2086,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -373,7 +373,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2132,6 +2147,7 @@ config PHYSICAL_START
+@@ -2133,6 +2148,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -381,7 +381,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2255,7 +2271,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2256,7 +2272,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -390,7 +390,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2329,7 +2345,7 @@ config COMPAT_VDSO
+@@ -2330,7 +2346,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -399,7 +399,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2343,10 +2359,11 @@ choice
+@@ -2344,10 +2360,11 @@ choice
  	  static binaries, you can say None without a performance penalty
  	  to improve security.
  
@@ -412,7 +412,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  		help
  		  The kernel traps and emulates calls into the fixed
  		  vsyscall address mapping. This makes the mapping
-@@ -2411,6 +2428,7 @@ config CMDLINE_OVERRIDE
+@@ -2412,6 +2429,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -420,7 +420,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2903,7 +2921,7 @@ menu "Binary Emulations"
+@@ -2904,7 +2922,7 @@ menu "Binary Emulations"
  
  config IA32_EMULATION
  	bool "IA32 Emulation"
@@ -429,7 +429,7 @@ index 62ce599346fa..3bb8c506bffa 100644
  	select ARCH_WANT_OLD_COMPAT_IPC
  	select BINFMT_ELF
  	select COMPAT_BINFMT_ELF
-@@ -2921,7 +2939,7 @@ config IA32_AOUT
+@@ -2922,7 +2940,7 @@ config IA32_AOUT
  
  config X86_X32
  	bool "x32 ABI for 64-bit mode"
@@ -1262,7 +1262,7 @@ index 35897649c24f..e59a21e0851d 100644
  
  if VIRTIO_MENU
 diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 709d4de11f40..3170e9b1c09b 100644
+index fa7f4c61524d..f5fcbea8855e 100644
 --- a/drivers/watchdog/Kconfig
 +++ b/drivers/watchdog/Kconfig
 @@ -5,6 +5,7 @@
@@ -1286,19 +1286,19 @@ index b795f8da81f3..46098fdc0885 100644
  	  If you say Y here, it will be possible to plug wrapper-driven binary
  	  formats into the kernel. You will like this especially when you use
 diff --git a/init/Kconfig b/init/Kconfig
-index 77ae948b7e98..e0bb438e31b1 100644
+index 2a95d13ee213..a74ae14ca046 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -66,7 +66,7 @@ config INIT_ENV_ARG_LIMIT
  
  config COMPILE_TEST
  	bool "Compile also drivers which will not load"
--	depends on !UML
-+	depends on !UML && !IPIPE
- 	default n
+-	depends on HAS_IOMEM
++	depends on HAS_IOMEM && !IPIPE
  	help
  	  Some drivers can be compiled on a different platform than they are
-@@ -252,7 +252,7 @@ config ARCH_NO_SWAP
+ 	  intended to be run on. Despite they cannot be loaded there (or even
+@@ -251,7 +251,7 @@ config ARCH_NO_SWAP
  
  config SWAP
  	bool "Support for paging of anonymous memory (swap)"
@@ -1307,7 +1307,7 @@ index 77ae948b7e98..e0bb438e31b1 100644
  	default y
  	help
  	  This option allows you to choose whether you want to have support
-@@ -315,6 +315,7 @@ config CROSS_MEMORY_ATTACH
+@@ -314,6 +314,7 @@ config CROSS_MEMORY_ATTACH
  
  config USELIB
  	bool "uselib syscall"
@@ -1315,7 +1315,7 @@ index 77ae948b7e98..e0bb438e31b1 100644
  	def_bool ALPHA || M68K || SPARC || X86_32 || IA32_EMULATION
  	help
  	  This option enables the uselib syscall, a system call used in the
-@@ -325,7 +326,7 @@ config USELIB
+@@ -324,7 +325,7 @@ config USELIB
  
  config AUDIT
  	bool "Auditing support"
@@ -1324,7 +1324,7 @@ index 77ae948b7e98..e0bb438e31b1 100644
  	help
  	  Enable auditing infrastructure that can be used with another
  	  kernel subsystem, such as SELinux (which requires this for
-@@ -391,6 +392,7 @@ config VIRT_CPU_ACCOUNTING_GEN
+@@ -390,6 +391,7 @@ config VIRT_CPU_ACCOUNTING_GEN
  	bool "Full dynticks CPU time accounting"
  	depends on HAVE_CONTEXT_TRACKING
  	depends on HAVE_VIRT_CPU_ACCOUNTING_GEN
@@ -1332,7 +1332,7 @@ index 77ae948b7e98..e0bb438e31b1 100644
  	select VIRT_CPU_ACCOUNTING
  	select CONTEXT_TRACKING
  	help
-@@ -410,6 +412,7 @@ endchoice
+@@ -409,6 +411,7 @@ endchoice
  config IRQ_TIME_ACCOUNTING
  	bool "Fine granularity task level IRQ time accounting"
  	depends on HAVE_IRQ_TIME_ACCOUNTING && !VIRT_CPU_ACCOUNTING_NATIVE
@@ -1483,10 +1483,10 @@ index d17edb89f1f5..d3cb20f26a8d 100644
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
 diff --git a/kernel/irq/Kconfig b/kernel/irq/Kconfig
-index 5f3e2baefca9..44080d57f334 100644
+index d532bf0c5a67..37ee3c8cc381 100644
 --- a/kernel/irq/Kconfig
 +++ b/kernel/irq/Kconfig
-@@ -122,7 +122,7 @@ config SPARSE_IRQ
+@@ -123,7 +123,7 @@ config SPARSE_IRQ
  
  config GENERIC_IRQ_DEBUGFS
  	bool "Expose irq internals in debugfs"
@@ -1529,7 +1529,7 @@ index 2034d02e8ee3..0ec7d1d33a14 100644
  config TORTURE_TEST
  	tristate
 diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index b04f69259837..ce7a58a97b09 100644
+index 245c6243f4f2..7a312521b2f1 100644
 --- a/kernel/trace/Kconfig
 +++ b/kernel/trace/Kconfig
 @@ -132,6 +132,7 @@ if TRACING_SUPPORT
@@ -1851,5 +1851,5 @@ index 1cf11cf51e1d..3e16909d7895 100644
  	select AC97_BUS if SND_SOC_AC97_BUS
  	select SND_JACK
 -- 
-2.29.2
+2.20.1
 

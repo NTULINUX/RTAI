@@ -46,9 +46,6 @@
 
 #include <linux/module.h>
 #include <linux/delay.h>
-
-MODULE_LICENSE("GPL");
-
 #include <linux/version.h>
 #include <linux/slab.h>
 #include <linux/errno.h>
@@ -80,11 +77,14 @@ MODULE_LICENSE("GPL");
 #include <rtai_proc_fs.h>
 #include <stdarg.h>
 
+MODULE_LICENSE("GPL");
+
 #define RTAI_NR_IRQS  IPIPE_NR_IRQS
 
 struct hal_domain_struct rtai_domain;
+EXPORT_SYMBOL(rtai_domain);
 
-struct rtai_realtime_irq_s rtai_realtime_irq[RTAI_NR_IRQS];
+static unsigned int cpumask[RTAI_NR_IRQS];
 
 static struct {
 	unsigned long flags;
@@ -92,7 +92,7 @@ static struct {
 } rtai_linux_irq[RTAI_NR_IRQS];
 
 static struct {
-	void (*k_handler)(void);
+	void *k_handler;
 	long long (*u_handler)(unsigned long);
 	unsigned long label;
 } rtai_sysreq_table[RTAI_NR_SRQS];
@@ -114,14 +114,19 @@ static atomic_t rtai_sync_count = ATOMIC_INIT(1);
 static RT_TRAP_HANDLER rtai_trap_handler;
 
 struct rt_times rt_smp_times[RTAI_NR_CPUS];
+EXPORT_SYMBOL(rt_smp_times);
 
 struct rtai_switch_data rtai_linux_context[RTAI_NR_CPUS];
+EXPORT_SYMBOL(rtai_linux_context);
 
 struct calibration_data rtai_tunables;
+EXPORT_SYMBOL(rtai_tunables);
 
 volatile unsigned long rtai_cpu_realtime;
+EXPORT_SYMBOL(rtai_cpu_realtime);
 
 struct global_lock rtai_cpu_lock[1];
+EXPORT_SYMBOL(rtai_cpu_lock);
 
 unsigned long rtai_critical_enter (void (*synch)(void))
 {
@@ -135,46 +140,44 @@ unsigned long rtai_critical_enter (void (*synch)(void))
 	}
 	return flags;
 }
+EXPORT_SYMBOL(rtai_critical_enter);
 
 void rtai_critical_exit (unsigned long flags)
 {
 	atomic_inc(&rtai_sync_count);
 	hal_critical_exit(flags);
 }
+EXPORT_SYMBOL(rtai_critical_exit);
 
 unsigned long IsolCpusMask = 0;
 RTAI_MODULE_PARM(IsolCpusMask, ulong);
+EXPORT_SYMBOL(IsolCpusMask);
 
-int rt_request_irq (unsigned irq, int (*handler)(unsigned irq, void *cookie), void *cookie, int retmode)
+int rt_request_irq (unsigned irq, int (*handler)(unsigned irq, void *cookie), void *cookie, int usednomore)
 {
 	int ret;
-	 ret = ipipe_request_irq(&rtai_domain, irq, (void *)handler, cookie, NULL);
+	(void) usednomore;
+
+	ret = ipipe_request_irq(&rtai_domain, irq, (void *)handler, cookie, NULL);
 	if (!ret) {
-		rtai_realtime_irq[irq].retmode = retmode ? 1 : 0;
 		if (IsolCpusMask && irq < IPIPE_NR_XIRQS) {
-			rtai_realtime_irq[irq].cpumask = rt_assign_irq_to_cpu(irq, IsolCpusMask);
+			cpumask[irq] = rt_assign_irq_to_cpu(irq, IsolCpusMask);
 		}
 	}
+
 	return ret;
 }
+EXPORT_SYMBOL(rt_request_irq);
 
 int rt_release_irq (unsigned irq)
 {
 	ipipe_free_irq(&rtai_domain, irq);
 	if (IsolCpusMask && irq < IPIPE_NR_XIRQS) {
-		rt_assign_irq_to_cpu(irq, rtai_realtime_irq[irq].cpumask);
+		rt_assign_irq_to_cpu(irq, cpumask[irq]);
 	}
 	return 0;
 }
-
-int rt_set_irq_ack(unsigned irq, int (*irq_ack)(unsigned int, void *))
-{
-	if (irq >= RTAI_NR_IRQS) {
-		return -EINVAL;
-	}
-	rtai_domain.irqs[irq].ackfn = irq_ack ? (void *)irq_ack : hal_root_domain->irqs[irq].ackfn;
-	return 0;
-}
+EXPORT_SYMBOL(rt_release_irq);
 
 void rt_set_irq_cookie (unsigned irq, void *cookie)
 {
@@ -182,14 +185,13 @@ void rt_set_irq_cookie (unsigned irq, void *cookie)
 		rtai_domain.irqs[irq].cookie = cookie;
 	}
 }
+EXPORT_SYMBOL(rt_set_irq_cookie);
 
 void rt_set_irq_retmode (unsigned irq, int retmode)
 {
-	if (irq < RTAI_NR_IRQS) {
-		rtai_realtime_irq[irq].retmode = retmode ? 1 : 0;
-	}
+	return;
 }
-
+EXPORT_SYMBOL(rt_set_irq_retmode);
 
 // A bunch of macros to support Linux developers moods in relation to 
 // interrupt handling across various releases.
@@ -209,75 +211,160 @@ void rt_set_irq_retmode (unsigned irq, int retmode)
 // 4 - IRQs affinity
 #define rtai_irq_affinity(irq) (irq_to_desc(irq)->irq_common_data.affinity)
 
-unsigned rt_startup_irq (unsigned irq)
-{
-	return rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(startup, irq);
-}
-
-void rt_shutdown_irq (unsigned irq)
-{
-	rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(shutdown, irq);
-}
-
 static inline void _rt_enable_irq (unsigned irq)
 {
 	if (rtai_irq_desc_chip(irq)->irq_enable) {
 		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(enable, irq);
-	} else {
+	} else if (rtai_irq_desc_chip(irq)->irq_unmask) {
 		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(unmask, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP enable/unmask ***\n");
 	}
 }
+
+static inline void _rt_disable_irq (unsigned irq)
+{
+	if (rtai_irq_desc_chip(irq)->irq_disable) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(disable, irq);
+	} else if (rtai_irq_desc_chip(irq)->irq_mask) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP disable/mask ***\n");
+	}
+}
+
+unsigned int rt_startup_irq (unsigned irq)
+{
+	if (rtai_irq_desc_chip(irq)->irq_startup) {
+		return rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(startup, irq);
+	} else {
+		_rt_enable_irq(irq);
+		return 0;
+	}
+}
+EXPORT_SYMBOL(rt_startup_irq);
+
+void rt_shutdown_irq (unsigned irq)
+{
+	if (rtai_irq_desc_chip(irq)->irq_shutdown) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(shutdown, irq);
+	} else {
+		_rt_disable_irq(irq);
+	}
+}
+EXPORT_SYMBOL(rt_shutdown_irq);
 
 void rt_enable_irq (unsigned irq)
 {
 	_rt_enable_irq(irq);
 }
+EXPORT_SYMBOL(rt_enable_irq);
 
 void rt_disable_irq (unsigned irq)
 {
-	if (rtai_irq_desc_chip(irq)->irq_disable) {
-		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(disable, irq);
-	} else {
-		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask, irq);
-	}
+	_rt_disable_irq(irq);
 }
-
-void rt_mask_and_ack_irq (unsigned irq)
-{
-	rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask_ack, irq);
-}
-
-void rt_mask_irq (unsigned irq)
-{
-	rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask, irq);
-}
-
-void rt_unmask_irq (unsigned irq)
-{
-	rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(unmask, irq);
-}
+EXPORT_SYMBOL(rt_disable_irq);
 
 void rt_ack_irq (unsigned irq)
 {
-	_rt_enable_irq(irq);
+	if (rtai_irq_desc_chip(irq)->irq_ack) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(ack, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP ack ***\n");
+	}
 }
+EXPORT_SYMBOL(rt_ack_irq);
 
-void rt_end_irq (unsigned irq)
+void rt_mask_irq (unsigned irq)
 {
-	_rt_enable_irq(irq);
+	if (rtai_irq_desc_chip(irq)->irq_mask) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP mask ***\n");
+	}
 }
+EXPORT_SYMBOL(rt_mask_irq);
+
+void rt_unmask_irq (unsigned irq)
+{
+	if (rtai_irq_desc_chip(irq)->irq_unmask) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(unmask, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP unmask ***\n");
+	}
+}
+EXPORT_SYMBOL(rt_unmask_irq);
+
+void rt_mask_and_ack_irq (unsigned irq)
+{
+	if (rtai_irq_desc_chip(irq)->irq_mask_ack) {
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask_ack, irq);
+	} else if (rtai_irq_desc_chip(irq)->irq_mask && rtai_irq_desc_chip(irq)->irq_ack) { 
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(mask, irq);
+		rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(ack, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP mask_and_ack ot mask and ack ***\n");
+	}
+}
+EXPORT_SYMBOL(rt_mask_and_ack_irq);
 
 void rt_eoi_irq (unsigned irq)
 {
-        rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(eoi, irq);
+	if (rtai_irq_desc_chip(irq)->irq_eoi) {
+	        rtai_irq_desc_chip(irq)->rtai_irq_endis_fun(eoi, irq);
+	} else {
+		WARN_ONCE(1, "*** NO IRQ_CHIP eoi ***\n");
+	}
+}
+EXPORT_SYMBOL(rt_eoi_irq);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,4,0)
+#define IPIPE_ACK() do { desc->ipipe_ack(irq, desc); } while (0)
+#define IPIPE_END() do { desc->ipipe_end(irq, desc); } while (0)
+#else
+#define IPIPE_ACK() do { desc->ipipe_ack(desc); } while (0)
+#define IPIPE_END() do { desc->ipipe_end(desc); } while (0)
+#endif
+void rt_ackn_irq (unsigned int irq)
+{
+	struct irq_desc *desc;
+	if ((desc = &rtai_irq_desc(irq))) {
+		IPIPE_ACK();
+	}
+}
+EXPORT_SYMBOL(rt_ackn_irq);
+
+void rt_end_irq (unsigned irq)
+{
+	struct irq_desc *desc;
+	if ((desc = &rtai_irq_desc(irq))) {
+		IPIPE_END();
+	}
+}
+EXPORT_SYMBOL(rt_end_irq);
+
+int rt_set_irq_ack(unsigned irq, void *irq_ack)
+{
+	struct irq_desc *desc;
+	if (irq >= RTAI_NR_IRQS || (desc = &rtai_irq_desc(irq))) {
+		return -EINVAL;
+	}
+	rtai_domain.irqs[irq].ackfn =  desc->ipipe_ack;
+	return 0;
+}
+EXPORT_SYMBOL(rt_set_irq_ack);
+
+static irqreturn_t rt_linux_irq_handler(int irq, void *cookie)
+{
+	return IRQ_HANDLED;
 }
 
 int rt_request_linux_irq (unsigned irq, void *handler, char *name, void *dev_id)
 {
 	unsigned long flags;
-	int retval;
 
-	if (irq >= RTAI_NR_IRQS || !handler) {
+	if (irq >= RTAI_NR_IRQS) {
 		return -EINVAL;
 	}
 
@@ -290,10 +377,9 @@ int rt_request_linux_irq (unsigned irq, void *handler, char *name, void *dev_id)
 	spin_unlock(&rtai_irq_desc(irq).lock);
 	rtai_restore_flags(flags);
 
-	retval = request_irq(irq, handler, IRQF_SHARED, name, dev_id);
-
-	return retval;
+	return request_irq(irq, handler ? handler : rt_linux_irq_handler, IRQF_SHARED, name, dev_id);
 }
+EXPORT_SYMBOL(rt_request_linux_irq);
 
 int rt_free_linux_irq (unsigned irq, void *dev_id)
 {
@@ -314,6 +400,7 @@ int rt_free_linux_irq (unsigned irq, void *dev_id)
 
 	return 0;
 }
+EXPORT_SYMBOL(rt_free_linux_irq);
 
 void rt_pend_linux_irq (unsigned irq)
 {
@@ -322,6 +409,7 @@ void rt_pend_linux_irq (unsigned irq)
 	hal_pend_uncond(irq, rtai_cpuid());
 	rtai_restore_flags(flags);
 }
+EXPORT_SYMBOL(rt_pend_linux_irq);
 
 RTAI_SYSCALL_MODE void usr_rt_pend_linux_irq (unsigned irq)
 {
@@ -330,8 +418,9 @@ RTAI_SYSCALL_MODE void usr_rt_pend_linux_irq (unsigned irq)
 	hal_pend_uncond(irq, rtai_cpuid());
 	rtai_restore_flags(flags);
 }
+EXPORT_SYMBOL(usr_rt_pend_linux_irq);
 
-int rt_request_srq (unsigned label, void (*k_handler)(void), long long (*u_handler)(unsigned long))
+int rt_request_srq (unsigned label, void *k_handler, long long (*u_handler)(unsigned long))
 {
 	unsigned long flags;
 	int srq;
@@ -353,11 +442,13 @@ int rt_request_srq (unsigned label, void (*k_handler)(void), long long (*u_handl
 
 	return srq;
 }
+EXPORT_SYMBOL(rt_request_srq);
 
 int rt_free_srq (unsigned srq)
 {
 	return  (srq < 1 || srq >= RTAI_NR_SRQS || !test_and_clear_bit(srq, &rtai_sysreq_map)) ? -EINVAL : 0;
 }
+EXPORT_SYMBOL(rt_free_srq);
 
 void rt_pend_linux_srq (unsigned srq)
 {
@@ -369,9 +460,10 @@ void rt_pend_linux_srq (unsigned srq)
 		rtai_restore_flags(flags);
 	}
 }
+EXPORT_SYMBOL(rt_pend_linux_srq);
 
 #include <linux/ipipe_tickdev.h>
-void rt_linux_hrt_set_mode(enum clock_event_mode mode, struct clock_event_device *hrt_dev)
+static void rt_linux_hrt_set_mode(enum clock_event_mode mode, struct clock_event_device *hrt_dev)
 {
 	if (mode == CLOCK_EVT_MODE_ONESHOT || mode == CLOCK_EVT_MODE_SHUTDOWN) {
 		rt_smp_times[0].linux_tick = 0;
@@ -380,10 +472,10 @@ void rt_linux_hrt_set_mode(enum clock_event_mode mode, struct clock_event_device
 	}
 }
 
-void *rt_linux_hrt_next_shot;
+void *rt_linux_hrt_next_shot = NULL;
 EXPORT_SYMBOL(rt_linux_hrt_next_shot);
 
-int _rt_linux_hrt_next_shot(unsigned long delay, struct clock_event_device *hrt_dev)
+static int _rt_linux_hrt_next_shot(unsigned long delay, struct clock_event_device *hrt_dev)
 {
 	rt_smp_times[0].linux_time = rt_smp_times[0].tick_time + rtai_llimd(delay, TIMER_FREQ, 1000000000);
 	return 0;
@@ -434,8 +526,8 @@ EXPORT_SYMBOL(rt_free_timers);
 
 #ifdef CONFIG_SMP
 
-static unsigned long rtai_old_irq_affinity[IPIPE_NR_XIRQS];
-static unsigned long rtai_orig_irq_affinity[IPIPE_NR_XIRQS];
+static unsigned int rtai_old_irq_affinity[IPIPE_NR_XIRQS];
+static unsigned int rtai_orig_irq_affinity[IPIPE_NR_XIRQS];
 
 static DEFINE_SPINLOCK(rtai_iset_lock);  // SPIN_LOCK_UNLOCKED
 
@@ -499,11 +591,14 @@ unsigned long rt_reset_irq_to_sym_mode (int irq)
 }
 
 #endif /* CONFIG_SMP */
+EXPORT_SYMBOL(rt_assign_irq_to_cpu);
+EXPORT_SYMBOL(rt_reset_irq_to_sym_mode);
 
 RT_TRAP_HANDLER rt_set_trap_handler (RT_TRAP_HANDLER handler)
 {
 	return (RT_TRAP_HANDLER)xchg(&rtai_trap_handler, handler);
 }
+EXPORT_SYMBOL(rt_set_trap_handler);
 
 static void rtai_hirq_dispatcher(unsigned int irq)
 {
@@ -611,7 +706,8 @@ static void rtai_lsrq_dispatcher (unsigned virq)
 		clear_bit(srq, &rtai_sysreq_pending);
 		spin_unlock(&rtai_lsrq_lock);
 		if (test_bit(srq, &rtai_sysreq_map)) {
-			rtai_sysreq_table[srq].k_handler();
+			void (*k_handler_withargs)(int, unsigned long) = rtai_sysreq_table[srq].k_handler;
+			k_handler_withargs(srq, rtai_sysreq_table[srq].label);
 		}
 		clear_bit(srq, &rtai_sysreq_running);
 		spin_lock(&rtai_lsrq_lock);
@@ -652,8 +748,6 @@ static int hal_intercept_syscall(struct pt_regs *regs)
 	return 0;
 }
 
-void rtai_uvec_handler(void);
-
 #include <linux/clockchips.h>
 #include <linux/ipipe_tickdev.h>
 
@@ -667,8 +761,10 @@ void rtai_set_linux_task_priority (struct task_struct *task, int policy, int pri
 		printk("RTAI[hal]: sched_setscheduler(policy = %d, prio = %d) failed, (%s -- pid = %d)\n", policy, prio, task->comm, task->pid);
 	}
 }
+EXPORT_SYMBOL(rtai_set_linux_task_priority);
 
 struct proc_dir_entry *rtai_proc_root = NULL;
+EXPORT_SYMBOL(rtai_proc_root);
 
 long long rtai_tsc_ofst[RTAI_NR_CPUS];
 EXPORT_SYMBOL(rtai_tsc_ofst);
@@ -869,7 +965,7 @@ void __rtai_hal_exit (void)
 
 	if (IsolCpusMask) {
 		for (i = 0; i < IPIPE_NR_XIRQS; i++) {
-			rt_reset_irq_to_sym_mode(i);
+			rt_reset_irq_to_sym_mode(rtai_orig_irq_affinity[i]);
 		}
 	}
 
@@ -890,6 +986,7 @@ asmlinkage int rt_printk(const char *fmt, ...)
 	va_end(args);
 	return printk("%s", buf);
 }
+EXPORT_SYMBOL(rt_printk);
 
 asmlinkage int rt_sync_printk(const char *fmt, ...)
 {
@@ -902,6 +999,7 @@ asmlinkage int rt_sync_printk(const char *fmt, ...)
 	ipipe_prepare_panic();
 	return printk("%s", buf);
 }
+EXPORT_SYMBOL(rt_sync_printk);
 
 extern struct calibration_data rtai_tunables;
 #define CAL_LOOPS 200
@@ -924,49 +1022,6 @@ int rtai_calibrate_hard_timer(void)
 }
 
 EXPORT_SYMBOL(rtai_calibrate_hard_timer);
-EXPORT_SYMBOL(rtai_realtime_irq);
-EXPORT_SYMBOL(rt_request_irq);
-EXPORT_SYMBOL(rt_release_irq);
-EXPORT_SYMBOL(rt_set_irq_cookie);
-EXPORT_SYMBOL(rt_set_irq_retmode);
-EXPORT_SYMBOL(rt_startup_irq);
-EXPORT_SYMBOL(rt_shutdown_irq);
-EXPORT_SYMBOL(rt_enable_irq);
-EXPORT_SYMBOL(rt_disable_irq);
-EXPORT_SYMBOL(rt_mask_and_ack_irq);
-EXPORT_SYMBOL(rt_mask_irq);
-EXPORT_SYMBOL(rt_unmask_irq);
-EXPORT_SYMBOL(rt_ack_irq);
-EXPORT_SYMBOL(rt_end_irq);
-EXPORT_SYMBOL(rt_eoi_irq);
-EXPORT_SYMBOL(rt_request_linux_irq);
-EXPORT_SYMBOL(rt_free_linux_irq);
-EXPORT_SYMBOL(rt_pend_linux_irq);
-EXPORT_SYMBOL(usr_rt_pend_linux_irq);
-EXPORT_SYMBOL(rt_request_srq);
-EXPORT_SYMBOL(rt_free_srq);
-EXPORT_SYMBOL(rt_pend_linux_srq);
-EXPORT_SYMBOL(rt_assign_irq_to_cpu);
-EXPORT_SYMBOL(rt_reset_irq_to_sym_mode);
-EXPORT_SYMBOL(rt_set_trap_handler);
-EXPORT_SYMBOL(rt_set_irq_ack);
-
-EXPORT_SYMBOL(rtai_critical_enter);
-EXPORT_SYMBOL(rtai_critical_exit);
-EXPORT_SYMBOL(rtai_set_linux_task_priority);
-
-EXPORT_SYMBOL(rtai_linux_context);
-EXPORT_SYMBOL(rtai_domain);
-EXPORT_SYMBOL(rtai_proc_root);
-EXPORT_SYMBOL(rtai_tunables);
-EXPORT_SYMBOL(rtai_cpu_lock);
-EXPORT_SYMBOL(rtai_cpu_realtime);
-EXPORT_SYMBOL(rt_smp_times);
-
-EXPORT_SYMBOL(rt_printk);
-EXPORT_SYMBOL(rt_sync_printk);
-
-EXPORT_SYMBOL(IsolCpusMask);
 
 #if defined(CONFIG_SMP) && defined(CONFIG_RTAI_DIAG_TSC_SYNC)
 

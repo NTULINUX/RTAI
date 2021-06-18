@@ -608,9 +608,10 @@ RTAI_PROTO(RT_TASK *, rt_task_init_schmod, (unsigned long name, int priority, in
 	return (RT_TASK *)rtai_lxrt(BIDX, SIZARG, LXRT_TASK_INIT, &arg).v[LOW];
 }
 
-#define RT_THREAD_STACK_MIN  16*1024
-
 #include <pthread.h>
+#include <limits.h>
+
+#define RT_THREAD_STACK_MIN  PTHREAD_STACK_MIN
 
 RTAI_PROTO(long, rt_thread_create, (void *fun, void *args, int stack_size))
 {

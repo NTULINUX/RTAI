@@ -1,6 +1,6 @@
-From aebeff1a5bfc40a24b3c8cf8fcde9682290a4c6b Mon Sep 17 00:00:00 2001
+From 5a074748654c851ab2da6bed47ff5ccc13dcf8f3 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 24 Nov 2020 00:31:45 -0600
+Date: Fri, 18 Jun 2021 18:41:50 -0500
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
@@ -51,7 +51,7 @@ index 7038c12942c8..1461bfc29a0a 100644
  
  #endif /* !_IPIPE_THREAD_INFO_H */
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
-index 60f74291f22a..a525e37290ee 100644
+index 99a88e4d620e..18d393662689 100644
 --- a/kernel/ipipe/core.c
 +++ b/kernel/ipipe/core.c
 @@ -42,6 +42,20 @@
@@ -221,7 +221,7 @@ index 60f74291f22a..a525e37290ee 100644
  void __ipipe_dispatch_irq(unsigned int irq, int flags) /* hw interrupts off */
  {
  	struct ipipe_domain *ipd;
-@@ -1736,6 +1706,7 @@ void __ipipe_do_sync_stage(void)
+@@ -1737,6 +1707,7 @@ void __ipipe_do_sync_stage(void)
  
  	__clear_bit(IPIPE_STALL_FLAG, &p->status);
  }
@@ -262,7 +262,7 @@ index 5354cddb643d..56df773b0971 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 986d97ee83f2..21f03c93a31e 100644
+index b5bdf7b5f672..62e727d27864 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2794,55 +2794,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
@@ -361,5 +361,5 @@ index 986d97ee83f2..21f03c93a31e 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.29.2
+2.20.1
 

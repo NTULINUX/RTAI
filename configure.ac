@@ -11,7 +11,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
-AC_INIT([RTAI], [5.2.3], [neotheuser@ymail.com])
+AC_INIT([RTAI], [5.3.1], [neotheuser@ymail.com])
 AC_CONFIG_AUX_DIR(scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
@@ -20,7 +20,7 @@ AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
 AC_PREFIX_DEFAULT(/usr/realtime)
 LT_INIT
-RTAI_VERSION="5.2.3"
+RTAI_VERSION="5.3.1"
 
 AC_PROG_CC([gcc])
 CC="gcc"
@@ -97,8 +97,8 @@ eval linux_$(grep "^PATCHLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 eval linux_$(grep "^SUBLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
 if test $linux_VERSION -lt 4 -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -lt 19 \
- -o $linux_PATCHLEVEL -eq 19 -a $linux_SUBLEVEL -lt 152 ; then
-	AC_MSG_ERROR([Kernel must be at least 4.19.152])
+ -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -eq 19 -a $linux_SUBLEVEL -lt 195 ; then
+	AC_MSG_ERROR([Kernel must be at least 4.19.195])
 fi
 AC_MSG_RESULT([$RTAI_LINUX_VERSION])
 
