@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	char cmd[CMD_SIZE];
         int retval = 0;
 
-	system("lspci -nn | grep \"ISA bridge\" >"SUPRT_STREAM);
+	if (system("lspci -nn | grep \"ISA bridge\" >"SUPRT_STREAM));
 	if ((smis = fopen(SUPRT_STREAM, "r"))) {
 		int n;
 		if ((n = fread(cmd, 1, sizeof(cmd), smis)) > 0) {
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 					hal_smi_masked_bits = argc == 2 ? atoi(argv[1]) : 1;
 					printf("*** SETSMI: \"insmod rtai_smi.ko hal_smi_masked_bits=0x%x user_smi_device=0x%x\" ***\n", hal_smi_masked_bits, user_smi_device);
 					sprintf(cmd, "insmod ../modules/rtai_smi.ko hal_smi_masked_bits=0x%x user_smi_device=0x%x", hal_smi_masked_bits, user_smi_device);
-					system(cmd);
+					if (system(cmd));
 					goto cont;
                                 }
                         }
@@ -54,6 +54,6 @@ int main(int argc, char *argv[])
         retval = -1;
 cont:
 	fclose(smis);
-	system("rm "SUPRT_STREAM);
+	if (system("rm "SUPRT_STREAM));
         return retval;
 }

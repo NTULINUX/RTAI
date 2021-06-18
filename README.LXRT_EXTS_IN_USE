@@ -7,11 +7,12 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-User space RTAI syscalls have 16 extensions slots. They allow any user to
-extend RTAI with her/his own user space callable APIs without touching
-RTAI itself. For the most efficient inline usage of any extension user slots 
-must be assigned statically. RTAI itself uses a few extension slots for some
-of its native addons, as listed below.
+As defined in "base/sched/sys.c", user space RTAI syscalls have 
+"#define MAX_FUN_EXT 32" extensions slots, They allow any user to extend RTAI
+with her/his own user space callable APIs without touching RTAI itself. 
+For the most efficient inline usage of any extension user slots must be assigned
+statically. RTAI itself uses a few extension slots for some of its native addons,
+as listed below.
 
 Those already used by modules found in this distributions are:
 0  - RTAI itself (hardwired),
@@ -34,10 +35,10 @@ being used by your applications; __NEVER__ USE 0 though.
 In any case you'd better choose the other many free slots available to avoid
 any trouble.
 
-If in doubt about slots engaged already use something like the following piece
+If in doubt about slots engaged already, use something like the following piece
 of code in your extension module to discover them:
 
-#define MAX_LXRT_EXT 16
+#define MAX_LXRT_EXT 32
 do {
 	int i;
 	struct rt_fun_entry fun;

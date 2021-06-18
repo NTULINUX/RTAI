@@ -11,11 +11,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.59)
 
-AC_INIT(rtai,5.2,rtai@rtai.org)
+AC_INIT(rtai,5.3,rtai@rtai.org)
 
 CONFIG_RTAI_VERSION_MAJOR=5
-CONFIG_RTAI_VERSION_MINOR=0
-CONFIG_RTAI_REVISION_LEVEL=2
+CONFIG_RTAI_VERSION_MINOR=3
+CONFIG_RTAI_REVISION_LEVEL=0
 
 AC_CONFIG_HEADERS(rtai_config.h)
 AC_CONFIG_AUX_DIR(base/config/autoconf)
@@ -336,6 +336,9 @@ dnl    ;;
 	CONFIG_KBUILD=y
     ;;
   4.*)
+	CONFIG_KBUILD=y
+    ;;
+  5.*)
 	CONFIG_KBUILD=y
     ;;
   *) 

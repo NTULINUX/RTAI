@@ -43,7 +43,7 @@ In the case setsmi does not find any SMI chip listed in is data base, it tries
 to see if any exists by using "lspci -nn |grep ISA". If so it will display it 
 and proceed to mask the bits requested by the user. If it fails again then it 
 is likely that there you should not incur in any SMI trouble. 
-If you'll find that setsmi discovered an SMI chip, not yet rsted in its data 
+If you'll find that setsmi discovered an SMI chip, not yet listed in its data 
 base, you should be kind enough to report your missing chip to the 
 RTAI mailing list, so to allow its updating for other users convenience.
 
@@ -58,7 +58,7 @@ case an SMI can exist but may not be disturbing. In the former case there
 could be the way to troubles and you should check if it so by running the
 latency test, proceeding to the above explained appropriate fixes afterward.
 
-To be noticeid that if by running ".setsmi", without any further option, i.e.
+To be noticeid that if by running "./setsmi", without any further option, i.e.
 to disable the all SMI stuff (with some risk) the SMI_EN bit persists, that
 will mean that the SMI_LOCK option is at work. Since such an option is of the 
 "write once" kind there will be no chanche of disabling SMI alltoghether.

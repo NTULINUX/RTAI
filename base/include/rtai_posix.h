@@ -134,6 +134,7 @@
 
 #include <linux/fcntl.h>
 #include <linux/delay.h>
+#include <linux/sched/types.h>
 
 #include <rtai_malloc.h>
 #include <rtai_rwl.h>
@@ -1212,7 +1213,7 @@ RTAI_PROTO(sem_t *, __wrap_sem_open, (const char *namein, int oflags, int value,
 				psem = malloc(sizeof(void *));
 				((void **)psem)[0] = tsem;
 				fd = open(name, O_CREAT | O_WRONLY, S_IRWXU | S_IRWXG | S_IRWXO);
-				write(fd, &psem, sizeof(psem));
+				if (write(fd, &psem, sizeof(psem)));
 				close(fd);
 			}
 			return (sem_t *)psem;

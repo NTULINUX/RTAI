@@ -1928,8 +1928,6 @@ void krtai_objects_release(void)
 
 #include <rtai_tasklets.h>
 
-extern struct rtai_realtime_irq_s rtai_realtime_irq[];
-
 RTAI_SYSCALL_MODE int rt_irq_wait(unsigned irq)
 {	
 	int retval;

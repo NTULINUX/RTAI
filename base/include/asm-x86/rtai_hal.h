@@ -67,11 +67,6 @@ int rtai_calibrate_hard_timer(void);
 #include <rtai_hal_names.h>
 #include <asm/rtai_vectors.h>
 
-struct rtai_realtime_irq_s {
-        int retmode;
-        unsigned long cpumask;
-};
-
 // da portare in config
 #define RTAI_NR_TRAPS   IPIPE_NR_FAULTS //HAL_NR_FAULTS
 #define RTAI_NR_SRQS    32
@@ -478,16 +473,13 @@ void rtai_set_linux_task_priority(struct task_struct *task, int policy,
 extern "C" {
 #endif /* __cplusplus */
 
-int rt_request_irq(unsigned irq,
-                   int (*handler)(unsigned irq, void *cookie),
-                   void *cookie,
-                   int retmode);
+int rt_request_irq(unsigned irq, int (*handler)(unsigned irq, void *cookie), void *cookie, int usednomore);
 
 int rt_release_irq(unsigned irq);
 
 int ack_8259A_irq(unsigned int irq);
 
-int rt_set_irq_ack(unsigned int irq, int (*irq_ack)(unsigned int, void *));
+int rt_set_irq_ack(unsigned int irq, void *irq_ack);
 
 static inline int rt_request_irq_wack(unsigned irq, int (*handler)(unsigned irq, void *cookie), void *cookie, int retmode, int (*irq_ack)(unsigned int, void *))
 {
@@ -506,6 +498,7 @@ void rt_set_irq_retmode(unsigned irq, int fastret);
  * @name Programmable Interrupt Controllers (PIC) management functions.
  *
  *@{*/
+
 unsigned rt_startup_irq(unsigned irq);
 
 void rt_shutdown_irq(unsigned irq);
@@ -514,11 +507,29 @@ void rt_enable_irq(unsigned irq);
 
 void rt_disable_irq(unsigned irq);
 
-void rt_mask_and_ack_irq(unsigned irq);
+void rt_ack_irq(unsigned irq);
+
+void rt_mask_irq(unsigned irq);
 
 void rt_unmask_irq(unsigned irq);
 
-void rt_ack_irq(unsigned irq);
+void rt_mask_and_ack_irq (unsigned irq);
+
+void rt_eoi_irq(unsigned irq);
+
+void rt_ackn_irq(unsigned int irq);
+
+void rt_end_irq(unsigned irq);
+
+static inline void rt_common_enable_irq(unsigned irq)
+{
+	ipipe_enable_irq(irq);
+}
+
+static inline void rt_common_disable_irq(unsigned irq)
+{
+	ipipe_disable_irq(irq);
+}
 
 /*@}*/
 
@@ -537,7 +548,7 @@ RTAI_SYSCALL_MODE void usr_rt_pend_linux_irq(unsigned irq);
 void rt_pend_linux_srq(unsigned srq);
 
 int rt_request_srq(unsigned label,
-                   void (*k_handler)(void),
+                   void *k_handler,
                    long long (*u_handler)(unsigned long));
 
 int rt_free_srq(unsigned srq);

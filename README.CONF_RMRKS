@@ -25,7 +25,8 @@
   battery management too.
 - Recent Intel SpeedStepping and Boosting.
 - Disable AUDITSYSCALLS.
-- Disable CPU_FREQ.
+- Disable CPU_FREQ; caring of disabling also anything related to cpu frequency scaling
+  in the BIOS, e.g INTEL speedstep.
 - Disable CPU_IDLE and INTEL_IDLE, or boot with "intel_idle.max_cstate=0". If you
   want to be sure to have a never sleeping CPU execute, at the lowest priority, 
   your own, per cpu, idle task, i.e. one just doing "while(1);".
@@ -52,10 +53,12 @@
   that tracing could affect RTAI parts having some commonality with the kernel, e.g.
   though trace points missing symbols. If that happens you should either disable, at 
   least, the "Kernel function tracer" option, in "Kernel hacking", "Tracers".
-- If you witness a stack protector crash, disable stack protector support, at the
-  bottom of the kernel config General Setup. There are 3 choices, "None" will work
-  with RTAI for sure. It is possible that the "Regular" one could also be OK, while
-  "Strong" will fail, always.
+- If you witness a stack protector crash, disable stack protector support. Depending
+  on the kernel version there can be two forms:
+  - three choices: "None" will work with RTAI for sure. It is possible that the "Regular"
+    one could also be OK, while "Strong" will fail, always;
+  - enabled (should work) or disabled, when enabled it is possible to eneable the strong
+    option.
 
 
 < RTAI related >
@@ -76,6 +79,10 @@
   A thing which requires keeping interrupts disabled for a while, hopefully short.
 - If SMI is enabled and latencies are high, often appearing periodic also, use the 
   RTAI tools to monitor and, possibly, fix it. See READMEs in "base/arch/x86/calibration".
+- It has been reported <jan.benda@uni-tuebingen.de> that RTAI rtai_hal crashes when it is
+  provided an isolated cpus map. The cause has been traced to having CONFIG_X86_X2APIC 
+  enabled. Thus, waiting for a fix, you should disable it. Meanwhile, rtai_hal will 
+  unconditionally fail compiling, informing the user with a message.
 
 Finally, I have found it interesting what shown at:
 relacs.sourceforge.net/plugins/rtaicomedi

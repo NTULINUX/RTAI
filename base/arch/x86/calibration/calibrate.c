@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	if (period <= 0) {
 		if (!period && !access(argv[1], F_OK)) {
 			file = fopen(argv[1], "r");
-			fscanf(file, "%d %d %d", &klat, &ulat, &period);
+			if (fscanf(file, "%d %d %d", &klat, &ulat, &period));
 			fclose(file);
 		}
 		rt_sched_latencies(klat > 0 ? nano2count(klat) : klat, ulat > 0 ? nano2count(ulat) : ulat, period > 0 ? nano2count(period) : period);

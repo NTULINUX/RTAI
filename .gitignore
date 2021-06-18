@@ -82,3 +82,4 @@ debian/files
 # Shorten diff
 ChangeLog
 base/ipc/netrpc
+base/arch/x86/patches

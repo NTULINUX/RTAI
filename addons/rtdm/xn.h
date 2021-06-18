@@ -342,14 +342,13 @@ int xnintr_disable (xnintr_t *intr);
 #define __clrbits(flags, mask)   do { (flags) &= ~(mask); } while(0)
 
 #define xnarch_chain_irq   rt_pend_linux_irq
-#define xnarch_end_irq     rt_enable_irq
+#define xnarch_end_irq     rt_end_irq
 
 #define xnarch_hook_irq(irq, handler, iack, intr) \
 	rt_request_irq_wack(irq, (void *)handler, intr, 0, (void *)iack);
 #define xnarch_release_irq(irq) \
 	rt_release_irq(irq);
 
-extern struct rtai_realtime_irq_s rtai_realtime_irq[];
 #define xnarch_get_irq_cookie(irq)  (rtai_domain.irqs[irq].cookie)
 
 extern unsigned long IsolCpusMask;

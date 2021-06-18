@@ -16,7 +16,7 @@ config MODULES
 
 config RTAI_VERSION
 	string
-	default "5.1 (vulcano)"
+	default "5.3 (vulcano)"
 
 menu "General"
 

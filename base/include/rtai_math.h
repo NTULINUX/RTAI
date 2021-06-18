@@ -133,6 +133,8 @@ double asin(double x);
 float asinf(float x);
 double asinh(double x);
 float asinhf(float x);
+void sincos(double x, double *sin, double *cos);
+void sincosf(float x, float *sin, float *cos);
 double atan(double x);
 float atanf(float x);
 double atan2(double y, double x);
