@@ -1,0 +1,110 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+schedulers =
+
+noinst_LIBRARIES =
+builtins = @RTAI_BUILTIN_MODLIST@
+
+if CONFIG_KBUILD
+builtins_srclist = $(wildcard $(foreach mod,$(builtins),$(patsubst %,$(top_srcdir)/base/%/*.[chS],$(mod))))
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src))) 
+
+else # CONFIG_KBUILD
+builtins_objlist = $(foreach mod,$(builtins),$(patsubst %,../%/rtai_$(notdir $(mod)).o,$(mod)))
+endif # CONFIG_KBUILD
+
+# SCHED
+#if !CONFIG_X86_64
+libsched_sched_a_SOURCES = sched.c sys.c api.c signal.c
+nodist_libsched_sched_a_SOURCES = 
+rtai_sched_extradef = -DUSE_RTAI_TASKS=1
+
+if CONFIG_KBUILD
+rtai_target_arch=@RTAI_TARGET_ARCH@
+
+rtai_sched$(modext): @RTAI_KBUILD_ENV@
+rtai_sched$(modext): $(libsched_sched_a_SOURCES) $(nodist_libsched_sched_a_SOURCES) $(builtins_srclist)
+	@(cd ../arch && $(MAKE) rtai_hal$(modext))
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ rtai_extradef="$(rtai_sched_extradef)" \
+	@RTAI_KBUILD_BOTTOM@
+else # CONFIG_KBUILD
+noinst_LIBRARIES += libsched_sched.a
+
+libsched_sched_a_AR = $(CROSS_COMPILE)ar cru
+
+rtai_sched.o: libsched_sched.a $(builtins_objlist)
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@ $(builtins_objlist)
+
+libsched_sched_a_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-DUSE_RTAI_TASKS=1 \
+	-I$(top_srcdir)/base/include \
+	-I../include
+endif # CONFIG_KBUILD
+
+schedulers += rtai_sched$(modext)
+#endif # !CONFIG_X86_64
+
+#### LXRT
+###libsched_lxrt_a_SOURCES = sched.c sys.c api.c signal.c
+###
+###rtai_lxrt_extradef = -DUSE_RTAI_TASKS=0 # -D__RTAI_LXRT__
+###
+###if CONFIG_KBUILD
+###rtai_lxrt$(modext): @RTAI_KBUILD_ENV@
+###rtai_lxrt$(modext): $(libsched_lxrt_a_SOURCES) $(builtins_srclist)
+###	@RTAI_KBUILD_TOP@ \
+###	@RTAI_KBUILD_CMD@ rtai_extradef="$(rtai_lxrt_extradef)" \
+###	@RTAI_KBUILD_BOTTOM@
+###else # CONFIG_KBUILD
+###noinst_LIBRARIES += libsched_lxrt.a
+###
+###libsched_lxrt_a_AR = $(CROSS_COMPILE)ar cru
+###
+###rtai_lxrt.o: libsched_lxrt.a $(builtins_objlist)
+###	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@ $(builtins_objlist)
+###
+###libsched_lxrt_a_CPPFLAGS = \
+###	@RTAI_KMOD_CFLAGS@ \
+###	-DUSE_RTAI_TASKS=0 \
+###	-I$(top_srcdir)/base/include \
+###	-I../include
+###
+###libsched_lxrt_a_CPPFLAGS += $(rtai_lxrt_extradef)
+###
+###endif # CONFIG_KBUILD
+###
+###schedulers += rtai_lxrt$(modext)
+
+all-local: $(schedulers)
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: $(schedulers)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $(schedulers) $(DESTDIR)$(moduledir)
+
+# liblxrt is always built
+SUBDIRS = liblxrt
+
+EXTRA_DIST = Makefile.kbuild

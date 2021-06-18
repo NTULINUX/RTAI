@@ -1,0 +1,181 @@
+diff -aurdpbB -X nodiff linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/at91sam9263.c linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/at91sam9263.c
+--- linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/at91sam9263.c	2007-06-19 14:32:37.000000000 +0200
++++ linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/at91sam9263.c	2007-06-19 17:53:14.000000000 +0200
+@@ -28,6 +28,13 @@ static struct map_desc at91sam9263_io_de
+ 		.length		= SZ_16K,
+ 		.type		= MT_DEVICE,
+ 	}, {
++#ifdef CONFIG_IPIPE
++		.virtual	= AT91_VA_BASE_TCB0,
++		.pfn		= __phys_to_pfn(AT91SAM9263_BASE_TCB0),
++		.length		= SZ_16K,
++		.type		= MT_DEVICE,
++        }, {
++#endif /* CONFIG_IPIPE */
+ 		.virtual	= AT91_IO_VIRT_BASE - AT91SAM9263_SRAM0_SIZE,
+ 		.pfn		= __phys_to_pfn(AT91SAM9263_SRAM0_BASE),
+ 		.length		= AT91SAM9263_SRAM0_SIZE,
+@@ -266,6 +273,7 @@ void __init at91sam9263_initialize(unsig
+  * The default interrupt priority levels (0 = lowest, 7 = highest).
+  */
+ static unsigned int at91sam9263_default_irq_priority[NR_AIC_IRQS] __initdata = {
++#ifndef CONFIG_IPIPE
+ 	7,	/* Advanced Interrupt Controller (FIQ) */
+ 	7,	/* System Peripherals */
+ 	0,	/* Parallel IO Controller A */
+@@ -298,6 +306,42 @@ static unsigned int at91sam9263_default_
+ 	3,	/* USB Host port */
+ 	0,	/* Advanced Interrupt Controller (IRQ0) */
+ 	0,	/* Advanced Interrupt Controller (IRQ1) */
++#else /* CONFIG_IPIPE */
++/* Give the highest priority to TC, since they are used as timer interrupt by
++   I-pipe. */
++	7,	/* Advanced Interrupt Controller (FIQ) */
++	7,	/* System Peripherals */
++	0,	/* Parallel IO Controller A */
++	0,	/* Parallel IO Controller B */
++	0,	/* Parallel IO Controller C, D and E */
++	0,
++	0,
++	6,	/* USART 0 */
++	6,	/* USART 1 */
++	6,	/* USART 2 */
++	0,	/* Multimedia Card Interface 0 */
++	0,	/* Multimedia Card Interface 1 */
++	4,	/* CAN */
++	0,	/* Two-Wire Interface */
++	6,	/* Serial Peripheral Interface 0 */
++	6,	/* Serial Peripheral Interface 1 */
++	5,	/* Serial Synchronous Controller 0 */
++	5,	/* Serial Synchronous Controller 1 */
++	6,	/* AC97 Controller */
++	7,	/* Timer Counter 0, 1 and 2 */
++	0,	/* Pulse Width Modulation Controller */
++	3,	/* Ethernet */
++	0,
++	0,	/* 2D Graphic Engine */
++	3,	/* USB Device Port */
++	0,	/* Image Sensor Interface */
++	3,	/* LDC Controller */
++	0,	/* DMA Controller */
++	0,
++	3,	/* USB Host port */
++	0,	/* Advanced Interrupt Controller (IRQ0) */
++	0,	/* Advanced Interrupt Controller (IRQ1) */
++#endif /*CONFIG_IPIPE */
+ };
+ 
+ void __init at91sam9263_init_interrupts(unsigned int priority[NR_AIC_IRQS])
+diff -aurdpbB -X nodiff linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/at91sam926x_time.c linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/at91sam926x_time.c
+--- linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/at91sam926x_time.c	2007-06-18 14:17:18.000000000 +0200
++++ linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/at91sam926x_time.c	2007-06-21 11:46:11.000000000 +0200
+@@ -46,6 +46,11 @@ static unsigned long last_crtr;
+ #define AT91_ID_TC0 AT91SAM9261_ID_TC0
+ #define AT91_ID_TC1 AT91SAM9261_ID_TC1
+ #define AT91_ID_TC2 AT91SAM9261_ID_TC2
++#elif defined(CONFIG_ARCH_AT91SAM9263)
++#include <asm/arch/at91sam9263.h>
++#define AT91_ID_TC0 AT91SAM9263_ID_TCB
++#define AT91_ID_TC1 AT91SAM9263_ID_TCB
++#define AT91_ID_TC2 AT91SAM9263_ID_TCB
+ #else
+ #error "Unsupported AT91 processor"
+ #endif
+@@ -107,6 +112,7 @@ static int at91_timer_initialized;
+  * Returns number of microseconds since last timer interrupt.  Note that interrupts
+  * will have been disabled by do_gettimeofday()
+  *  'LATCH' is hwclock ticks (see CLOCK_TICK_RATE in timex.h) per jiffy.
++ *  'tick' is usecs per jiffy (linux/timex.h).
+  */
+ static unsigned long at91sam926x_gettimeoffset(void)
+ {
+@@ -115,7 +121,7 @@ static unsigned long at91sam926x_gettime
+ 
+ 	elapsed = (PIT_PICNT(t) * LATCH) + PIT_CPIV(t);		/* hardware clock cycles */
+ 
+-	return (unsigned long)(elapsed * jiffies_to_usecs(1)) / LATCH;
++	return (unsigned long)(elapsed * 1000000) / LATCH;
+ }
+ 
+ /*
+@@ -357,14 +363,9 @@ static struct irqaction at91sam926x_time
+ 	.handler	= &at91sam926x_timer_interrupt
+ };
+ 
+-static char clk_name [] = "tc%";
++static char clk_name [] = "tc%_clk";
+ 
+-static struct clk tc = {
+-	.name		= (const char *) clk_name,
+-	.users          = 0,
+-	.type		= CLK_TYPE_PERIPHERAL,
+-	.pmc_mask       = 1 << (KERNEL_TIMER_IRQ_NUM),
+-};
++static struct clk *tc;
+ 
+ void __init at91sam926x_timer_init(void)
+ {
+@@ -373,9 +374,19 @@ void __init at91sam926x_timer_init(void)
+ 	if (clk_get_rate(clk_get(NULL, "mck")) != CONFIG_IPIPE_AT91_MCK)
+ 		at91sam926x_timer_irq.handler = &at91sam926x_bad_freq;
+ 
+-	snprintf(clk_name, sizeof(clk_name), "tc%d", CONFIG_IPIPE_AT91_TC);
+-	clk_register(&tc);
+-	clk_enable(&tc);
++	/* since 2.6.20-at91.patch, all clocks are registered on startup.
++	 * we just need to get the good struct and enable our tc clock */
++#ifdef CONFIG_ARCH_AT91SAM9263
++	snprintf(clk_name, sizeof(clk_name), "tcb_clk");
++#else
++	snprintf(clk_name, sizeof(clk_name), "tc%d_clk", CONFIG_IPIPE_AT91_TC);
++#endif /* CONFIG_ARCH_AT91SAM9263 */
++
++	tc = clk_get(NULL, clk_name);
++	if((int)tc == 0xfffffffe)	//err code
++		printk("> %s does not exist.",clk_name);
++	else
++		clk_enable(tc);
+ 	
+ 	/* No Sync. */
+ 	at91_tc_write(AT91_TC_BCR, 0);
+diff -aurdpbB -X nodiff linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/Kconfig linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/Kconfig
+--- linux-2.6.20.13-9263-clean/arch/arm/mach-at91rm9200/Kconfig	2007-06-18 14:17:18.000000000 +0200
++++ linux-2.6.20.13-9263/arch/arm/mach-at91rm9200/Kconfig	2007-06-19 17:57:34.000000000 +0200
+@@ -153,6 +153,7 @@ config IPIPE_AT91_MCK
+ 	default 46080000 if MACH_CSB637
+ 	default 59904000 if MACH_AT91RM9200EK
+ 	default 99328000 if MACH_AT91SAM9260EK || MACH_AT91SAM9261EK
++	default 99959589 if MACH_AT91SAM9263EK
+ 	default 53000000
+ 	help
+ 	When Adeos interrupt pipeline is enabled, AT91 timer is based on
+diff -aurdpbB -X nodiff linux-2.6.20.13-9263-clean/include/asm-arm/arch-at91rm9200/hardware.h linux-2.6.20.13-9263/include/asm-arm/arch-at91rm9200/hardware.h
+--- linux-2.6.20.13-9263-clean/include/asm-arm/arch-at91rm9200/hardware.h	2007-06-18 14:17:18.000000000 +0200
++++ linux-2.6.20.13-9263/include/asm-arm/arch-at91rm9200/hardware.h	2007-06-19 16:25:48.000000000 +0200
+@@ -53,7 +53,9 @@
+ #define AT91_BASE_TCB0       AT91SAM9260_BASE_TCB0
+ #elif defined(CONFIG_ARCH_AT91SAM9261)
+ #define AT91_BASE_TCB0       AT91SAM9261_BASE_TCB0
+-#endif /* CONFIG_ARCH_AT91SAM9261 */
++#elif defined(CONFIG_ARCH_AT91SAM9263)
++#define AT91_BASE_TCB0       AT91SAM9263_BASE_TCB0
++#endif /* CONFIG_ARCH_AT91 */
+ #define AT91_VA_BASE_TCB0    AT91_IO_P2V(AT91_BASE_TCB0)
+ #endif /* CONFIG_IPIPE */
+ 
+diff -aurdpbB -X nodiff linux-2.6.20.13-9263-clean/include/asm-arm/arch-at91rm9200/irqs.h linux-2.6.20.13-9263/include/asm-arm/arch-at91rm9200/irqs.h
+--- linux-2.6.20.13-9263-clean/include/asm-arm/arch-at91rm9200/irqs.h	2007-06-18 14:17:18.000000000 +0200
++++ linux-2.6.20.13-9263/include/asm-arm/arch-at91rm9200/irqs.h	2007-06-18 14:35:54.000000000 +0200
+@@ -55,7 +55,11 @@ extern unsigned __ipipe_at91_gpio_banks;
+ #elif defined(CONFIG_ARCH_AT91SAM9261)
+ #define __ipipe_mach_irq_mux_p(irq)					\
+ 	((unsigned) (irq - AT91SAM9261_ID_PIOA) < __ipipe_at91_gpio_banks)
+-#endif /* CONFIG_ARCH_AT91SAM9261 */
++
++#elif defined(CONFIG_ARCH_AT91SAM9263)
++#define __ipipe_mach_irq_mux_p(irq)					\
++	((unsigned) (irq - AT91SAM9263_ID_PIOA) < __ipipe_at91_gpio_banks)
++#endif /* CONFIG_ARCH_AT91 */
+ 
+ #endif /* CONFIG_IPIPE && !__ASSEMBLY__ */
+ 

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+echo -e "Running libtoolize..."
+libtoolize --force --copy --automake || \
+	{
+	echo -e "Error running libtoolize" ;
+	exit 1 ;
+	}
+echo -e "Done."
+
+echo -e "Running aclocal..."
+aclocal --force -I scripts/autoconf || \
+	{
+	echo -e "Error running aclocal" ;
+	exit 1 ;
+	}
+echo -e "Done."
+
+echo -e "Running autoconf..."
+autoconf --force || \
+	{
+	echo -e "Error running autoconf" ;
+	exit 1 ;
+	}
+echo -e "Done."
+
+echo -e "Running autoheader..."
+autoheader --force || \
+	{
+	echo -e "Error running autoheader" ;
+	exit 1 ;
+	}
+echo -e "Done."
+
+echo -e "Running automake..."
+automake --force -a -c || \
+	{
+	echo -e "Error running automake" ;
+	exit 1 ;
+	}
+echo -e "Done.\n"
+
+exit 0

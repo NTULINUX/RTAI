@@ -1,0 +1,59 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+testdir = $(prefix)/testsuite/kern/switches
+
+moduledir = @RTAI_MODULE_DIR@
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+libswitches_rt_a_SOURCES = switches-module.c
+
+if CONFIG_KBUILD
+switches_rt.ko: @RTAI_KBUILD_ENV@
+switches_rt.ko: $(libswitches_rt_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+else
+noinst_LIBRARIES = libswitches_rt.a
+
+libswitches_rt_a_AR = $(CROSS_COMPILE)ar cru
+
+libswitches_rt_a_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+switches_rt.o: libswitches_rt.a
+	$(CROSS_COMPILE)ld --whole-archive $< -r -o $@
+endif
+
+all-local: switches_rt$(modext)
+
+install-exec-local: switches_rt$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $^ $(DESTDIR)$(moduledir)
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(testdir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(testdir)/.runinfo
+	@echo '#!/bin/sh' > $(DESTDIR)$(testdir)/run
+	@echo "\$${DESTDIR}$(bindir)/rtai-load" >> $(DESTDIR)$(testdir)/run
+	@chmod +x $(DESTDIR)$(testdir)/run
+
+run: all
+	@$(top_srcdir)/base/scripts/rtai-load --verbose
+
+EXTRA_DIST = runinfo Makefile.kbuild

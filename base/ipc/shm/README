@@ -1,0 +1,204 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+     *** Unified RTAI Real Time Memory Management (it was Shared Memory) ***
+     =======================================================================
+
+This directory contains an RTAI specific module that allows the overall 
+symmetric allocation and sharing of memory inter/intra: kernel/user space,
+RTAI proper tasks, Linux kernel threads, Linux user space processes/tasks.
+
+The function calls from Linux processes are basically inlined in the file 
+"rtai_shm.h". This approach has been preferred to a library since: is simpler, 
+more effective; the calls are short, simple and just a few per process. We'll
+return on this point in the followings but it should be pointed out that such
+an operational choice is now configurable at RTAI making anyhow.
+
+It is important to remark that this new implementation of the shared memory
+integrates also what provided by the standard real time RTAI memory allocator 
+(malloc.c).
+In fact here one can find the same two core functions (rt_malloc/rt_free) and
+their named extension, based on the standard centralised RTAI registry support.
+
+The related APIs are fully documented, in doxigenised mode, in shm.c and 
+rtai_shm.h. This file serves as an overall overview of the shared memory
+services. 
+
+There are three fundamental functions, providing the base for anything else:
+- void *rt_shm_alloc(unsigned long name, int size, int suprt);
+- void *rt_shm_alloc_adr(void *start, unsigned long name, int size, int suprt);
+- int rt_shm_free(unsigned long name);
+
+"suprt" is related to the type of kernel space allocation API to be used, it
+can be (definitions in rtai_shm.h):
+- USE_VMALLOC, use vmalloc;
+- USE_GFP_KERNEL, use kmalloc with GFP_KERNEL, to wait till the requested memory
+is available;
+- USE_GFP_ATOMIC, use kmalloc with GFP_ATOMIC, return immediately if the
+requested memory is not available;
+- USE_GFP_DMA, use kmalloc with GFP_DMA, to be sure the memory is allocated in
+a proper way for DMA usage.
+Recall that kmalloc based services cannot ask for more than 128K memory at 
+each call.
+
+"rt_shm_malloc_adr" allows mapping to an assigned user space process memory
+starting point: "start", see "man mmap". It is nonsense in kernel space and
+is provided as such just for compatibilty reasons. 
+"adr" is not used when "rt_shm_free" is called in kernel space, but must be 
+given whatever value anyhow, for symmetry of usage.
+
+It is important to remark also that of all the "rt_shm_alloc"s having the 
+same name argument just the first one will really allock the memory. Following 
+calls with the same name will simply increase the usage count and receive the 
+pointer to the already alloced memory, without any resizing. Moreover there is
+no provision of mapping just a part of a shared memory block to a user space 
+process/task, all of the shared memory is always mapped entirely. 
+
+The above functions are better assumed as not affording real time performances, 
+for the reason explained above, even if in kernel space they can perform in 
+real time when called to allocate an already existing memory. In any case they 
+will never be real time functions in user space, because of the need to 
+mmap/munmap. 
+Nonetheless any named mallocing of shared memory in user space while in hard 
+real time mode will not break anything, but will force a soft execution, till 
+the requested memory is either allocated/freed and mmapped/munmapped. 
+See further on for true hard real time heap chunk allocations.
+
+Clearly once the memory is allocated it can be used in true hard real time 
+operations.
+
+User space support comes with either standard Linux calls or LXRT support, 
+the former if SHM_USE_LXRT is defined in rtai_shm.h, the latter if it is not. 
+It is again remarked that no real time performances in user space are to be 
+expected in any case and LXRT calls can work as inlines or as lib functions, 
+depending on how RTAI has been configured.
+
+This rewrite of RTAI shared memory provides full compatibility with previous 
+APIs, i.e. rtai_kmalloc/rtai_kfree and rtai_malloc/rtai_malloc_adr/rtai_free, 
+through appropriate defines in rtai_shm.h. New applications should use 
+rt_shm_malloc/rt_shm_malloc_adr/rt_shm_free.
+
+Informations about memory allocated with "rt_shm_alloc" are displayed by the 
+RTAI "registry" proc file system (RTAI names).
+
+Those used to "SYS V" shared memory can see "rt_shm_malloc" as a combination
+of "shmid/shmat", with "name" used in place of "shmid", on the other hand 
+"rt_shm_free" is functionally equivalent to "shmdt". Both have a slightly
+different calling sintax, because of the different registry informations being 
+stored.
+
+Even with what explained above this new shared memory rewrite still misses
+the kind of functionalities afforded by rt_malloc/rt_free in kernel space, 
+i.e. fast real time allocation/freeing of relatively numerous, arbitrarely
+sized memory chuncks. In fact the above implementation of shared memory 
+is adequate for relatively large memory blocks allocated in soft real time and 
+then used in hard real time mode. Moreover small block requests can cause a
+waste of space, because of PAGE_SIZE alignements. So often one finds himself 
+in the need to partition a large allocated shared memory "by hands", i.e. 
+according to her/his own purposes, when it i used in real time.
+
+Even if rt_malloc can expand, but only in kernel space, the size of the memory 
+it manages dynamically, such an expansion is always done in soft real time, so 
+it will not impact real time allocations iff one is carefull (and capable) in 
+crafting the various allocation paramaters available in malloc.c.
+
+Thus one has often to leave with a once for all determined, likely oversized,
+static block of memory if s/he wants to be sure of a timely hard real time 
+allocation.
+
+In such a view the possibility has been provided to achieve an overall and 
+shared true real time memory management, of the type made available by 
+rt_malloc in kernel space, by statically assigning, before going to hard real 
+time, blocks of shared memory, called real time group heaps, onto which real 
+time allocation/frees can be performed, in a fully sharable way, among: Linux 
+processes, Linux kernel threads and RTAI proper kernel tasks. 
+
+Such a functionality is provided by using:
+- rt_heap_open(unsigned long name, int size, int suprt);
+- rt_heap_open_adr(void *start, unsigned long name, int size, int suprt);
+- rt_heap_close(unsigned long name, void *adr, int suprt);
+in much the same way as rt_shm_alloc/rt_shm_alloc_adr/rt_shm_free, i.e. while 
+in soft mode execution and with the first call being the one that really 
+creates the heap, all the following calls inherediting just the heap address 
+and sharing it all. It is then important to understand that if the very first 
+and real allocation must be done in kernel space the above functions must be 
+called in modules init/cleanup. However any RTAI proper kernel task has to 
+call rt_heap_init again to have the base address correctly assigned to it. 
+In fact in kernel space the heap address is the same for all the RTAI proper 
+tasks and needs no mapping, but must be appropriately registered within the 
+task structure anyhow as the allocation is done by the same functions used 
+for user space, where there is a real need to distinguish between a kernel 
+space address and its user space mapping. User space processes have just to 
+care to recall what already pointed out for rt_named_malloc/free, i.e. a call 
+to rt_heap_open/close will always be a soft timed operation. Another important 
+point to take into account is that a process/task can use just one group heap. 
+If he opens more than one only the last will be available.
+
+Once a shared group heap exists and is mapped to any task, chunks of memory 
+can be safely obtained in true real time, everywhere by calling:
+rt_halloc(int size);
+rt_hfree(void *adr);
+rt_named_halloc(unsigned long name, int size);
+rt_named_hfree(void *adr);
+with the named function allowing to identify and share chunks of memory among 
+all the tasks that have opened the same group heap. Notice, once more, that 
+there can be just one heap per task/process.
+
+At the moment rt_halloc/rt_hfree functions use the same implementation
+adopted by rt_malloc/rt_free, modified to manage an arbitrarely assigned piece 
+of memory. In a not so far future it should be expected a unification of RTAI 
+and XENOMAI memory allocation functionalitiesm on which a unique scheme will 
+be made available for memory management.
+
+With the heaps services in place it has then been possible to implement 
+substitute of rt_malloc/rt_free, plus there named friends, usable in kernel
+and user space. In fact shm.c installs by default its own heap, the so called 
+"global heap", at its initialisation, making available on it the following 
+functions:
+rt_malloc(int size);
+rt_free(void *adr);
+rt_named_alloc(unsigned long name, int size);
+rt_named_free(void *adr);
+They are clearly totally similar to those heap functions explained just above,
+but without the need to open/close any heap in kernel space. In such a way
+all of RTAI real time memory management functions already available can be
+used unchanged, with a named extension as well.
+If one wants to access the same services in user space there is clearly the
+need to mmap/unamap the "global heap" to each process address space. For that
+it is enough to call:
+rt_global_heap_open(void);
+rt_global_heap_close(void);
+These functions can be used in kernel space but in such a case they provide just
+a symmetry of APIs appearence. We recall once more that mmap/munmap cannot be 
+real time operations and so neither can 
+rt_global_heap_open/rt_global_heap_close.
+
+As any group heap the global heap is not expandable, so one must be carefull 
+to check that the default size defined in shm.c is appropriate for her/his own 
+application. So check it. It could vary among different RTAI releases, or, more 
+safely, include the "shm.o" module defining your own needs, e.g.:
+insmod ./shm.o GlobalHeapSize=<mysize>.
+Recalling tha kmalloced heap cannot be greater than 128K. So one must take care 
+that if the kmalloc service is set at RTAI configuration, the global heap uses
+such a parameter to chose between vmalloc and kmalloc. So if a large global 
+heap is needed configure the shared memory to be based on vmalloc.
+Generally speaking all heaps should use the USE_VMALLOC support, sharing
+kmalloced memory is better for self standing chuncks of memory needing
+contiguous physical memory, the most notable example being USE_GFP_DMA, which
+can make it easier developing uer space drivers, in combination with the User 
+Space Interrupts (USI) support provided by RTAI.
+
+Furthermore one should notice that rt_malloc/rt_free are hidden under the names
+rt_malloc_new/rt_free_new at the moment, to avoid clashing agaist existing 
+rt_malloc/rt_free being used throughout RTAI already. They will be set back to 
+the non "_new" name when shm.c will become the only real time memory management 
+support, based on Xenomai memory management eventually (xnheap_alloc/free, in 
+xenomai/heap.c).
+
+Paolo Mantegazza (mantegazza@aero.polimi.it)

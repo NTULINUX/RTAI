@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Converted to GNU Bash by Alec Ari
+
+staging=${DESTDIR}
+prefix="@prefix@"
+libdir="@libdir@"
+datadir="@datadir@"
+pkgdatadir="${datadir}/@PACKAGE@"
+includedir="@includedir@"
+
+RTAI_PREFIX="${staging}${prefix}"
+RTAI_CC="@CC@"
+RTAI_CONFIG="${staging}${pkgdatadir}/config-rtai-${RTAI_VERSION}"
+RTAI_LINUX_DIR="@RTAI_LINUX_DIR@"
+RTAI_LINUX_VERSION="@RTAI_LINUX_VERSION@"
+RTAI_KERNEL_CFLAGS="-I. -I${staging}${includedir} @RTAI_FP_CFLAGS@"
+RTAI_MODULE_DIR="${staging}@RTAI_MODULE_DIR@"
+RTAI_LXRT_CFLAGS="-I. -I${staging}${includedir} @RTAI_USER_CFLAGS@"
+RTAI_LXRT_LDFLAGS="-L${staging}${libdir} -lpthread"
+RTAI_LIBRARY_DIR="${staging}${libdir}"
+RTAI_VERSION="@RTAI_VERSION@"
+
+unset prefix libdir datadir pkgdatadir includedir
+
+while [[ "${#}" -gt "0" ]] ; do
+	argument="${1}"
+	case "${argument}" in
+		--cc)
+			echo "${RTAI_CC}"
+			;;
+		--arch)
+			echo "x86"
+			;;
+		--subarch)
+			echo "64-bit"
+			;;
+		--prefix)
+			echo "${RTAI_PREFIX}"
+			;;
+		--datarootdir)
+			echo "${RTAI_PREFIX}"
+			;;
+		--config)
+			echo "${RTAI_CONFIG}"
+			;;
+		--mod*-cflags|--kern*-cflags)
+			echo "${RTAI_KERNEL_CFLAGS}"
+			;;
+		--mod*-ext)
+			echo ".ko"
+			;;
+		--lxrt-cflags|--user-cflags)
+			echo "${RTAI_LXRT_CFLAGS}"
+			;;
+		--lxrt-ldflags)
+			echo "${RTAI_LXRT_LDFLAGS}"
+			;;
+		--mod*-dir)
+			echo "${RTAI_MODULE_DIR}"
+			;;
+		--lib*-dir|--libdir|--user-libdir)
+			echo "${RTAI_LIBRARY_DIR}"
+			;;
+		--linux-dir|--linux)
+			echo "${RTAI_LINUX_DIR}"
+			;;
+		--linux-ver*)
+			echo "${RTAI_LINUX_VERSION}"
+			;;
+		--version)
+			echo "${RTAI_VERSION}"
+			;;
+		*)
+			echo "rtai-config
+	Options:
+	--help
+	--cc
+	--arch
+	--subarch
+	--prefix
+	--config
+	--module-cflags
+	--module-ext
+	--lxrt-cflags
+	--lxrt-ldflags
+	--linux-dir
+	--linux-version
+	--module-dir
+	--library-dir
+	--version"
+			exit 0
+			;;
+	esac
+	shift
+done

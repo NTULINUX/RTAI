@@ -1,0 +1,55 @@
+%%
+%% Copyright (C) 1999-2017 Lorenzo Dozio
+%%
+%% This program is free software; you can redistribute it and/or
+%% modify it under the terms of the GNU General Public License as
+%% published by the Free Software Foundation; either version 2 of the
+%% License, or (at your option) any later version.
+%%
+%% This program is distributed in the hope that it will be useful,
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%% GNU General Public License for more details.
+%%
+%% You should have received a copy of the GNU General Public License
+%% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%%
+%%
+%% SYSTLC: Linux RTAI Real-Time Target\
+%%    TMF: rtai.tmf MAKE: make_rtw EXTMODE: ext_comm  
+%%
+%% $RCSfile: rtai.tlc,v $
+%%
+
+%selectfile NULL_FILE
+
+%assign MatFileLogging = 1
+%assign ParameterTuning = 1
+%assign BlockIOSignals = 1
+
+%assign TargetType = "RT"
+%assign Language   = "C"
+
+%% Te, 25.8.2002 for R13
+%assign GenRTModel = 1
+
+%include "codegenentry.tlc"
+
+
+%% The contents between 'BEGIN_RTW_OPTIONS' and 'END_RTW_OPTIONS' are strictly 
+%% written by the standard format. We need to use this structure in RTW 
+%% options GUI function rtwoptionsdlg.m file.
+%%
+/%
+  BEGIN_RTW_OPTIONS
+
+  %----------------------------------------%
+  % Configure RTW code generation settings %
+  %----------------------------------------%
+  
+  rtwgensettings.BuildDirSuffix = '_rtai';
+  
+  END_RTW_OPTIONS 
+ %/
+
+

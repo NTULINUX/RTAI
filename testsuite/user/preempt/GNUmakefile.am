@@ -1,0 +1,47 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+testdir = $(prefix)/testsuite/user/preempt
+
+test_PROGRAMS = preempt display
+
+preempt_SOURCES = preempt.c
+
+preempt_CPPFLAGS = \
+	@RTAI_REAL_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+preempt_LDADD = \
+	../../../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+display_SOURCES = display.c
+
+display_CPPFLAGS = \
+	@RTAI_REAL_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../../base/include
+
+display_LDADD = \
+	../../../base/sched/liblxrt/liblxrt.la \
+	-lpthread
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(testdir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(testdir)/.runinfo
+	@echo '#!/bin/sh' > $(DESTDIR)$(testdir)/run
+	@echo "\$${DESTDIR}$(bindir)/rtai-load" >> $(DESTDIR)$(testdir)/run
+	@chmod +x $(DESTDIR)$(testdir)/run
+
+run: all
+	@$(top_srcdir)/base/scripts/rtai-load --verbose
+
+EXTRA_DIST = runinfo

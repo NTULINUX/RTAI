@@ -1,0 +1,158 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+	  *****************************************************	
+          ***** Various tunings of RTAI timing facilities *****
+	  *****************************************************	
+
+Let's recall that scheduling latency calibrations are required only for  
+hard timers in oneshot mode, which is the only mode used by RTAI now.
+That said, there are two calibrations to be cared of: hard timer shots 
+(APIC or 8254) and scheduling latencies, which are to be compensated by 
+appropriately anticipating the required timer shots programming.
+
+	Calibration of hard timers shot, APIC and 8254, programming
+	===========================================================
+
+Such a calibration is fast and hiddenly carried out at each rtai_sched
+module insmoding. So there is no need to say more for it.
+
+		      Scheduling latencies calibration
+		      ================================
+
+Two different scheduling latency calibrations are required, one for user and 
+one for kernel space tasks. In fact there could be a sizeable latency 
+difference, kernel space latencies being generally less the those in user space.
+The related values are determined at the first rtai_sched module use and saved
+to avoid repeating it at any ensuing insmod.
+If any available installed latency test is run after calibrating one could see
+somewhat different values with respect to the calibrated result. That is due 
+to the different overhead of the installed latency tests with respect to the
+one used for the calibration. 
+Here are some further clues on the calibration parameters, available as helpers
+in menuconfig.
+
+RTAI_LATENCY_SELF_CALIBRATION_METRICS: Set the latency calibration criteria.
+1 - AVERAGE will provide mostly zero averages, but possible oscillations
+    below zero could be significant.
+2 - LEAST VALUE should be chosen for average values being only marginally
+    less than zero.
+3 - (AVERAGE + LEAST_VALUE)/2, a trivial compromise in between the previous
+    two.
+
+RTAI_LATENCY_SELF_CALIBRATION_FREQ: Latency self calibration frequency (Hz).
+In order to be on time, as finely as possible, RTAI anticipates the 
+next scheduling shot of the hard timer clock interrupt by an amount 
+of time aimed at compensating the programming overhead spent in 
+the context switch and to set the right firing time.
+Such an amount is determined with the calibration support provided 
+by RTAI itself, both for kernel and user space tasks.
+The calibration procedure is applied on the fly the first time 
+rtai_sched.ko is insmoded, by launching, in series, a calibrating 
+kernel and user space task. That will, typically, happen when any
+latency test, of the the testsuite which comes with RTAI, is used
+to verify its installation.
+The present parameter sets the calibration frequency, while another 
+one defines the number of loops to be spent for calibrating.
+The calibration results are saved in
+"rtai-installdir/calibration/latencies", where "rtai-installdir" is
+the RTAI installation directory defined when configuring RTAI.
+Such a file is used in any following insmod of the RTAI scheduler, so
+that no further recalibration will be carried out.
+Nevertheless, new recalibrations can be forced anyhow, either through  
+"rm rtai-installdir/calibration/latencies" or through 
+"insmod rtai-installdir/modules/rtai_sched.ko recalibrate=1".
+At the very first rtai_sched.ko insmoding, after delating the 
+latencies file or after insmoding rtai_sched.ko with "recalibrate=1",
+you should be prepared to wait for approximately twice the calibration
+time required to carry out the number of requested calibrated loops.
+Such a procedure should allow appropriate latency calibrations also
+when cross development and embedding is needed.
+Use a frequency that is close to your range of interest. Because of 
+cache warming, lower frequencies will tend to anticipate the scheduling
+when higher ones are used and viceversa.
+If valuable calibrated values are available, they can be used to
+substitute those obtained by calibrating, through rtai_sched.ko
+parameters "kernel_latency" and "user_latency", in nanos, either any 
+single one or both, e.g: "insmod rtai_sched.ko user_latency=4000".
+A further way to modify the scheduling latencies is to edit the first
+two fields of "rtai-installdir/calibration/latencies", kernel and
+user space respectively, likely the simplest and speediest mode.
+
+RTAI_LATENCY_SELF_CALIBRATION_CYCLES: Number of latency self calibration cycles.
+In order to be on time, as finely as possible, RTAI anticipates the 
+next scheduling shot of the hard timer clock interrupt by an amount 
+of time aimed at compensating the programming overhead spent in 
+the context switch and to set the right firing time.
+Such an amount is determined with the calibration support provided 
+by RTAI itself, both for kernel and user space tasks.
+The calibration procedure is applied on the fly the first time 
+rtai_sched.ko is insmoded, by launching, in series, a calibrating 
+kernel and user space task. That will, typically, happen when any
+latency test, of the the testsuite which comes with RTAI, is used
+to verify its installation.
+The present parameter sets the number of calibration cycles needed 
+for obtaining a stabilized results, while another one defines the
+calibration frequency.
+Use a number of cycles appropriate to allow an adequate number of 
+reschedules. If the calibration is carried out in a "calm" environment,
+strongly suggested, there is no need to exceed a few seconds. In any 
+case, it is done just once, or when you will force it again.
+Nonetheless, it should be remarked that the calibration precedure, 
+based on a Kalman filter, checks its convergence, exiting at once 
+when the calibration tolerances are met. Therefore it is quite
+possible that the related procedure will be faster than expected,
+i.e. it will use less that the requested cycles.
+The calibration results are saved in
+"rtai-installdir/calibration/latencies", where "rtai-installdir" is
+the RTAI installation directory defined when configuring RTAI.
+Such a file is used in any following insmod of the RTAI scheduler, so
+that no further recalibration will be carried out.
+Nevertheless, new recalibrations can be forced anyhow, either through  
+"rm rtai-installdir/calibration/latencies" or through 
+"insmod rtai-installdir/modules/rtai_sched.ko recalibrate=1".
+At the very first rtai_sched.ko insmoding, after delating the 
+latencies file or after insmoding rtai_sched.ko with "recalibrate=1",
+you should be prepared to wait for approximately twice the calibration
+time required to carry out the number of requested calibrated loops.
+Such a procedure should allow appropriate latency calibrations also
+when cross development and embedding is needed.
+Use a frequency that is close to your range of interest. Because of 
+cache warming, lower frequencies will tend to anticipate the scheduling
+when higher ones are used and viceversa.
+If valuable calibrated values are available, they can be used to
+substitute those obtained by calibrating, through the rtai_sched.ko
+
+	Busy wait looping for a sharper on time latency calibration
+	===========================================================
+
+The RTAI scheduler has also the possibility of exploiting scheduling latencies 
+slightly in excess of those required and then wait for a sharper matching of 
+the scheduling time by busy waiting on the hard timer.
+That is achieved by enabling the configuration options 
+RTAI_KERN_BUSY_ALIGN_RET_DELAY and RTAI_USER_BUSY_ALIGN_RET_DELAY.
+In fact, since the busy wait is done at the exiting of the scheduler there is 
+still a completion overhead to be set, to take into account the closure of the 
+whole return path, i.e. till the exiting of the calling timing function. 
+Therefore, there is the possibility of setting such completion values with the 
+options RTAI_KERN_BUSY_ALIGN_RET_DELAY and RTAI_USER_BUSY_ALIGN_RET_DELAY, 
+whose default value is zero. The required times must be assigned by the user 
+when configuring RTAI. To be sure to engage the busy wait, sometimes a user 
+might use such an option in combination with a marginally longer than needed 
+latency value.
+
+Finally, it must be remarked that all of what above should be carried out and 
+verified on a "quiet" machine. In fact the calibration can be significantly 
+affected by any on going relatively heavy processing load. The inevitable 
+discrepancies that will be met in any actual application are difficult to cure, 
+as verified by quite a few trials with different sorts of adaptive 
+latency identification filters, which provided no better result.
+So, even if a quiet calibration might not be the achievable best, it is 
+likely that it is better to assume that, sometimes, the best can be the enemy 
+of the good.

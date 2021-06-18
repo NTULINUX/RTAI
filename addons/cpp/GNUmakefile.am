@@ -1,0 +1,237 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+include_HEADERS = rtai_cpp.h
+
+noinst_HEADERS = \
+		bits.h \
+		cond.h \
+		count.h \
+		iostream.h \
+		linux_wrapper.h \
+		mbx.h \
+		module.h \
+		mutex.h \
+		new.h \
+		rtai_wrapper.h \
+		rtai_pqueue_wrapper.h \
+		rtai_pthread_int_wrapper.h \
+		rtai_pthread_wrapper.h \
+	        tld_key.h \
+		rtf.h \
+		sem.h \
+		task.h \
+		tbx.h \
+		time.h \
+		trace.h \
+		watchdog.h
+
+libcpp_a_SOURCES = \
+		builtin.c \
+		cs.cc \
+		cond.cc \
+		count.cc \
+		init.c \
+		iostream.cc \
+		mbx.cc \
+		module.cc \
+		mutex.cc \
+		sem.cc \
+		task.cc \
+		time.cc \
+	        tld_key.c \
+		rtai_wrapper.c
+
+if CONFIG_RTAI_TRACE
+libcpp_a_SOURCES += trace.cc
+endif
+
+libcpp_bits_a_SOURCES = \
+		bits.cc \
+		bits_init.c \
+		linux_wrapper.c
+
+libcpp_rtf_a_SOURCES =  \
+		rtf.cc \
+		rtf_init.c \
+		linux_wrapper.c
+
+libcpp_tbx_a_SOURCES = \
+		tbx.cc \
+		tbx_init.c \
+		linux_wrapper.c
+
+libcpp_wd_a_SOURCES = \
+		watchdog_init.c \
+		watchdog.cc \
+		linux_wrapper.c
+
+crt_files = \
+	crtbegin.c \
+	crtend.c \
+	crtmbegin.c \
+	crtmend.c \
+	crtsbegin.c \
+	crtsend.c
+
+crtobjs = $(crt_files:%.c=%.o)
+
+if CONFIG_KBUILD
+modules = rtai_cpp.ko rtai_cpp_rtf.ko rtai_cpp_tbx.ko rtai_cpp_wd.ko
+
+rtai_cpp.ko: @RTAI_KBUILD_ENV@
+rtai_cpp.ko: $(libcpp_a_SOURCES) $(noinst_HEADERS)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+rtai_cpp_bits.ko: @RTAI_KBUILD_ENV@
+rtai_cpp_bits.ko: $(libcpp_bits_a_SOURCES) $(noinst_HEADERS)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+rtai_cpp_rtf.ko: @RTAI_KBUILD_ENV@
+rtai_cpp_rtf.ko: $(libcpp_rtf_a_SOURCES) $(noinst_HEADERS)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+rtai_cpp_tbx.ko: @RTAI_KBUILD_ENV@
+rtai_cpp_tbx.ko: $(libcpp_tbx_a_SOURCES) $(noinst_HEADERS)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+rtai_cpp_wd.ko: @RTAI_KBUILD_ENV@
+rtai_cpp_wd.ko: $(libcpp_wd_a_SOURCES) $(noinst_HEADERS)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+else
+noinst_LIBRARIES = \
+		libcpp.a \
+		libcpp_bits.a \
+		libcpp_rtf.a \
+		libcpp_tbx.a \
+		libcpp_wd.a
+
+modules = $(foreach lib,$(noinst_LIBRARIES),$(patsubst lib%.a,rtai_%.o,$(lib)))
+
+libcpp_a_AR = $(CROSS_COMPILE)ar cru
+
+libcpp_a_CFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_a_CXXFLAGS = \
+	@RTAI_KMOD_CXXFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_bits_a_AR = $(CROSS_COMPILE)ar cru
+
+libcpp_bits_a_CFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_bits_a_CXXFLAGS = \
+	@RTAI_KMOD_CXXFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_rtf_a_AR = $(CROSS_COMPILE)ar cru
+
+libcpp_rtf_a_CFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_rtf_a_CXXFLAGS = \
+	@RTAI_KMOD_CXXFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_tbx_a_AR = $(CROSS_COMPILE)ar cru
+
+libcpp_tbx_a_CFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_tbx_a_CXXFLAGS = \
+	@RTAI_KMOD_CXXFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_wd_a_AR = $(CROSS_COMPILE)ar cru
+
+libcpp_wd_a_CFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+libcpp_wd_a_CXXFLAGS = \
+	@RTAI_KMOD_CXXFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+CRTFLAGS = \
+	-I../.. \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../base/include
+
+crtsbegin.o : $(srcdir)/crt.c
+	$(CC) $(CRTFLAGS) -DCRT_BEGIN -DNO_MOD_INIT -c $< -o $@
+
+crtsend.o : $(srcdir)/crt.c
+	$(CC) $(CRTFLAGS) -DCRT_END -DNO_MOD_INIT -c $< -o $@
+
+crtbegin.o : $(srcdir)/crt.c
+	$(CC) $(CRTFLAGS) -DCRT_BEGIN -c $< -o $@
+
+crtend.o : $(srcdir)/crt.c
+	$(CC) $(CRTFLAGS) -DCRT_END -c $< -o $@
+
+crtmbegin.o : $(srcdir)/crt.c
+	$(CC) $(CRTFLAGS) -DCRT_BEGIN -DUSE_MAIN -c $< -o $@
+
+crtmend.o : $(srcdir)/crt.c 
+	$(CC) $(CRTFLAGS) -DCRT_END -DUSE_MAIN -c $< -o $@
+
+rtai_%.o: lib%.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+endif
+
+all-local: $(modules) $(crtobjs)
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: $(modules) $(crtobjs)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $(modules) $(DESTDIR)$(moduledir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	$(INSTALL_DATA) $(crtobjs) $(DESTDIR)$(libdir)
+
+EXTRA_DIST = crt.c

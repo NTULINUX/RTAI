@@ -1,0 +1,31 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+pythondir = $(prefix)/rtai-py
+
+install-exec-local:
+	$(mkinstalldirs) $(DESTDIR)$(pythondir)
+	@for i in $(top_srcdir)/rtai-py/*.py ; do \
+		$(INSTALL_SCRIPT) $$i "$(DESTDIR)$(pythondir)/`basename $$i`" ; \
+	done
+
+EXTRA_DIST = \
+rtai_bits.py \
+rtai_def.py \
+rtai_lxrt.py \
+rtai_mbx.py \
+rtai_msg.py \
+rtai_rwl.py \
+rtai_scb.py \
+rtai_sem.py \
+rtai_shm.py \
+rtai_spl.py \
+rtai_wd.py \
+rtai_ser.py

@@ -1,0 +1,43 @@
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+************************ LIBM SUPPORT IN KERNEL SPACE ************************
+
+RTAI's implementation of math functions in kernel space has been completely
+reworked and none of the documentation that used to be here applies anymore.
+
+RTAI now includes a heavily trimmed down copy of musl, providing the absolute
+bare minimum that LinuxCNC needs to operate. Removing symbols or files from the
+libm.a (formally libc.a) library is no longer required. CFLAGS and all build
+options are now handled internally by the build system. You no longer have to
+do anything special to build an RTAI math module.
+
+The following math functions are supported in RTAI kernel space:
+
+acos
+asin
+atan
+atan2
+ceil
+cos
+exp
+fabs
+floor
+fmax
+fmin
+fmod
+pow
+round
+scalbn
+sin
+sincos
+sqrt
+tan
+
+This convenience is brought to you by Alec Ari.

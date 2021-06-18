@@ -1,0 +1,424 @@
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/arch/arm/kernel/ipipe.c linux-2.6.20.13/arch/arm/kernel/ipipe.c
+--- linux-2.6.20.13-clean/arch/arm/kernel/ipipe.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/arch/arm/kernel/ipipe.c	2007-08-23 13:44:07.000000000 +0200
+@@ -192,6 +192,21 @@ void __ipipe_enable_irqdesc(unsigned irq
+ 	irq_desc[irq].status &= ~IRQ_DISABLED;
+ }
+ 
++/* 
++ * In Linux setup_irq, status is used to manage nested IRQ
++ */
++void __ipipe_enable_depth(unsigned irq)
++{
++	if(!(irq_desc[irq].status & IRQ_NOAUTOEN))
++		irq_desc[irq].depth = 1;
++}
++
++void __ipipe_disable_depth(unsigned irq)
++{
++	if(!(irq_desc[irq].status & IRQ_NOAUTOEN))
++		irq_desc[irq].depth = 0;
++}
++
+ static void __ipipe_enable_sync(void)
+ {
+ 	__ipipe_decr_next[ipipe_processor_id()] =
+@@ -353,9 +368,9 @@ asmlinkage int __ipipe_syscall_root(unsi
+ 	 * tail work has to be performed (for handling signals etc).
+ 	 */
+ 
+-	if (__ipipe_syscall_watched_p(current, regs->ARM_r7) &&
++	if (__ipipe_dispatch_event(IPIPE_EVENT_SYSCALL,regs) > 0 &&
+ 	    __ipipe_event_monitored_p(IPIPE_EVENT_SYSCALL) &&
+-	    __ipipe_dispatch_event(IPIPE_EVENT_SYSCALL,regs) > 0) {
++	    __ipipe_syscall_watched_p(current, regs->ARM_r7)) {
+ 		if (ipipe_current_domain == ipipe_root_domain && !in_atomic()) {
+ 			/*
+ 			 * Sync pending VIRQs before _TIF_NEED_RESCHED
+@@ -469,6 +484,11 @@ finalize:
+ 	__ipipe_walk_pipeline(head, cpuid);
+ }
+ 
++int (*extern_timer_isr)(struct pt_regs *regs);
++EXPORT_SYMBOL(extern_timer_isr);
++
++#include <asm/arch/at91_pio.h>
++
+ asmlinkage int __ipipe_grab_irq(int irq, struct pt_regs *regs)
+ {
+ 	ipipe_declare_cpuid;
+@@ -478,6 +498,8 @@ asmlinkage int __ipipe_grab_irq(int irq,
+ 		__ipipe_tick_regs[cpuid].ARM_cpsr = regs->ARM_cpsr;
+ 		__ipipe_tick_regs[cpuid].ARM_pc = regs->ARM_pc;
+ 
++		if (extern_timer_isr) return extern_timer_isr(regs);
++
+ 		if (__ipipe_decr_ticks != __ipipe_mach_ticks_per_jiffy) {
+ 			unsigned long long next_date, now;
+ 
+@@ -517,6 +539,15 @@ asmlinkage int __ipipe_grab_irq(int irq,
+ 			  &ipipe_root_domain->cpudata[cpuid].status));
+ }
+ 
++void *ipipe_irq_handler = __ipipe_handle_irq;
++EXPORT_SYMBOL(ipipe_irq_handler);
++EXPORT_SYMBOL(__ipipe_tick_regs);
++__attribute__((regparm(3))) void do_notify_resume(struct pt_regs *, void *, __u32);
++EXPORT_SYMBOL(do_notify_resume);
++extern void *sys_call_table;
++EXPORT_SYMBOL(sys_call_table);
++extern void ret_from_intr(void);
++
+ EXPORT_SYMBOL(__ipipe_decr_ticks);
+ EXPORT_SYMBOL(__ipipe_decr_next);
+ EXPORT_SYMBOL(ipipe_critical_enter);
+@@ -525,6 +556,7 @@ EXPORT_SYMBOL(ipipe_trigger_irq);
+ EXPORT_SYMBOL(ipipe_get_sysinfo);
+ EXPORT_SYMBOL(ipipe_tune_timer);
+ 
++EXPORT_SYMBOL_GPL(irq_desc);
+ EXPORT_SYMBOL_GPL(show_stack);
+ #ifndef MULTI_CPU
+ EXPORT_SYMBOL_GPL(cpu_do_switch_mm);
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91rm9200_time.c linux-2.6.20.13/arch/arm/mach-at91rm9200/at91rm9200_time.c
+--- linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91rm9200_time.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/arch/arm/mach-at91rm9200/at91rm9200_time.c	2007-07-12 09:34:28.000000000 +0200
+@@ -338,6 +338,22 @@ notrace unsigned long long __ipipe_mach_
+ EXPORT_SYMBOL(__ipipe_mach_get_tsc);
+ 
+ /*
++ * getter/setter available for easy use of local_tsc
++ */
++
++notrace unsigned long long __ipipe_get_tsc(void)
++{
++	return (&tsc[ipipe_processor_id()])->full;
++}
++EXPORT_SYMBOL(__ipipe_get_tsc);
++
++notrace void __ipipe_set_tsc(unsigned long long value)
++{
++	(&tsc[ipipe_processor_id()])->full = value;
++}
++EXPORT_SYMBOL(__ipipe_set_tsc);
++
++/*
+  * Reprogram the timer
+  */
+ 
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91sam9261.c linux-2.6.20.13/arch/arm/mach-at91rm9200/at91sam9261.c
+--- linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91sam9261.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/arch/arm/mach-at91rm9200/at91sam9261.c	2007-08-24 17:18:07.000000000 +0200
+@@ -287,7 +287,7 @@ static unsigned int at91sam9261_default_
+ /* Give the highest priority to TC, since they are used as timer interrupt by
+    I-pipe. */
+ 	7,	/* Advanced Interrupt Controller */
+-	7,	/* System Peripherals */
++	6,	/* System Peripherals */
+ 	0,	/* Parallel IO Controller A */
+ 	0,	/* Parallel IO Controller B */
+ 	0,	/* Parallel IO Controller C */
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91sam926x_time.c linux-2.6.20.13/arch/arm/mach-at91rm9200/at91sam926x_time.c
+--- linux-2.6.20.13-clean/arch/arm/mach-at91rm9200/at91sam926x_time.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/arch/arm/mach-at91rm9200/at91sam926x_time.c	2007-07-12 09:34:28.000000000 +0200
+@@ -325,6 +325,22 @@ notrace unsigned long long __ipipe_mach_
+ EXPORT_SYMBOL(__ipipe_mach_get_tsc);
+ 
+ /*
++ * getter/setter available for easy use of local_tsc
++ */
++
++notrace unsigned long long __ipipe_get_tsc(void)
++{
++	return (&tsc[ipipe_processor_id()])->full;
++}
++EXPORT_SYMBOL(__ipipe_get_tsc);
++
++notrace void __ipipe_set_tsc(unsigned long long value)
++{
++	(&tsc[ipipe_processor_id()])->full = value;
++}
++EXPORT_SYMBOL(__ipipe_set_tsc);
++
++/*
+  * Reprogram the timer
+  */
+ 
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/include/asm-arm/ipipe.h linux-2.6.20.13/include/asm-arm/ipipe.h
+--- linux-2.6.20.13-clean/include/asm-arm/ipipe.h	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/include/asm-arm/ipipe.h	2007-07-13 14:05:00.000000000 +0200
+@@ -70,7 +70,8 @@ do {								\
+ #define IPIPE_NR_FAULTS		 8
+ 
+ /* Pseudo-vectors used for kernel events */
+-#define IPIPE_FIRST_EVENT	IPIPE_NR_FAULTS
++#define IPIPE_FIRST_EVENT	IPIPE_NR_FAULTS + 2	/* on x86, HAL_SCHEDULE_TAIL = IPIPE_FIRST_EVENT - 2 is not used
++							 * on ARM, this trap can be used by VFP, so we add an offset on IPIPE_FIRST_EVENT */
+ #define IPIPE_EVENT_SYSCALL	(IPIPE_FIRST_EVENT)
+ #define IPIPE_EVENT_SCHEDULE	(IPIPE_FIRST_EVENT + 1)
+ #define IPIPE_EVENT_SIGWAKE	(IPIPE_FIRST_EVENT + 2)
+@@ -166,6 +167,10 @@ void __ipipe_init_platform(void);
+ 
+ void __ipipe_enable_irqdesc(unsigned irq);
+ 
++void __ipipe_enable_depth(unsigned irq);
++
++void __ipipe_disable_depth(unsigned irq);
++
+ void __ipipe_enable_pipeline(void);
+ 
+ void __ipipe_do_IRQ(int irq,
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/include/asm-arm/irqflags.h linux-2.6.20.13/include/asm-arm/irqflags.h
+--- linux-2.6.20.13-clean/include/asm-arm/irqflags.h	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/include/asm-arm/irqflags.h	2007-08-06 09:59:29.000000000 +0200
+@@ -170,13 +170,13 @@ void __ipipe_restore_root(unsigned long 
+ } while (0)
+ #define local_irq_save_hw(x) do { \
+ 	local_save_flags_hw(x); \
+-	if (raw_irqs_disabled_flags(x)) { \
++	if (!raw_irqs_disabled_flags(x)) { \
+ 		local_irq_disable_hw_notrace(); \
+ 		ipipe_trace_begin(0x80000001); \
+ 	} \
+ } while (0)
+ #define local_irq_restore_hw(x) do { \
+-	if (raw_irqs_disabled_flags(x)) \
++	if (!raw_irqs_disabled_flags(x)) \
+ 		ipipe_trace_end(0x80000001); \
+ 	local_irq_restore_hw_notrace(x); \
+ } while (0)
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/include/asm-arm/system.h linux-2.6.20.13/include/asm-arm/system.h
+--- linux-2.6.20.13-clean/include/asm-arm/system.h	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/include/asm-arm/system.h	2007-07-12 09:34:28.000000000 +0200
+@@ -347,6 +347,46 @@ static inline unsigned long __xchg(unsig
+ extern void disable_hlt(void);
+ extern void enable_hlt(void);
+ 
++/*
++ * We only implement cmpxchg in ASM on ARMv6 where we have LDREX/STREX
++ * available, and we only implement it for word-sized exchanges
++ */
++#if __LINUX_ARM_ARCH__ >= 6
++extern void __bad_cmpxchg(volatile void *, int);
++
++#define cmpxchg(ptr, old, new)						\
++({									\
++	__typeof__ (ptr) ____p = (ptr);					\
++	__typeof__(*ptr) ____old = (old);				\
++	__typeof__(*ptr) ____new = (new);				\
++	__typeof__(*ptr) ____oldval;					\
++	__typeof__(*ptr) ____res;					\
++									\
++	switch (sizeof(____res)) {					\
++	case 4:								\
++		do {							\
++			__asm__ __volatile__("@ cmpxchg\n"		\
++			"ldrex	%1, [%2]\n"				\
++			"mov	%0, #0\n"				\
++			"teq	%1, %3\n"				\
++			"strexeq %0, %4, [%2]\n"			\
++			: "=&r" (____res), "=&r" (____oldval)		\
++			: "r" (____p), "Ir" (____old), "r" (____new)	\
++			: "cc");					\
++		} while(____res);					\
++		break;							\
++	default:							\
++		__bad_cmpxchg(____p, sizeof(____res));			\
++		____oldval = 0;						\
++		break;							\
++	}								\
++	____oldval;							\
++})
++
++#else
++#include <asm-generic/cmpxchg.h>
++#endif
++
+ #endif /* __ASSEMBLY__ */
+ 
+ #define arch_align_stack(x) (x)
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/include/asm-arm/thread_info.h linux-2.6.20.13/include/asm-arm/thread_info.h
+--- linux-2.6.20.13-clean/include/asm-arm/thread_info.h	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/include/asm-arm/thread_info.h	2007-07-12 09:34:28.000000000 +0200
+@@ -143,6 +143,7 @@ extern void iwmmxt_task_switch(struct th
+ #define TIF_NOTIFY_RESUME	0
+ #define TIF_SIGPENDING		1
+ #define TIF_NEED_RESCHED	2
++#define TIF_RESTORE_SIGMASK	6	/* restore signal mask in do_signal() */
+ #define TIF_SYSCALL_TRACE	8
+ #define TIF_POLLING_NRFLAG	16
+ #define TIF_USING_IWMMXT	17
+@@ -155,6 +156,7 @@ extern void iwmmxt_task_switch(struct th
+ #define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
++#define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
+ #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
+ #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
+ #define _TIF_USING_IWMMXT	(1 << TIF_USING_IWMMXT)
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/include/asm-generic/cmpxchg.h linux-2.6.20.13/include/asm-generic/cmpxchg.h
+--- linux-2.6.20.13-clean/include/asm-generic/cmpxchg.h	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.20.13/include/asm-generic/cmpxchg.h	2007-07-12 09:34:28.000000000 +0200
+@@ -0,0 +1,46 @@
++/* Generic cmpxchg for those arches that don't implement it themselves
++ *
++ * Copyright (C) 2006 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#ifndef _ASM_GENERIC_CMPXCHG_H
++#define _ASM_GENERIC_CMPXCHG_H
++
++#if !defined(cmpxchg) && !defined(CONFIG_SMP)
++
++/**
++ * cmpxchg - Atomically conditionally exchange one value for another.
++ * @ptr - Pointer to the value to be altered.
++ * @old - The value to change from.
++ * @new - The value to change to.
++ *
++ * This function atomically compares the current value at the word pointed to
++ * by @ptr, and if it's the same as @old, changes it to @new.  If it's not the
++ * same then it's left unchanged.
++ *
++ * The value that was in the word pointed to by @ptr is returned, whether or
++ * not it was changed to @new.
++ */
++#define cmpxchg(ptr, old, new)			\
++({						\
++	unsigned long ____flags;		\
++	__typeof__ (ptr) ____p = (ptr);		\
++	__typeof__(*ptr) ____old = (old);	\
++	__typeof__(*ptr) ____new = (new);	\
++	__typeof__(*ptr) ____res;		\
++	raw_local_irq_save(____flags);		\
++	____res = *____p;			\
++	if (likely(____res == (____old)))	\
++		*____p = (____new);		\
++	raw_local_irq_restore(____flags);	\
++	____res;				\
++})
++
++#endif /* !cmpxchg && !SMP */
++#endif /* _ASM_GENERIC_CMPXCHG_H */
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/kernel/ipipe/core.c linux-2.6.20.13/kernel/ipipe/core.c
+--- linux-2.6.20.13-clean/kernel/ipipe/core.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/kernel/ipipe/core.c	2007-07-30 14:10:11.000000000 +0200
+@@ -531,10 +531,12 @@ int ipipe_virtualize_irq(struct ipipe_do
+ 
+ 		if ((modemask & IPIPE_STICKY_MASK) != 0)
+ 			modemask |= IPIPE_HANDLE_MASK;
+-	} else
++	} else {
+ 		modemask &=
+ 		    ~(IPIPE_HANDLE_MASK | IPIPE_STICKY_MASK |
+ 		      IPIPE_EXCLUSIVE_MASK | IPIPE_WIRED_MASK);
++		__ipipe_enable_depth(irq);
++	}
+ 
+ 	if (acknowledge == NULL && !ipipe_virtual_irq_p(irq))
+ 		/* Acknowledge handler unspecified for a hw interrupt:
+@@ -548,6 +550,7 @@ int ipipe_virtualize_irq(struct ipipe_do
+ 
+ 	if (irq < NR_IRQS && handler != NULL && !ipipe_virtual_irq_p(irq)) {
+ 		__ipipe_enable_irqdesc(irq);
++		__ipipe_disable_depth(irq);
+ 
+ 		if ((modemask & IPIPE_ENABLE_MASK) != 0) {
+ 			if (ipd != ipipe_current_domain) {
+@@ -617,6 +620,12 @@ int ipipe_control_irq(unsigned irq, unsi
+ 
+ int fastcall __ipipe_dispatch_event (unsigned event, void *data)
+ {
++	extern void *ipipe_irq_handler;
++	void *handler;
++	if (ipipe_irq_handler != __ipipe_handle_irq && (handler = ipipe_root_domain->evhand[event])) {
++		return ((int (*)(unsigned long, void *))handler)(event, data);
++	} else {
++
+ 	struct ipipe_domain *start_domain, *this_domain, *next_domain;
+ 	ipipe_event_handler_t evhand;
+ 	struct list_head *pos, *npos;
+@@ -677,7 +686,7 @@ int fastcall __ipipe_dispatch_event (uns
+ 	ipipe_unlock_cpu(flags);
+ 
+ 	return !propagate;
+-}
++} }
+ 
+ /*
+  * __ipipe_dispatch_wired -- Wired interrupt dispatcher. Wired
+@@ -1443,3 +1452,4 @@ EXPORT_SYMBOL(ipipe_get_ptd);
+ EXPORT_SYMBOL(ipipe_set_irq_affinity);
+ EXPORT_SYMBOL(ipipe_send_ipi);
+ EXPORT_SYMBOL(__ipipe_schedule_irq);
++EXPORT_SYMBOL(__ipipe_sync_stage);
+diff -NaurdpbB -X nodiff linux-2.6.20.13-clean/kernel/sched.c linux-2.6.20.13/kernel/sched.c
+--- linux-2.6.20.13-clean/kernel/sched.c	2007-07-12 11:44:04.000000000 +0200
++++ linux-2.6.20.13/kernel/sched.c	2007-08-23 13:44:00.000000000 +0200
+@@ -1845,6 +1845,12 @@ context_switch(struct rq *rq, struct tas
+ 	struct mm_struct *mm = next->mm;
+ 	struct mm_struct *oldmm = prev->active_mm;
+ 
++#ifdef CONFIG_IPIPE
++if (!rq) {
++	switch_mm(oldmm, next->active_mm, next);
++	if (!mm) enter_lazy_tlb(oldmm, next);
++} else {
++#endif
+ 	if (!mm) {
+ 		next->active_mm = oldmm;
+ 		atomic_inc(&oldmm->mm_count);
+@@ -1857,6 +1863,9 @@ context_switch(struct rq *rq, struct tas
+ 		WARN_ON(rq->prev_mm);
+ 		rq->prev_mm = oldmm;
+ 	}
++#ifdef CONFIG_IPIPE
++}
++#endif
+ 	/*
+ 	 * Since the runqueue lock will be released by the next
+ 	 * task (which is an invalid locking op but in the case
+@@ -1864,12 +1873,19 @@ context_switch(struct rq *rq, struct tas
+ 	 * do an early lockdep release here:
+ 	 */
+ #ifndef __ARCH_WANT_UNLOCKED_CTXSW
++#ifdef CONFIG_IPIPE
++if (rq)
++#endif /* CONFIG_IPIPE */
+ 	spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
+ #endif
+ 
+ 	/* Here we just switch the register state and the stack. */
+ 	switch_to(prev, next, prev);
+ 
++#ifdef CONFIG_IPIPE
++	current->ptd[IPIPE_ROOT_NPTDKEYS - 1] = prev;
++#endif /* CONFIG_IPIPE */
++
+ 	return prev;
+ }
+ 
+@@ -3567,6 +3583,9 @@ switch_tasks:
+ 		barrier();
+  		if (task_hijacked(prev))
+  		    return;
++		#ifdef CONFIG_IPIPE
++			__ipipe_dispatch_event(IPIPE_FIRST_EVENT - 2, 0);
++		#endif /* CONFIG_IPIPE */
+ 		/*
+ 		 * this_rq must be evaluated again because prev may have moved
+ 		 * CPUs since it called schedule(), thus the 'rq' on its stack
+@@ -7115,6 +7134,7 @@ int ipipe_reenter_root (struct task_stru
+ 	return 0;
+ }
+ 
++EXPORT_SYMBOL(context_switch);
+ EXPORT_SYMBOL(ipipe_reenter_root);
+ 
+ #endif /* CONFIG_IPIPE */

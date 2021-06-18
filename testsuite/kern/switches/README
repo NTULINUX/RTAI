@@ -1,0 +1,21 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+****** SWITCHES EXAMPLE ******
+
+This directory checks task switching time by repeated use of suspend/resumes
+and semaphore signal/waits. In case you are slicing microsecs note that the
+results are related to a relativily heavily loaded task queues, i.e. 30 tasks,
+both for the semaphore waiting and suspended tasks lists. Moreover they 
+include full FPU support.
+This example can be executed by using either a kernel space only scheduler 
+(UP/SMP/MUP) or the integrated kernel/user space scheduler (LXRT). In the latter
+case you'll have a chance of verifying also the difference between using RTAI
+proper kernel tasks and Linux kernel threads, by toggling the macro
+USE_RTAI_TASKS in user/sched.c.

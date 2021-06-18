@@ -1,0 +1,13 @@
+Source: rtai
+Section: misc
+Priority: extra
+Maintainer: andypugh <bodgesoc@gmail.com>
+Build-Depends: debhelper, @KERNEL_HEADERS@
+Standards-Version: 3.9.2
+
+Package: rtai-modules-@KERNEL_VERSION@
+Provides: rtai-modules
+Conflicts: rtai-modules-2.6.32-122-rtai, rtai-modules
+Architecture: any
+Description: RTAI Real Time modules for linux-image @KERNEL_VERSION@
+Depends: @KERNEL_IMAGES@

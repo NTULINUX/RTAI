@@ -1,0 +1,67 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+lib16550A_a_SOURCES = 16550A.c
+
+distfiles = $(lib16550A_a_SOURCES)
+
+if CONFIG_KBUILD
+rtai_16550A$(modext): @RTAI_KBUILD_ENV@
+rtai_16550A$(modext): $(lib16550A_a_SOURCES) FORCE
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_KMOD_CFLAGS@" \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+	rm -f FORCE
+
+distclean-local:
+	@RTAI_KBUILD_DISTCLEAN@
+else
+noinst_LIBRARIES = lib16550A.a
+
+lib16550A_a_AR = $(CROSS_COMPILE)ar cru
+
+AM_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I$(top_srcdir)/addons \
+	-I$(top_srcdir)/addons/drivers/16550A/ \
+	-I../../../base/include \
+	-I../..
+
+rtai_16550A.o: lib16550A.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+endif
+
+all-local: rtai_16550A$(modext)
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: rtai_16550A$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+
+uninstall-local:
+	$(RM) $(DESTDIR)$(moduledir)/rtai_16550A$(modext)
+
+.PHONY: FORCE
+
+EXTRA_DIST = $(distfiles) Makefile.kbuild \
+	     16550A_io.h 16550A_pci.h 16550A_pnp.h

@@ -1,0 +1,47 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+OPTDIRS = include
+
+# `malloc', in $(OPTDIRS), must be after `sched' when compiling
+# with kernel 2.4 and builtin RTAI malloc support
+if CONFIG_RTAI_MALLOC
+OPTDIRS += malloc
+endif
+
+OPTDIRS += sched ipc arch posix
+
+if CONFIG_RTAI_TRACE
+OPTDIRS += trace
+endif
+
+if CONFIG_RTAI_MATH
+OPTDIRS += math
+endif
+
+if CONFIG_RTAI_TASKLETS
+OPTDIRS += tasklets
+endif
+
+if CONFIG_RTAI_USI
+OPTDIRS += usi
+endif
+
+if CONFIG_RTAI_WD
+OPTDIRS += wd
+endif
+
+#if CONFIG_RTAI_LEDS
+#OPTDIRS += leds
+#endif
+
+SUBDIRS = $(OPTDIRS) scripts
+
+EXTRA_DIST = config

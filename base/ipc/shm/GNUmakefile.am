@@ -1,0 +1,58 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+libshm_a_SOURCES = kvmem.c shm.c
+
+if CONFIG_KBUILD
+if CONFIG_RTAI_SHM_BUILTIN
+rtai_shm.ko:
+else
+rtai_shm.ko: @RTAI_KBUILD_ENV@
+rtai_shm.ko: $(libshm_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+endif
+else
+noinst_LIBRARIES = libshm.a
+
+libshm_a_AR = $(CROSS_COMPILE)ar cru
+
+AM_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../include
+
+rtai_shm.o: libshm.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+endif
+
+all-local: rtai_shm$(modext)
+if !CONFIG_RTAI_SHM_BUILTIN
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: rtai_shm$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+endif
+
+EXTRA_DIST = Makefile.kbuild rtai_shm.udev

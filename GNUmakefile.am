@@ -1,0 +1,144 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+ACLOCAL_AMFLAGS=-I base/config/autoconf
+
+OPTDIRS =
+
+if CONFIG_RTAI_TESTSUITE
+OPTDIRS += testsuite
+endif
+
+if CONFIG_RTAI_ADDONS
+OPTDIRS += addons
+endif
+
+if CONFIG_RTAI_LAB
+OPTDIRS += rtai-lab
+endif
+
+OPTDIRS += rtai-py
+
+SUBDIRS = base @RTAI_MAYBE_DOCDIR@ $(OPTDIRS)
+
+DIST_SUBDIRS = \
+	@RTAI_MAYBE_DOCDIR@ \
+	base \
+	testsuite \
+	addons \
+	rtai-lab \
+	rtai-py
+
+EXTRA_DIST = \
+makefile \
+lgpl.txt \
+README.CONF_RMRKS \
+README.INSTALL \
+README.ISOLCPUS \
+README.LINUX_SERVER \
+README.LXRT_EXTS_IN_USE \
+README.RTNET \
+README.SMI \
+@RTAI_MAYBE_SIMDIR@
+
+DISTCLEANFILES = .rtai_config .rtai_config.old .cfok .cfchanged Module.symvers
+
+moduledir = @RTAI_MODULE_DIR@
+
+all-recursive install-recursive: base/GNUmakefile clean-if-reconfigured
+
+base/GNUmakefile: @RTAI_LINUX_DIR@/.config
+	@echo "*****************************************" ; \
+	 echo "*  The Linux configuration has changed  *" ; \
+	 echo "*  forcing 'make reconfig' ...          *" ; \
+	 echo "*****************************************" ; \
+	$(MAKE) reconfig
+
+clean-if-reconfigured:
+	@if test -r .cfchanged ; then \
+	   rm -f .cfchanged ; \
+	   echo "****************************************" ; \
+	   echo "*  Your RTAI configuration has changed *" ; \
+	   echo "*  forcing 'make clean' ...            *" ; \
+	   echo "****************************************" ; \
+	   $(MAKE) clean ; \
+	fi
+
+reconfig xconfig gconfig mconfig menuconfig config oldconfig:
+	@$(MAKE) -f $(srcdir)/makefile $@ \
+	srctree=$(srcdir) ARCH=@RTAI_HOST_STRING@ CROSS_COMPILE=@CROSS_COMPILE@
+
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+clean-local:
+	rm -fr modules .cfchanged
+
+distclean-local:
+	$(MAKE) -C $(srcdir)/base/config/kconfig \
+	-f Makefile.kconfig distclean srctree=$(srcdir)
+	find . -name autom4te.cache | xargs rm -fr
+else
+clean-local:
+	rm -f .cfchanged
+
+distclean-local:
+	test -d $(top_builddir)/base/config && \
+	$(MAKE) -C $(top_builddir)/base/config/kconfig \
+	-f @abs_srcdir@/base/config/kconfig/Makefile.kconfig distclean srctree=@abs_srcdir@
+endif
+
+install-data-local: .rtai_config
+	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)
+	$(INSTALL_DATA) .rtai_config $(DESTDIR)$(pkgdatadir)/config-rtai-$(VERSION)
+	if test -f Module.symvers ; then \
+	    $(INSTALL_DATA) Module.symvers $(DESTDIR)$(moduledir)/Module.symvers ; \
+	fi
+
+install-exec-local: devices
+
+dist-hook:
+	$(MAKE) -C $(distdir)/base/config/kconfig \
+	-f Makefile.kconfig distclean srctree=$(distdir)
+	rm -fr `find $(distdir) -name CVS`
+	test -e $(srcdir)/doc || rm -fr $(distdir)/doc
+
+dev devices:
+	@if test -r $(DESTDIR)/etc/udev/udev.rules ; then \
+	    for f in \
+	            $(srcdir)/base/ipc/shm/rtai_shm.udev \
+	            $(srcdir)/base/ipc/fifos/rtai_fifos.udev \
+	            ; do \
+	        b=`basename $$f` ; \
+	        grep -q RTAI:`basename $$b .udev` $(DESTDIR)/etc/udev/udev.rules || \
+	        $$sudo sh -c "( echo ; cat $$f ) >> $(DESTDIR)/etc/udev/udev.rules" ; \
+	    done ; \
+	elif test -d $(DESTDIR)/etc/udev/rules.d ; then \
+	    for f in \
+	            $(srcdir)/base/ipc/shm/rtai_shm.udev \
+	            $(srcdir)/base/ipc/fifos/rtai_fifos.udev \
+	            ; do \
+	        b=`basename $$f` ; \
+	        grep -q RTAI:`basename $$b .udev` $(DESTDIR)/etc/udev/rules.d/99-rtai.rules || \
+	        $$sudo sh -c "( echo ; cat $$f ) >> $(DESTDIR)/etc/udev/rules.d/99-rtai.rules" ; \
+	    done ; \
+	fi ; \
+	if test x$(DESTDIR) = x; then \
+	    if test \! "x`type -t sudo`" = x; then sudo=sudo; else sudo=; fi; \
+	    if test \! -c $(DESTDIR)/dev/rtai_shm; then \
+	       $$sudo mknod -m 666 $(DESTDIR)/dev/rtai_shm c 10 254; \
+	    fi; \
+	    for n in `seq 0 9`; do \
+	       f="$(DESTDIR)/dev/rtf$$n"; \
+	       if test \! -c $$f; then \
+	          $$sudo mknod -m 666 $$f c 150 $$n; \
+	       fi; \
+	    done ; \
+	fi
+
+.PHONY: reconfig xconfig gconfig mconfig menuconfig config oldconfig clean-if-reconfigured dev devices

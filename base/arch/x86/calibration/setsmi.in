@@ -1,0 +1,67 @@
+#!/bin/sh
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+MODULENAMENOEXT=rtai_smi
+MODULENAME="${MODULENAMENOEXT}@RTAI_MODULE_EXT@"
+
+# Determine if setting or resetting
+CMDNAME=`basename $0`
+case $CMDNAME in
+setsmi)
+	SMIRESET=0
+	;;
+rstsmi)
+	SMIRESET=1
+	;;
+*)
+	echo "invalid SMI script name \"$0\""
+	exit 1
+	;;
+esac
+
+MODULEDIR=`rtai-config --module-dir`
+if test $? != 0 ; then
+	echo "$CMDNAME: cannot find rtai-config (hint: make sure it's in the path; usual location: \$PREFIX/bin)"
+	exit 1
+fi
+
+if test x"$MODULEDIR" = x ; then
+	echo "$CMDNAME: rtai-config --module-dir: cannot find module dir"
+	exit 1
+fi
+
+# If hal_smi_masked_bits is not set, use default
+if test x"$1" != x ; then
+	SMI_MASKED_BITS="$1"
+else
+	SMI_MASKED_BITS="0x1"
+fi
+
+# remove anyway
+CMD="rmmod"
+rmmod -s "$MODULENAMENOEXT"
+RC=$?
+if test $SMIRESET -eq 0 ; then
+	# if setting, insert
+	CMD="rmmod"
+	insmod "$MODULEDIR/$MODULENAME" hal_smi_masked_bits=$SMI_MASKED_BITS
+	RC=$?
+fi
+if test $RC != 0; then
+	echo "$CMDNAME: $CMD $MODULEDIR/$MODULENAME failed"
+	if test $SMIRESET -eq 0; then
+		calibration_helper "$1"
+	fi
+	exit $RC
+fi
+
+exit 0
+

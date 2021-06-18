@@ -1,0 +1,442 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+This is a complete rewriting of rt_com. Changes:
+
+- possibility of parametrizing the base_adr and irq of the serial ports used, 
+  along with rx/tx buffer sizes, at insmod,
+- new read/write buffer management, with the possibility of previewing what's 
+  in the receiver before reading,
+- enhanced interrupt service management,
+- interrupt callback function with user thresholded callbacks,
+- special interrupt callback function for serial port hardware errors,
+- the above callbacks are available in user space also,
+- info functions to check rx/tx data availability,
+
+Compatibility with rt_com is provided through inlines and defines. 
+rt_com_hwsetup is not supported, use the appropriate parametrization at insmod.
+
+Any comment is welcomed.
+
+The work of all the original rt_com writers: Jens Michaelsen, Jochen Kupper, 
+Hua Mao, Roberto Finazzi, provided the base for an easy rewriting and is warmly 
+acknowledged.
+
+********************************************************************************
+
+N.B.: in the followings "spct" stands for "serial port control table".
+
+********************************************************************************
+
++------------------------------------------------------------------------------+
+ int rt_spclear_rx(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Clear serial port rx and reset the related buffer and UART rx FIFO.
+
+params:
+	tty        Number corresponding to internal port numbering scheme, 
+                   i.e. the index of the spct slot to use.
+
+return:
+	0          if all right.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spclear_tx(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Clear serial port tx and reset the related buffer.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+return:
+	0          if all right.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spset_mode(unsigned int tty, int mode)
++------------------------------------------------------------------------------+
+
+Set serial port flow control.
+
+params:
+	tty       Number corresponding to internal port numbering scheme,
+	          i.e. the index of the spct slot to use.
+
+	mode      working mode, i.e. handshaking and the likes, see 
+	          available modes and related macros in rtai_spdrv :
+	          RT_SP_NO_HAND_SHAKE     no hw flow control
+	          RT_SP_DSR_ON_TX 	  transmitter enabled if DSR active
+	          RT_SP_HW_FLOW		  RTS-CTS flow control
+	          Note that RT_SP_DSR_ON_TX and RT_SP_HW_FLOW can be
+	          ORed toghether.
+
+return:
+	0         if all right.
+	-ENODEV   no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spset_fifotrig(unsigned int tty, int fifotrig)
++------------------------------------------------------------------------------+
+
+Set serial port UART receiver fifo trigger level.
+
+params:
+	tty       Number corresponding to internal port numbering scheme,
+	          i.e. the index of the spct slot to use.
+
+	fifotrig  this value must be choosen between one of these
+	          valued defined in rt_spdrv.h : 
+	          RT_SP_FIFO_DISABLE
+              	  RT_SP_FIFO_SIZE_1
+                  RT_SP_FIFO_SIZE_4
+                  RT_SP_FIFO_SIZE_8
+                  RT_SP_FIFO_SIZE_14
+                  RT_SP_FIFO_SIZE_DEFAULT
+
+return:
+	0         if all right.
+	-ENODEV   no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spset_mcr(unsigned int tty, int mask, int setbits)
++------------------------------------------------------------------------------+
+
+Set MODEM Control Register (MCR).  Can be used to set the status
+of DTR and RTS lines.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	mask       Output mask:
+	           RT_COM_DTR, RT_COM_RTS or any ORed combination.
+
+	setbits    0    -> reset bits in mask
+	           != 0 -> set bits in mask
+
+return:
+	0          if all right.
+	-ENODEV    no entry in spct slots for that device.
+	-EINVAL    wrong mask value
+
++------------------------------------------------------------------------------+
+ int rt_spget_msr(unsigned int tty, int mask)
++------------------------------------------------------------------------------+
+
+Get serial port MODEM Status Register (MSR) (CTS, DSR, RI, DCD).
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	mask       Input mask:  
+	           RT_SP_CTS, RT_SP_DSR, RT_SP_RI, RT_SP_DCD
+	           or any ORed combination.  
+
+return:
+	>= 0       input signal status, i.e. the bitwise-OR of 
+	           the signal argument and MSR register.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spget_err(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Return the last error detected on a serial port.
+
+param:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+return:
+	>=0	   tipically one or more codes ORed :
+	           RT_SP_BUFFER_FULL   rx buffer full
+  		   RT_SP_BUFFER_OVF    rx buffer overflow (chars missed)
+  		   RT_SP_OVERRUN_ERR   rx overrun (chars missed)
+  		   RT_SP_PARITY_ERR    parity error
+  		   RT_SP_FRAMING_ERR   framing error
+  		   RT_SP_BREAK         break condition
+  		
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spwrite(unsigned int tty, char *msg, int msg_size)
++------------------------------------------------------------------------------+
+
+Write to a serial port.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	msg        pointer to buffer of char to send.
+
+	msg_size   abs(msg_size) is the number of bytes to write.
+                   If > 0, write bytes that are possible to send.	 
+	           If < 0, write bytes only if possible to write them all 
+		   together.
+
+return:
+	>= 0       number of bytes not written.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spread(unsigned int tty, char *msg, int msg_size)
++------------------------------------------------------------------------------+
+
+Read from a serial port.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	msg        Address of data buffer. Needs to be of size > cnt !
+
+	msg_size   abs(msg_size) is the number of bytes to read. 
+	           If > 0, read all the bytes up to msg_size 
+		   If < 0, read bytes only if it is possible to read them all 
+		   together.
+
+return:
+	>= 0       number of bytes not read.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spevdrp(unsigned int tty, char *msg, int msg_size)
++------------------------------------------------------------------------------+
+
+Eavesdrop data we got from a line just for a preview, i.e. keeping the read 
+buffer unchanged.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	msg        Address of data buffer. Needs to be of size > cnt !
+
+	msg_size   abs(msg_size) is the number of bytes to read. 
+	           If > 0, read all the bytes up to msg_size 
+		   If < 0, read bytes only if it is possible to read them all 
+		   together.
+
+return:
+	>= 0       number of bytes not eavesdropped.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spget_rxavbs(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Get the number of bytes available in rx buffer.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+return:
+	>= 0       number of readable bytes.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spget_txfrbs(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Get the number of free bytes in rx buffer.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+return:
+	>= 0       number of writable bytes.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spset_thrs(int tty, int rxthrs, int txthrs)
++------------------------------------------------------------------------------+
+
+Set rx and tx thresholds for callback function.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	rxthrs     call callback fun when rx has available a number of bytes
+	           >= rxthrs.
+
+	txthrs     call callback fun when tx has a free a number of bytes 
+	           >= txthrs.
+
+return:
+	0          if all right.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+ int rt_spset_callback_fun(int tty, void (*callback_fun)(int, int), 
+                           int rxthrs, int txthrs)
++------------------------------------------------------------------------------+
+
+Define the callback function to be called when the chars in the receive
+buffer or the free chars in the transmit buffer have reached the 
+specified thresholds
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	callback_fun  user assigned callback function, it will be called when
+		      the received/trasmitted bytes give/live the related 
+		      buffers with a number of bytes >= the corresponding 
+		      threshold values, passing the bytes available/free in 
+		      the buffers.
+
+return:
+	>= 0       address of any already existing calbackfun, cast to int,
+	-ENODEV    no entry in spct slots for that device.
+    	-EINVAL    if wrong parameter value
+
++------------------------------------------------------------------------------+
+ int rt_spset_err_callback_fun(int tty, void (*err_callback_fun)(int))
++------------------------------------------------------------------------------+
+
+Define the callback function to be called when the interrupt service routine
+detect an error
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	err_callback_fun  user assigned callback function, it will be called 
+			  when an error (the same reported by rt_spget_err) is 
+			  detected by the interrupt service routine.
+
+return:
+	>= 0       address of any already existing calbackfun, cast to int,
+	-ENODEV    no entry in spct slots for that device.
+	-EINVAL    if wrong parameter value
+
++------------------------------------------------------------------------------+
+ int rt_spopen(unsigned int tty, unsigned int baud, unsigned int numbits,
+               unsigned int stopbits, unsigned int parity, int mode,
+               int fifotrig)
++------------------------------------------------------------------------------+
+
+Setup and open a serial port.
+
+params:
+	tty        Number corresponding to internal port numbering scheme,
+	           i.e. the index of the spct slot to use.
+
+	baud       Data transmission rate to use [Byte/s]: 50 .. 115200.
+
+	numbits    number of bits per char 
+	           5,6,7,8
+
+	stopbits   Number of stopbits to use.
+	           1   gives you one stopbit, 
+		   2   actually gives really two stopbits for character lengths
+		       of 6,7,8 bit, but 1.5 stopbits for a character length of
+		       5 bits.
+
+	parity    Parity for transmission protocol. 
+	          Is possible to choose between macros defined in rt_spdrv.h :
+                  RT_SP_PARITY_NONE
+                  RT_SP_PARITY_EVEN
+                  RT_SP_PARITY_ODD
+                  RT_SP_PARITY_HIGH
+                  RT_SP_PARITY_LOW 
+
+	mode      working mode, i.e. handshaking and the likes, see 
+	          available modes and related macros in rtai_spdrv :
+	          RT_SP_NO_HAND_SHAKE no hw flow control
+	          RT_SP_DSR_ON_TX 	  transmitter enabled if DSR active
+	          RT_SP_HW_FLOW		  RTS-CTS flow control
+	          Note that RT_SP_DSR_ON_TX and RT_SP_HW_FLOW can be
+	          ORed toghether.
+
+	fifotrig  this value must be choosen between one of these
+	          valued defined in rt_spdrv.h : 
+	          RT_SP_FIFO_DISABLE
+                  RT_SP_FIFO_SIZE_1
+                  RT_SP_FIFO_SIZE_4
+                  RT_SP_FIFO_SIZE_8
+                  RT_SP_FIFO_SIZE_14
+                  RT_SP_FIFO_SIZE_DEFAULT
+
+return:
+	0            if all right.
+	-ENODEV      no entry in spct slots for that device.
+	-EINVAL      if wrong parameter value
+	-EADDRINUSE  if trying to open an openend port
+
++------------------------------------------------------------------------------+
+ int rt_spclose(unsigned int tty)
++------------------------------------------------------------------------------+
+
+Close a serial port.
+
+params:
+	tty        Number corresponding to internal port numbering scheme, 
+	           i.e. the index of the spct slot to use.
+
+return:
+	0          if all right.
+	-ENODEV    no entry in spct slots for that device.
+
++------------------------------------------------------------------------------+
+int rt_spwrite_timed(unsigned int tty, char *msg, int msg_size, RTIME delay)
++------------------------------------------------------------------------------+
+
+Send one or more bytes with timeout
+
+ Arguments: 
+ 		tty		serial port number.
+ 		
+ 		msg		pointer to the chars to send.
+
+		msg_size	number of bytes to send.
+
+		delay		timeout in internal count unit,
+				use DELAY_FOREVER for a blocking send.
+      			
+Return Value:
+ 		-ENODEV, if wrong tty number;
+ 		msg_size, if < 0 or another writer is already using tty;
+ 		one of the semaphores error messages;
+ 		0, message sent succesfully.
+
+
++------------------------------------------------------------------------------+
+int rt_spread_timed(unsigned int tty, char *msg, int msg_size, RTIME delay)
++------------------------------------------------------------------------------+
+
+Receive one or more bytes with timeout
+
+Arguments: 
+		tty		serial port number.
+ 		
+ 		msg		pointer to the chars to receive.
+
+		msg_size	the number of bytes to receive.
+
+		delay		timeout in internal count unit,
+				use DELAY_FOREVER for a blocking receive.
+      			
+Return Value:
+ 		-ENODEV, if wrong tty number;
+ 		msg_size, if < 0 or another reader is already using tty;
+ 		one of the semaphores error messages;
+ 		0, message received succesfully.
+
+********************************************************************************
+
+Paolo Mantegazza & Giuseppe Renoldi.

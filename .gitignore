@@ -1,0 +1,84 @@
+# CVS junk
+CVS
+
+# Build Files
+*.o
+*.d
+*.cmd
+*.mod.*
+*.ko
+*.a
+*.lo
+*.la
+*.swp
+*~
+src/math/musl/obj
+src/sched/fifos.c
+src/sched/kvmem.c
+src/sched/malloc.c
+src/sched/sem.c
+src/sched/shm.c
+Module.symvers
+modules.order
+include/asm
+scripts/rtai-config
+scripts/rtai-load
+rtai_config.h
+
+# Auto-generated files
+rtai_defs.h
+rtai_config.h.in
+/configure
+aclocal.m4
+ltversion.m4
+bin/
+m4/*
+latency
+display
+.libm.o.d
+
+# Generated Makefiles
+GNUmakefile.in
+GNUmakefile
+Makefile.in
+Makefile
+
+# Config Temp Files
+.cfok
+.cfchanged
+.rtai_config*
+autom4te.cache/
+config.log
+config.status
+libtool
+stamp-h1
+
+# Make Temp Files
+.deps
+.tmp_versions
+.libs
+*.tmp
+
+# Executables
+src/sched/calibrate
+
+# Kconfig Generated files
+scripts/kconfig/.config*
+scripts/kconfig/.ncurses
+scripts/kconfig/lex.zconf.c
+scripts/kconfig/libkconfig.so
+scripts/kconfig/lxdialog/lxdialog
+scripts/kconfig/mconf
+scripts/kconfig/zconf.tab.c
+
+# Debian files
+build-stamp
+debian/.debhelper
+debian/control
+debian/rules
+debian/rtai*
+debian/files
+
+# Shorten diff
+ChangeLog
+base/ipc/netrpc

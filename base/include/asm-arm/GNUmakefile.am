@@ -1,0 +1,55 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+includedir = $(prefix)/include/asm-arm
+
+nobase_include_HEADERS = \
+		rtai_atomic.h \
+		rtai_fpu.h \
+		rtai.h \
+		rtai_hal.h \
+		rtai_lxrt.h \
+		rtai_oldnames.h \
+		rtai_sched.h \
+		rtai_shm.h \
+		rtai_srq.h \
+		rtai_usi.h \
+		rtai_vectors.h
+if CONFIG_ARCH_PXA
+nobase_include_HEADERS += \
+		arch-pxa/rtai_arch.h \
+		arch-pxa/rtai_exports.h \
+		arch-pxa/rtai_timer.h
+endif
+if CONFIG_ARCH_IMX
+nobase_include_HEADERS += \
+		arch-imx/rtai_arch.h \
+		arch-imx/rtai_exports.h \
+		arch-imx/rtai_timer.h
+endif
+if CONFIG_ARCH_EP9301
+nobase_include_HEADERS += \
+		arch-ep9301/rtai_arch.h \
+		arch-ep9301/rtai_exports.h \
+		arch-ep9301/rtai_timer.h
+endif
+if CONFIG_ARCH_AT91
+nobase_include_HEADERS += \
+		arch-at91/rtai_arch.h \
+		arch-at91/rtai_exports.h \
+		arch-at91/rtai_timer.h
+endif
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
+	$(LN_S) -f asm-arm $(DESTDIR)$(includedir)/../asm
+	$(LN_S) -f arch-@RTAI_TARGET_SUBARCH@ $(DESTDIR)$(includedir)/arch
+
+EXTRA_DIST = rtai_hal.immed rtai_hal.piped

@@ -1,0 +1,52 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+if CONFIG_X86
+ARCHDIR = x86
+endif
+
+#if CONFIG_I386
+#ARCHDIR = i386
+#endif
+
+#if CONFIG_X86_64
+#ARCHDIR = x86_64
+#endif
+
+if CONFIG_ARM
+ARCHDIR = arm
+endif
+
+#if CONFIG_PPC
+#ARCHDIR = ppc
+#endif
+
+#if CONFIG_M68KNOMMU
+#ARCHDIR = m68k
+#endif
+
+#if CONFIG_M68K
+#ARCHDIR = m68k
+#endif
+
+SUBDIRS = $(ARCHDIR)
+
+modext = @RTAI_MODULE_EXT@
+
+rtai_hal$(modext):
+	@(cd $(ARCHDIR)/hal && make rtai_hal$(modext))
+
+if CONFIG_X86
+calibrate:
+	@(cd $(ARCHDIR)/calibration && make calibrate)
+else
+calibrate:
+	echo "*** calibration is x86 only for now ***"
+endif

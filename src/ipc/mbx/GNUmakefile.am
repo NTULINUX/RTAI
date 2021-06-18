@@ -1,0 +1,35 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+moduledir = @RTAI_MODULE_DIR@
+
+if CONFIG_RTAI_MBX_BUILTIN
+rtai_mbx.ko:
+else
+rtai_mbx.ko: @RTAI_KBUILD_ENV@
+rtai_mbx.ko: mbx.c
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+endif
+
+all-local: rtai_mbx.ko
+if !CONFIG_RTAI_MBX_BUILTIN
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+
+install-exec-local: rtai_mbx.ko
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+endif
+
+EXTRA_DIST = Makefile.kbuild

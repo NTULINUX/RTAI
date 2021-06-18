@@ -1,0 +1,17 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+****** SWITCHES EXAMPLES ******
+
+This directory checks task switching time for hard real time processes (user
+space environment), by repeated use of suspend/resumes and sem_wait/sem_signal.
+In case you are slicing microsecs note that the results are related to
+relativily heavily loaded task queues, i.e. 30 tasks, both for the semaphore 
+waiting and suspended tasks lists. Moreover, as usual for user space, they 
+include full FPU support by default.

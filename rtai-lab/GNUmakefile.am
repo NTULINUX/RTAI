@@ -1,0 +1,66 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+bin_PROGRAMS = xrtailab
+
+xrtailab_SOURCES = \
+	Fl_Led.h \
+	Fl_Led.cpp \
+	Fl_Led_Window.h \
+	Fl_Led_Window.cpp \
+	Fl_Leds_Manager.cpp \
+	Fl_Leds_Manager.h \
+	Fl_ALogs_Manager.cpp\
+	Fl_ALogs_Manager.h\
+	Fl_Logs_Manager.cpp \
+	Fl_Logs_Manager.h \
+	Fl_Meter.h \
+	Fl_Meter.cpp \
+	Fl_Meter_Window.h \
+	Fl_Meter_Window.cpp \
+	Fl_Meters_Manager.cpp \
+	Fl_Meters_Manager.h \
+	Fl_Params_Manager.cpp \
+	Fl_Params_Manager.h \
+	Fl_Scope.h \
+	Fl_Scope.cpp \
+	Fl_Scope_Window.h \
+	Fl_Scope_Window.cpp \
+	Fl_Scopes_Manager.cpp \
+	Fl_Scopes_Manager.h \
+	Fl_Synch.h \
+	Fl_Synch.cpp \
+	Fl_Synch_Window.h \
+	Fl_Synch_Window.cpp \
+	Fl_Synchs_Manager.cpp \
+	Fl_Synchs_Manager.h \
+	xrtailab.cpp \
+	xrtailab.h
+
+efltk_cflags = $(shell @EFLTK_DIR@/bin/efltk-config --cxxflags)
+efltk_ldflags = $(shell @EFLTK_DIR@/bin/efltk-config --ldflags --use-gl --multithread)
+
+xrtailab_CPPFLAGS = \
+	@RTAI_REAL_USER_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../base/include \
+	$(efltk_cflags) \
+	@GL_CFLAGS@
+
+xrtailab_LDFLAGS = \
+	$(efltk_ldflags) \
+	@GL_LIBS@
+
+xrtailab_LDADD = \
+	$(top_srcdir)/base/sched/liblxrt/liblxrt.la
+
+SUBDIRS = matlab scilab scicoslab
+
+EXTRA_DIST = icons INSTALL scilab5 scicoslab README README.scilab README_X64

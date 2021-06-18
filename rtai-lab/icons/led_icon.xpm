@@ -1,0 +1,102 @@
+/*
+ * Copyright (C) 1999-2017 Lorenzo Dozio
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/* XPM */
+static char *led_icon[] = {
+/* columns rows colors chars-per-pixel */
+"32 32 47 1",
+"  c #000000",
+". c #0e1212",
+"X c #141414",
+"o c #22221e",
+"O c #352929",
+"+ c #423a36",
+"@ c #453e3c",
+"# c #5e562a",
+"$ c #4d4642",
+"% c #575757",
+"& c #5e5652",
+"* c #585858",
+"= c #66564e",
+"- c #625a56",
+"; c #6a635c",
+": c #636363",
+"> c #6b6b6b",
+", c #75716a",
+"< c #727272",
+"1 c #7e7b73",
+"2 c #7c7c7c",
+"3 c #817d75",
+"4 c #86817b",
+"5 c #818181",
+"6 c #8e8a83",
+"7 c #8c8c8c",
+"8 c #95938c",
+"9 c #949494",
+"0 c #9a9a9a",
+"q c #a4a4a4",
+"w c #adaaa4",
+"e c #ababab",
+"r c #b3b3b3",
+"t c #bababa",
+"y c #c1b9ad",
+"u c #c5bdb1",
+"i c #c3c3c3",
+"p c #cbcbcb",
+"a c #ded6ca",
+"s c #d2d2d2",
+"d c #dcdcdc",
+"f c #e2dace",
+"g c #e3e3e3",
+"h c #ebebeb",
+"j c #f3f3f3",
+"k c #fcfcfc",
+"l c None",
+/* pixels */
+"llllllllllllll222>::%%llllllllll",
+"lllllllllllk52tdgdsspt::llllllll",
+"llllllllllk2tghhgggddsir:lllllll",
+"llllllllll2thhhjhhggdddsr llllll",
+"llllllllll2gjjjjjhhgdddspe lllll",
+"lllllllll2tjkkkkkjhhgdddst lllll",
+"lllllllll<gjkkkkkjjhgdddstq llll",
+"lllllllll>jjkkkkkjjhgdgdsir llll",
+"llllllll*thjkkkkkjhhgdddssr llll",
+"llllllll*dhjkkkkkjhggdddppr llll",
+"llllllll*shjjjkjjhhggdddpt0 llll",
+"llllllll*tghjhhhhhggdddpsrq llll",
+"lllllllll*ggghghhggdddsspe0 llll",
+"lllllllll*pdggdgggddddsite lllll",
+"lllllllll*edddddddgdssptr9 lllll",
+"llllllllll%ssddddddpsptq9 llllll",
+"llllllllll*ppddgddsppte0 lllllll",
+"llllllllll*qsssdgdsitr0 llllllll",
+"lllllllllll%pssdddpitq5 llllllll",
+"lllllllllll%ppsgdsit07 lllllllll",
+"lllllllllll*sssddptr9 llllllllll",
+"lllllllllll :20rdptr7 llllllllll",
+"lllllllllll 2tgksr9> lllllllllll",
+"lllllllllll -48wkdt2 lllllllllll",
+"llllllllll 5ufkkhfy3#lllllllllll",
+"lllllllllll -,3861;@olllllllllll",
+"llllllllll 3ufkkhayOllllllllllll",
+"lllllllllll -,461;$+ lllllllllll",
+"llllllllll 3yakkau3Xllllllllllll",
+"lllllllllll -3441& lllllllllllll",
+"llllllllllll.#-;  Olllllllllllll",
+"lllllllllllll  Xllllllllllllllll"
+};

@@ -1,0 +1,108 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+1/ Introduction
+
+1.1/ About this guide
+This guide is the user-manual of the RTAI (Real-Time Application
+Interface) system and is intended for developers who are building
+embedded systems that will run the Linux operating system. In fact,
+RTAI is based on the Linux operating system to which it adds
+real-time capabilities that are not natively supported since Linux is
+a user-oriented operating system.
+
+This guide will be organized around four main topics including this
+introduction whose purpose is to help you understand the position of
+RTAI in the area of embedded real-time operating system (further
+called RTOS in this document) available on the market. The second part
+focuses on the configuration, compilation and installation of RTAI. It
+is intended to help new users to acquire enough knowledge to be able
+to install and configure RTAI on their hardware platform. The third
+part takes you to basic development material showing you how to build
+and run your first application under RTAI. Finally, the last part will
+go deeper into some specific parts of the system like the building
+process, autoconf/automake variables and programming functionalities.
+
+1.2/ Building embedded real-time systems
+Anyone who wants to develop real-time applications (being embedded or
+not) has to face the choice of selecting the proper operating system
+in adequacy with the project. The constraints influencing this choice
+are of various sorts, going from hardware requirements to programming
+functionalities as well as cost concerns.
+
+Obviously the choices available on the RTOS market are important and
+especially on the proprietary side with well-know products such as
+Tornado/VxWorks, Windows CE, QNX or pSOS, VRTX... The purpose of this
+introduction is not a deep study and evaluation of these softwares
+but rather to emphasize that RTAI has become a credible alternative
+in the RTOS world over the past years.
+
+If we quickly go through some key points that make a RTOS eligible for
+a project addressing real-time and embedding aspects, we will come up
+with the following list which characteristics are of course not
+exhaustive:
+- the ability to provide hard real-time to the system,
+- the capability to be embedded on low foot-print memory hardware,
+- the availability of a convenient development environment,
+- the availability of ports to several hardware platforms,
+- the guarantee of a high quality support service.
+
+We won't mention the price in the list given above since we know that
+all proprietary RTOS are not free and that RTAI naturally turns out to
+be out of the competition due to the fact that it belongs to the free 
+software category (s. RTAI Licensing.)
+
+However, what is important to notice is that RTAI is now able to meet
+each requirements of the list presented above. As a matter of fact, if
+RTAI is a RTOS with hard real-time capabilities, the Adeos technology
+implemented in the RTAI 3.0 branch confers it a singular position
+which enables him to dissociate from other development such as
+RT-Linux. Based on the Linux operating-system, the embeddebality is
+not to prove anymore due to its modular aspect and its ability to be
+scaled into compact configurations. The third point concerns the
+development environment. We refer here to compilation tool chains
+(native and cross-compilers), simulation and emulation environment as
+well as debugging and kernel tracing capabilities. At this point, we
+just want to encourage the reader to invest some time installing RTAI
+3.0. You will soon notice that the new RTAI release offers some
+extraordinary features that doesn't even exist on some proprietary
+RTOS. If RTAI has already been ported to several hardware platforms,
+the new RTAI release based on Adeos just supports the i386
+platform. Other ports should be available soon. Finally, since RTAI is
+supported by a community effort, the support is ensured by a
+mailing-list system where it is possible to find some help in the
+range of newbie to high qualified real-time developers questions.  
+
+
+1.3/ Typographical conventions
+This manual uses the conventions shown in table xxx to
+differentiate various elements.
+
+1.4/ RTAI Licensing
+
+
+2/ Configuration, compilation and installation
+
+
+3/ Running RTAI applications
+
+3.1/ Quick showcase
+
+3.2/ Using runtime information files to start applications
+
+
+4/ Development innards
+
+4.1/ Build system
+
+4.2/ Autoconf/Automake variables
+
+4.3/ Dual-space include files
+
+4.4/ LXRT inlining

@@ -1,0 +1,141 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+RTAI Dynamic Memory Management Module.
+======================================
+
+The dynamic memory module for RTAI gives real time application programs
+the ability to be able to dynamically create and free memory using the
+standard UNIX programming API calls.  Before this module real time
+applications which needed dynamic memory management had to use the
+standard Linux kernel calls: kmalloc and kfree.  This is potentially very
+dangerous as these calls can block, and if this were to occur from a real
+time task the result is usually a total system lock up.  The situation is
+made worse as this can lead to intermittent bugs as real time applications
+can appear to work using these calls, but fail under varying load
+conditions and circumstances.
+
+The dynamic memory manager module pre-allocates blocks (chunks) of memory
+from the Linux kernel which is available for use by real time tasks using
+a "UNIX like" API: rt_malloc and rt_free.  The manager allocates and frees
+memory from these blocks of memory, and also monitors the amount of free
+memory that is available in these blocks.  When the amount of available
+memory falls below a low water mark a request for another block of memory
+is made pending.  Similarly when the amount of available memory is greater
+than a high water mark a request to free a block of memory is made
+pending.  These pending requests are carried out using either vmalloc and
+vfree or kmalloc and kfree calls at a safe time, ie when the real time system
+becomes idle, just before control is handed back to Linux.  Using this
+mechanism the memory manager balances the memory requirements of the real
+time application with the need to keep as much memory as possible
+available to the Linux kernel.
+
+Some of the reasons for using vmalloc are:
+  - Simpler to share allocated buffers with user space.
+  - Doesn't have the size restriction of kmalloc. (128KB)
+
+and for using kmalloc:
+  - Faster.
+  - Contiguous buffer address, needed by DMA controllers which don't have
+    scatter/gather capability.
+
+The dynamic memory manager can be configured for the number of memory
+blocks that are kept available, and the size of the blocks.  This means
+that the module can be configured to meet the specific requirements and
+operating conditions of a real time application, allowing the application
+to be programmed using the flexibility of dynamic memory allocation,
+whilst minimizing the memory resource burden on the Linux kernel.  Another
+key feature provided by the module is the ability to create real time
+threads from other real time threads which is an essential feature for
+many applications. For this purpose, RT_TASK *rt_alloc_dynamic_task(void)
+has been added to the schedulers.
+
+Dynamic memory allocation for real time tasks is supported by the
+implementation of the following functions:
+
+1/ void *rt_malloc(unsigned int size);
+
+rt_malloc allocates size bytes and returns a pointer to the allocated
+memory.  If the allocation request fails a NULL is returned.
+
+
+2/ void rt_free(void *ptr);
+
+rt_free frees the memory space pointed by ptr which must have been
+returned by a previous call to rt_malloc.  rt_free returns no value.
+
+The default configuration of the dynamic memory manager is:
+
+Memory block size: 64 KBytes
+Number of free blocks kept available: 2
+
+These parameters can be changed if required by using the following module
+parameters:
+
+Memory block size:  granularity
+Number of free blocks kept available: low_chk_ref
+
+For example to change the size of the memory blocks to 32 Kbytes and the
+number of free blocks kept available for allocation to 4:
+
+insmod rtai_sched_up.o granularity=32768 low_chk_ref=4
+
+
+
+RTAI C++ Support Built Into The Module
+======================================
+
+Real time C++ support is provided with the implementation of the operators:
+
+	void* operator new(size_t);
+	void* operator new [](size_t);
+	void  operator delete(void*);
+	void  operator delete [](void*);
+
+These operators use the rt_malloc() and rt_free() primitives and thus
+make it possible to execute real time C++ written modules. The LXRT directory
+provides an example on how to do this. Notice that C++ support is limited
+as programs must be compiled with the -fno-exception g++ option. Also, 
+an abstract base class that defines pure virtual functions should implement
+an empty function otherwise the compiler will generate the infamous 
+__pure_virtual() call which will result in an unresolved symbol at insmod
+time: 
+
+class Wathever {
+public:
+	virtual void foo() = 0; // This generates a __pure_virtual() call.
+	virtual void Better {}  // The empty function will not.
+};
+
+Alternatively you could choose to implement your own __pure_virtual()
+function with something like this:
+
+extern "C" void __pure_virtual();
+void __pure_virtual()
+{
+	RT_TASK *t;
+	rt_printk( "%X calling a pure virtual\n", t = rt_whoami());
+	rt_task_suspend(t);
+}
+
+Notice that if you attemp to compile with the -fPIC option you will
+see another infamous unresolved symbol: _GLOBAL_OFFSET_TABLE_.
+
+Also, you cannot instantiate global objects because nothing actually
+does the global initialisation. This is normally done before the program
+enters main and you need to link with the library files crtbegin.o and
+crtend.o to do that. However, linking with those two files will introduce
+you to two other infamous unresolved symbols: __register_frame_info and
+__deregister_frame_info.
+
+To resume, C++ support is limited in that exception handling and global
+instantiation services are not available in the kernel due to lack of 
+library support. It is possible to trick the compiler in order to avoid 
+the __pure_virtual unresolved symbol.
+

@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 1999-2017 Lorenzo Dozio
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/* XPM */
+static const char * folder_asmall[] = {
+"16 16 23 1",
+" 	c None",
+".	c #000000000000",
+"X	c #FFFFFFFFFFFF",
+"o	c #CF3CCF3CCF3C",
+"O	c #FFFF9A699A69",
+"+	c #EFBEEFBEEFBE",
+"@	c #FFFFFFFF9A69",
+"#	c #FFFFFFFFCF3C",
+"$	c #CF3CCF3C30C2",
+"%	c #CF3C9A6930C2",
+"&	c #9A699A696595",
+"*	c #FFFFCF3CCF3C",
+"=	c #FFFFFFFF30C2",
+"-	c #DF7DDF7DDF7D",
+";	c #FFFFCF3C6595",
+":	c #9A6965956595",
+">	c #FFFFCF3C30C2",
+",	c #FFFFFFFF6595",
+"<	c #FFFFFFFF0000",
+"1	c #9A699A699A69",
+"2	c #75D675D675D6",
+"3	c #208120812081",
+"4	c #659565956595",
+"   .. ..        ",
+"   .X..o..      ",
+".. .XXX..O..... ",
+".+..@#XXX..$%%. ",
+".+++..@##XX..&O.",
+" .*=**..-@#XX.%.",
+" .*;**+;..:@#.& ",
+" .*;>o*;;o..@.& ",
+"  .**+*o*o*.@.. ",
+"  .**;*o**o.,.  ",
+"   .;>;;;;;.<.  ",
+"   .;;;;;;;%..1 ",
+"    ..;;;>;;..22",
+"      ..;;;>.32 ",
+"        ..;;.4  ",
+"          ...   "};

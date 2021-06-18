@@ -1,0 +1,228 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+TASKLETS Tasklets Support Module
+================================
+
+The TASKLETS  module you'll find here adds an interesting new feature along 
+the line, pioneered by RTAI, of a symmetric usage of all its services 
+inter-intra kernel and user space both for soft and hard real time.
+In such a way you have an wide spectrum of development and implementation
+options, allowing maximum flexibility with uncompromised performances.
+And of course, all LGPL free software.
+
+New services: tasklets and timers
+---------------------------------
+
+The new services provided can be useful when you have many tasks, both in 
+kernel and user space, that must execute in hard real time but do not need
+any RTAI scheduler services that could lead to a task block. This constraint
+is critical and make sure you fully understand it.
+
+Such tasks are called tasklets and can be of two kinds:
+
+	- A simple tasklets,
+
+	- Timed tasklets (timers).
+
+It must be noted that only timers need to be made available both in user and
+kernel space. In fact, simple tasklets in kernel space are nothing but
+standard functions that can be directly executed by simply calling them, so
+there is no need for any special treatment. However in order to maintain full
+usage symmetry, and to continue to allow the possibility of porting
+applications from one address space to the other, tasklets functions have
+been implemented so they can be used in whatever address space.
+
+Note that the Linux kernel offers similar services. They are not exactly the
+same because of the RTAI symmetrical API implementation, but the basic idea
+behind them is clearly fairly similar.
+
+It should be clear that for such tasks the standard hard real time tasks 
+available with RTAI and LXRT schedulers can be a waist of resources and the 
+execution of simple, possibly timed, functions could often be more than 
+enough.
+
+Examples of such applications are timed pollings and simple Programmable Logic
+Controllers (PLC) like sequences of services. Obviously there are many others 
+instances that justify the use of tasklets, either simple or timed. In general
+such an approach can be a very usefull complement in controlling complex
+machines and systems, both for basic and support services.
+
+The implementation
+------------------
+
+The TASKLETS implementation of timed tasklets relies on a server support
+task that executes the related timer functions, either in oneshot or periodic
+mode, on the base of their time deadline and according to their user assigned 
+priority.
+
+As explained above, plain tasklets are just functions executed from kernel 
+space. Their execution needs no server and is simply triggered by calling 
+the user specified tasklet function at due time, either from a kernel task 
+or interrupt handler in charge of their execution when they are needed.
+
+Once more it is important to recall that only non blocking RTAI scheduler
+services can be used in any tasklet function. Services that can block must
+absolutely be avoided, as they will deadlock the timers server task, executing 
+task or interrupt handler, whichever applies, so that no more tasklet functions
+will be executed from them.
+ 
+User and kernel space TASKLETS applications should cooperate and synchronize
+by using shared memory.
+
+It has been called TASKLETS because it is a kind of light hard real time
+server that can substitute both RTAI and LXRT, if the constraints hinted above
+are wholly satisfied. So TASKLETS can be used in kernel and user space, 
+with any RTAI scheduler.
+
+Its implementation has been very easy to accomplish, as it is nothing but what
+its name implies, so that LXRT made all the needed tools already available.
+
+As already done for shared memory and LXRT the function calls for Linux 
+processes are inlined in the file "tasklets.h". This approach has been
+preferred to a library since it is simpler, more effective, the calls are
+short and simple so that, even if it is likely that only a few calls are used
+for a typical process, they do not add significantly to the size of the
+program. 
+
+
+TASKLETS Services
+------------------
+
+Services made available by the TASKLETS module (functions, macros and 
+variable names are self explanatory, see also example test.c):
+
+struct rt_tasklet_struct *rt_tasklet_init(void)
+
+void rt_tasklet_delete(strct rt_tasklet_struct *tasklet)
+
+int rt_insert_tasklet(
+	struct rt_tasklet_struct *tasklet, 
+	void (*handler)(unsigned long), 
+	unsigned long data, 
+	unsigned long id, 
+	int pid
+)
+
+void rt_remove_tasklet(struct rt_tasklet_struct *tasklet)
+
+struct rt_tasklet_struct *rt_find_tasklet_by_id(unsigned long id)
+
+void rt_exec_tasklet(struct rt_tasklet_struct *tasklet)
+
+void rt_set_tasklet_priority(struct rt_tasklet_struct *tasklet, int priority)
+
+int rt_set_tasklet_handler(struct rt_tasklet_struct *tasklet, void (*handler)(unsigned long))
+
+#define rt_fast_set_tasklet_handler(tasklet, handler)
+
+void rt_set_tasklet_data(struct rt_tasklet_struct *tasklet, unsigned long data)
+
+#define rt_fast_set_tasklet_data(tasklet, data)
+
+void rt_tasklet_use_fpu(struct rt_tasklet_struct *tasklet, int use_fpu)
+
+struct rt_tasklet_struct *rt_timer_init(void)
+
+void rt_timer_delete(strct rt_tasklet_struct *timer)
+
+int rt_insert_timer(
+	struct rt_tasklet_struct *timer, 
+	int priority, 
+	RTIME firing_time, 
+	RTIME period, 
+	void (*handler)(unsigned long), 
+	unsigned long data, 
+	int pid
+)
+
+void rt_remove_timer(struct rt_tasklet_struct *timer)
+
+void rt_set_timer_priority(struct rt_tasklet_struct *timer, int priority)
+
+void rt_set_timer_firing_time(struct rt_tasklet_struct *timer, RTIME firing_time)
+
+void rt_set_timer_period(struct rt_tasklet_struct *timer, RTIME period)
+
+#define rt_fast_set_timer_period(timer, period)
+
+int rt_set_timer_handler(struct rt_tasklet_struct *timer, void (*handler)(unsigned long))
+
+#define rt_fast_set_timer_handler(timer, handler)
+
+void rt_set_timer_data(struct rt_tasklet_struct *timer, unsigned long data)
+
+#define rt_fast_set_timer_data(timer, data)
+
+void rt_timer_use_fpu(struct rt_tasklet_struct *timer, int use_fpu)
+
+The rt_fast... timer related macros can be safely used in kernel space as
+alternative to their standard equivalents when the related data and timer
+structure address are available.
+
+Remember to always include the header file rtai_timers.h, found in this 
+directory. It defines struct rt_tasklet_struct and all the tasklet functions 
+prototypes and macros.
+
+The functions rt_tasklet_init, rt_timer_init, rt_tasklet_delete and 
+rt_timer_delete are meant to be used in user space only, where the timer
+structure must be allocated dynamically in kernel space. They become empty
+macros in kernel space, where you must allocate the tasklet structure yourself.
+
+
+FPU Support and other technicalities
+------------------------------------
+
+The timers server task assumes that timer functions never use the Floating
+Point Unit (FPU). If that is not the case, the function rt_tasklets_use_fpu
+should be used to allow the use of the FPU if it is needed by any timer
+function, both in kernel and user space. The same applies to simple tasklets
+in user space.
+
+In the kernel, the task, or interrupt handler, executing any tasklet directly
+must enable the FPU by appropriately using the fsave and frestore, and
+clearing clts (see rtai.h for the related macros).
+
+The timers server runs on a 8096 bytes stack, which should be enough for running
+most timers tasklet functions in kernel space. If you need a larger stack either
+recompile tasklets.c after setting the macro STACK_SIZE in tasklets.h to what 
+you want, or simply load the timers server module using "ldmod ./rtai_timers 
+StackSize=<xxxx>", where <xxxx> is your new stack size.
+
+In user space you run within the memory of the thread associated to the handler 
+function at tasklet/timer creation, so no problem should arise. Note however 
+that the thread must lock all of its memory so that it cannot be swapped out. 
+Generally a tasklet handler should not require more than the stack size Linux
+assigns to a process/thread by default. If it is not so pregrow all your
+needed memory, see mlockall usage in Linux manuals, by changing the function 
+support_tasklet found in tasklets.h.
+
+There are also many very useful test cases that demonstrate the use of most 
+services, both in kernel and user space. See directory tests and related run 
+files.
+
+RTAI TASKLETS in user space can now work also with LXRT. In facts, as hinted
+above their implementation uses a support thread. This because it is thought 
+that a symmetric use of the TASKLETS APIs along with any user space application 
+is a must, and all other tried integrations of TASKLETS with LXRT have resulted 
+to be more cumbersome, huglier and heavier.
+To help figuring out what said above note that on a 500 MHz PIII the switching
+overhead in user space is around 1 us.
+Moreover LXRT has been changed to ease its porting to other architecture, thus
+tasklets in user space will be also available to taht architecture, at no added 
+cost, once the related LXRT port is completed.
+It must also be noted that user space tasklest/timers can live in the space of
+hard real time LXRT processes/threads. Since hard real time LXRT processes
+cannot interact with Linux tasklets/timers, init/delete functions must be called
+only when such processes are in soft real time state. It should not be a heavy 
+constraint unless dynamic init/delete calls are required. In such a case a soft 
+server thread should be used, a standard way of doing things within hard LXRT.
+
+From: Paolo Mantegazza (mantegazza@aero.polimi.it).
+Organization: DIAPM.

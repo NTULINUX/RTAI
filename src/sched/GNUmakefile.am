@@ -1,0 +1,68 @@
+# Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+calibrationdir = $(prefix)/calibration
+
+moduledir = @RTAI_MODULE_DIR@
+
+noinst_LIBRARIES =
+builtins = @RTAI_BUILTIN_MODLIST@
+
+builtins_srclist = $(wildcard $(foreach mod,$(builtins),$(patsubst %,$(top_srcdir)/src/%/*.[chS],$(mod))))
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+	@$(RM) -f $(foreach src,$(builtins_srclist),$(notdir $(src)))
+
+distclean-local:
+	rm -rf .deps
+
+calibration_PROGRAMS = calibrate
+
+calibrate_SOURCES = calibrate.c
+calibrate_CPPFLAGS = \
+	@RTAI_USER_CFLAGS@ \
+	-I$(top_srcdir)/include
+calibrate_LDADD = -lpthread
+
+rtai_hal.ko: @RTAI_KBUILD_ENV@
+rtai_hal.ko: rtai_hal.c
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+rtai_sched.ko: @RTAI_KBUILD_ENV@
+rtai_sched.ko: sched.c sys.c api.c signal.c $(builtins_srclist)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ rtai_extradef="-DUSE_RTAI_TASKS=1" \
+	@RTAI_KBUILD_BOTTOM@
+
+all-local: rtai_hal.ko rtai_sched.ko
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+
+install-exec-local: rtai_hal.ko rtai_sched.ko
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $^ $(DESTDIR)$(moduledir)
+
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(calibrationdir) $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) $(srcdir)/runinfo $(DESTDIR)$(calibrationdir)/.runinfo
+	@echo '#!/usr/bin/env bash' > $(DESTDIR)$(calibrationdir)/run
+	@echo "$(bindir)/rtai-load $(calibrationdir)/.runinfo" >> $(DESTDIR)$(calibrationdir)/run
+	@echo "sleep 1 && sync && $(bindir)/rtai-load cleanup" >> $(DESTDIR)$(calibrationdir)/run
+	@chmod 755 $(DESTDIR)$(calibrationdir)/run
+
+run: all
+	@$(top_srcdir)/rtai-scripts/rtai-load --verbose
+
+EXTRA_DIST = runinfo Makefile.kbuild
+
+DISTCLEANFILES = Makefile

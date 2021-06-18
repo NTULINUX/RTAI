@@ -1,0 +1,58 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+moduledir = @RTAI_MODULE_DIR@
+
+modext = @RTAI_MODULE_EXT@
+
+CROSS_COMPILE = @CROSS_COMPILE@
+
+libfifos_a_SOURCES = fifos.c
+
+if CONFIG_KBUILD
+if CONFIG_RTAI_FIFOS_BUILTIN
+rtai_fifos.ko:
+else
+rtai_fifos.ko: @RTAI_KBUILD_ENV@
+rtai_fifos.ko: $(libfifos_a_SOURCES)
+	@RTAI_KBUILD_TOP@ \
+	@RTAI_KBUILD_CMD@ \
+	@RTAI_KBUILD_BOTTOM@
+
+clean-local:
+	@RTAI_KBUILD_CLEAN@
+endif
+else
+noinst_LIBRARIES = libfifos.a
+
+libfifos_a_AR = $(CROSS_COMPILE)ar cru
+
+AM_CPPFLAGS = \
+	@RTAI_KMOD_CFLAGS@ \
+	-I$(top_srcdir)/base/include \
+	-I../../include
+
+rtai_fifos.o: libfifos.a
+	$(CROSS_COMPILE)$(LD) --whole-archive $< -r -o $@
+endif
+
+all-local: rtai_fifos$(modext)
+if !CONFIG_RTAI_FIFOS_BUILTIN
+if CONFIG_RTAI_OLD_FASHIONED_BUILD
+	$(mkinstalldirs) $(top_srcdir)/modules
+	$(INSTALL_DATA) $^ $(top_srcdir)/modules
+endif
+
+install-exec-local: rtai_fifos$(modext)
+	$(mkinstalldirs) $(DESTDIR)$(moduledir)
+	$(INSTALL_DATA) $< $(DESTDIR)$(moduledir)
+endif
+
+EXTRA_DIST = Makefile.kbuild rtai_fifos.udev

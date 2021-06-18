@@ -1,0 +1,49 @@
+# Copyright (C) 2005-2017 The RTAI project
+# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+nobase_include_HEADERS = \
+		rtai.h \
+		rtai_hal_names.h \
+		rtai_fifos.h \
+		rtai_lxrt.h \
+		rtai_malloc.h \
+		rtai_mbx.h \
+		rtai_msg.h \
+		rtai_nam2num.h \
+		rtai_names.h \
+		rtai_prinher.h \
+		rtai_proc_fs.h \
+		rtai_proxies.h \
+		rtai_registry.h \
+		rtai_rwl.h \
+		rtai_scb.h \
+		rtai_sched.h \
+		rtai_schedcore.h \
+		rtai_sem.h \
+		rtai_shm.h \
+		rtai_signal.h \
+		rtai_spl.h \
+		rtai_trace.h \
+		rtai_types.h \
+		rtai_wrappers.h
+
+all-local: GNUmakefile
+
+install-data-local:
+	$(INSTALL_HEADER) $(CONFIG_HEADER) $(DESTDIR)$(includedir)/rtai_config.h
+
+distclean-local:
+	rm -f asm rtai_defs.h
+
+SUBDIRS = asm-x86
+
+EXTRA_DIST = rtai_defs.h.in
+
+DISTCLEANFILES = asm

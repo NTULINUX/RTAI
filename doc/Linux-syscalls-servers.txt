@@ -1,0 +1,104 @@
+# Copyright (C) 2005-2017 The RTAI project
+# This [file] is free software; the RTAI project
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+       *** SERVING LINUX SYSCALLS IN RTAI HARD REAL TIME MODE ***
+
+This document explains a possible way to be used by hard real time RTAI
+applications in user space wanting to access Linux services. It is based
+on the creation of a general purpose server thread taking over Linux requests.
+The other way is RTAI default of moving a task wanting to use Linux back to
+soft mode recovering it to hard real time again as soon as possible. See the 
+related RTAI configuration helper for an explanation of the different 
+available modes to implement the "as soon as possible" above.
+
+Clearly, in both ways, at the very moment Linux is called the task becomes 
+timed by Linux. So hard real time constraints cannot be satisfied anymore.
+I do not like any of such solutions very much and prefer an application 
+own server that, being specifically taylored to what has to be done, will do 
+it better and with full programmer's conscence of what's going on. 
+However users wanting to have it simple will be eased a lot by having any of
+the above supports, especially during the development phase. 
+
+There are however instances in which Linux services can be used asynchronously,
+i.e. with some kind of "request and forget". In such a case RTAI hard real time 
+tasks could use Linux whithout loosing hard real time determinism. Such a 
+capability can be implemented in many ways, the one chosen by RTAI is based on 
+async Linux syscalls buffering mated to an optional callback function mechanism 
+to help implementing a user own async call policy. Beware of not reusing 
+read/write data/buffers made available to async calls, use RTAI dynamic memory
+or SCB to allocate them in real time, freeing them afterward, possibly with the 
+help of a support call back function. 
+
+How it works
+------------
+
+By using the APIs described below a server thread is created that will block
+waiting for the parent task requests to Linux. Whenever the RTAI scheduler 
+intercepts a Linux syscall in hard real time mode it passes it to the server 
+thread and:
+- remains waiting for its execution if in sync mode;
+- returns immediately if in async mode.
+The server carries out the syscall and:
+- resumes the hard real time parent returning what returned by Linux if in 
+sync mode:
+- calls a callback function, if one has been made available, in async mode.
+
+In sync mode there are clearly two switches per Linux service request, while
+there is none in async mode, as the server will execute in soft mode when there
+will be no RTAI real time activity any more.
+The need of copying some data is responsable for most of the penalty you have 
+to pay for using this server. The related response is not so bad anyhow. 
+Moreover recall this is just an alternative way to what the RTAI scheduler 
+will have to do anyhow, i.e. make you soft and recover hard mode at the next 
+RTAI proper service call, which will require 4 task switches and keep you in 
+Linux hands from the Linux syscall till RTAI is used again. 
+With a server you'll stay soft just either till Linux has finished servicing 
+your request, if in sync mode, or keep working in real time, if in async mode.
+
+Beware that what explained above might make a few Linux sycalls not executable
+by the server (on behalf of the caller).
+
+API Functions prototypes
+------------------------
+
+The only functions needed are:
+
+* int rt_linux_syscall_server_create(RT_TASK *task): short cut to create a 
+synchronous Linux syscall server.
+A zero return meaning success, non zero a failure in setting the server up;
+a NULL task means the current one; it will operate in sync mode always.
+
+* int rt_sync_async_linux_syscall_server_create(RT_TASK *task, int mode, 
+  void (*callback_fun)(long, long), int nr_bufd_async_calls): the general call
+to create a Linux syscall server;
+A zero return meaning success, non zero a failure in setting the server up;
+a NULL task means the current one; a NULL callback_fun is allowed. It will 
+operate according to mode setting, either SYNC_LINUX_SYSCALL or
+ASYNC_LINUX_SYSCALL. Beware of using an appropriate nr_bufd_async_calls, if
+async requests overrun the oldest pending ones will be overwritten and
+not executed.
+
+* void rt_set_linux_syscall_mode(int mode, void (*callback_fun)(long, long):
+to switch between sync and async mode and, possibly, change the call back 
+function.
+- DO NOT USE it to set the async mode for a server created with the simpler
+rt_linux_syscall_server_create as no buffering will be available in such a 
+case.
+
+Examples
+--------
+
+They are available in RTAI "showroom" CVS, in directories: user/linux_server
+and user/print_server. They contain a few macros to help in experimenting
+the use of Linux syscalls servers. 
+Linux_server shows a mettly of syscall managed by a Linux server.
+Print_server is a self standing latency checker using the standard printf to
+report latency results.
+
+Paolo.
