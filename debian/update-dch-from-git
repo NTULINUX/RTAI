@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-if [ ! -d debian -o ! -d base -o ! -d testsuite ]; then
+if [ ! -d debian -o ! -d src -o ! -d testsuite ]; then
     echo "this script must be run from the root of the source tree (the directory with debian and src in it)"
     exit 1
 fi
@@ -28,7 +28,7 @@ set -e
 (
 echo "rtai ($NEW_DEB_VERSION) $(lsb_release -cs); urgency=low"
 echo
-git log --pretty=format:"  * %w(72,0,6)%s" $GIT_TAG..
+git log --pretty=format:"  * %w(72,0,6)%s" ${GIT_TAG}
 echo
 echo
 echo " -- buildbot <buildbot@example.com>  $(date -R)"

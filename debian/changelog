@@ -1,3 +1,9 @@
+rtai (5.3.1-linuxcnc) buster; urgency=low
+
+  * RTAI 5.3.1 for LinuxCNC, many fixes
+
+ -- Alec Ari <neotheuser@ymail.com>  Fri, 18 Jun 2021 23:41:48 -0500
+
 rtai (5.2.3-linuxcnc) stretch; urgency=low
 
   * Lots of fixes and updates
