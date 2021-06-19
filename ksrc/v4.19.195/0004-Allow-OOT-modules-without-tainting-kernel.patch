@@ -1,4 +1,4 @@
-From c432ef86655fd4d83cadee90fa3329ef44d3bcb6 Mon Sep 17 00:00:00 2001
+From ef66f63dc8ce6c74a0a2e2d7163f60573773f9cc Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Fri, 18 Jun 2021 18:43:41 -0500
 Subject: Allow OOT modules without tainting kernel

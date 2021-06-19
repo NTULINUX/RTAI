@@ -1,4 +1,4 @@
-From 647dfffb9a9c7821b53f81d3aeec6c85925722eb Mon Sep 17 00:00:00 2001
+From 2e02c4cfbb25801bcbc165279df2df71164a6f3c Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Fri, 18 Jun 2021 18:43:12 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -106,7 +106,7 @@ index e3a030f7a722..6fdbb76c2783 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 3fe30b82cda8..bf7987a040c4 100644
+index 3fe30b82cda8..9febfc7fdc64 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -113,13 +113,13 @@ config X86
@@ -235,7 +235,7 @@ index 3fe30b82cda8..bf7987a040c4 100644
 -	default  512 if  SMP && (!MAXSMP && !CPUMASK_OFFSTACK)
 +	default 8192 if  SMP && ( MAXSMP ||  CPUMASK_OFFSTACK) && !IPIPE
 +	default  512 if  SMP && (!MAXSMP && !CPUMASK_OFFSTACK) && !IPIPE
-+	default   16 if  SMP && IPIPE
++	default   32 if  SMP && IPIPE
  	default    1 if !SMP
  
  config NR_CPUS_DEFAULT

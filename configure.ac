@@ -526,8 +526,7 @@ if test x$CONFIG_RTAI_KSTACK_HEAPSZ = x ; then
 fi
 AC_MSG_RESULT($CONFIG_RTAI_KSTACK_HEAPSZ)
 
-dnl Allow building for 16 cores, hopefully making this tree somewhat ready
-dnl for the upcoming Ryzen 9 3950X (kernel support will be needed)
+dnl Allow configuring up to 32 cores
 AC_MSG_CHECKING(for number of CPUs)
 AC_ARG_ENABLE(cpus,
 	[ --enable-cpus			Number of physical CPU cores],
@@ -542,8 +541,8 @@ if test x$CONFIG_RTAI_CPUS = x ; then
 	CONFIG_RTAI_CPUS=8
 fi
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
-if test $CONFIG_RTAI_CPUS -lt 1 -o $CONFIG_RTAI_CPUS -gt 16 ; then
-	AC_MSG_ERROR([Invalid value to option: --enable-cpus=<number-of-CPUs> (must be between 1 and 16)])
+if test $CONFIG_RTAI_CPUS -lt 1 -o $CONFIG_RTAI_CPUS -gt 32 ; then
+	AC_MSG_ERROR([Invalid value to option: --enable-cpus=<number-of-CPUs> (must be between 1 and 32)])
 fi
 
 dnl
