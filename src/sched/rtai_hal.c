@@ -319,13 +319,8 @@ void rt_eoi_irq (unsigned irq)
 }
 EXPORT_SYMBOL(rt_eoi_irq);
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4,4,0)
-#define IPIPE_ACK() do { desc->ipipe_ack(irq, desc); } while (0)
-#define IPIPE_END() do { desc->ipipe_end(irq, desc); } while (0)
-#else
 #define IPIPE_ACK() do { desc->ipipe_ack(desc); } while (0)
 #define IPIPE_END() do { desc->ipipe_end(desc); } while (0)
-#endif
 void rt_ackn_irq (unsigned int irq)
 {
 	struct irq_desc *desc;
