@@ -1,5 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
-# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+# Copyright (C) 2019-2022 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -11,7 +11,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
-AC_INIT([RTAI], [5.3.1], [neotheuser@ymail.com])
+AC_INIT([RTAI], [5.3.2], [neotheuser@ymail.com])
 AC_CONFIG_AUX_DIR(scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
@@ -20,7 +20,7 @@ AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
 AC_PREFIX_DEFAULT(/usr/realtime)
 LT_INIT
-RTAI_VERSION="5.3.1"
+RTAI_VERSION="5.3.2"
 
 AC_PROG_CC([gcc])
 CC="gcc"
@@ -97,8 +97,8 @@ eval linux_$(grep "^PATCHLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 eval linux_$(grep "^SUBLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
 if test $linux_VERSION -lt 4 -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -lt 19 \
- -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -eq 19 -a $linux_SUBLEVEL -lt 195 ; then
-	AC_MSG_ERROR([Kernel must be at least 4.19.195])
+ -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -eq 19 -a $linux_SUBLEVEL -lt 257 ; then
+	AC_MSG_ERROR([Kernel must be at least 4.19.257])
 fi
 AC_MSG_RESULT([$RTAI_LINUX_VERSION])
 

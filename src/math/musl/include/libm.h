@@ -97,7 +97,6 @@ static inline void fp_force_evalf(float x)
 {
 	volatile float y;
 	y = x;
-	(void)y;
 }
 #endif
 
@@ -107,7 +106,6 @@ static inline void fp_force_eval(double x)
 {
 	volatile double y;
 	y = x;
-	(void)y;
 }
 #endif
 
@@ -117,7 +115,6 @@ static inline void fp_force_evall(long double x)
 {
 	volatile long double y;
 	y = x;
-	(void)y;
 }
 #endif
 
@@ -181,9 +178,18 @@ hidden double __cos(double,double);
 hidden double __tan(double,double,int);
 
 /* error handling functions */
+hidden float __math_xflowf(uint32_t, float);
+hidden float __math_uflowf(uint32_t);
+hidden float __math_oflowf(uint32_t);
+hidden float __math_divzerof(uint32_t);
+hidden float __math_invalidf(float);
 hidden double __math_xflow(uint32_t, double);
 hidden double __math_uflow(uint32_t);
 hidden double __math_oflow(uint32_t);
+hidden double __math_divzero(uint32_t);
 hidden double __math_invalid(double);
+#if LDBL_MANT_DIG != DBL_MANT_DIG
+hidden long double __math_invalidl(long double);
+#endif
 
 #endif

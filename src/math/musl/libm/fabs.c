@@ -1,9 +1,10 @@
 #include <math.h>
-#include <stdint.h>
 
 double fabs(double x)
 {
-	union {double f; uint64_t i;} u = {x};
-	u.i &= -1ULL/2;
-	return u.f;
+	double t;
+	__asm__ ("pcmpeqd %0, %0" : "=x"(t));          // t = ~0
+	__asm__ ("psrlq   $1, %0" : "+x"(t));          // t >>= 1
+	__asm__ ("andps   %1, %0" : "+x"(x) : "x"(t)); // x &= t
+	return x;
 }

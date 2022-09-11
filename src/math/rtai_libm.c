@@ -7,7 +7,7 @@
  * so to use just the standard GPLed glibc, with the added possibility of 
  * calling both the float and double version of libm.a functions.
  * 
- * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+ * Copyright (C) 2019-2022 Alec Ari <neotheuser@ymail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -71,7 +71,7 @@ EXPORT_SYMBOL(tan);
 
 int __rtai_math_init(void)
 {
-	printk(KERN_INFO "RTAI[math]: loaded, using musl libm.\n");
+	printk(KERN_INFO "RTAI[math]: loaded integrated musl libm version 1.2.3.\n");
 	return 0;
 }
 

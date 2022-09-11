@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 # This gets set by debian/configure to the version of the kernel image
-# we're building for, for example "4.14.0-9".
+# we're building for, for example "4.19.0-9".
 KERNEL_VERSION = @KERNEL_VERSION@
 
 # This gets set to the featureset of the kernel image, probably "rtai".

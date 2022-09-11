@@ -40,6 +40,12 @@ extern "C" {
 #define LDBL_HAS_SUBNORM 1
 #define LDBL_DECIMAL_DIG DECIMAL_DIG
 
+#ifdef __FLT_EVAL_METHOD__
+#define FLT_EVAL_METHOD __FLT_EVAL_METHOD__
+#else
+#define FLT_EVAL_METHOD 0
+#endif
+
 #define LDBL_TRUE_MIN 3.6451995318824746025e-4951L
 #define LDBL_MIN     3.3621031431120935063e-4932L
 #define LDBL_MAX     1.1897314953572317650e+4932L
@@ -54,8 +60,6 @@ extern "C" {
 #define LDBL_MAX_10_EXP 4932
 
 #define DECIMAL_DIG 21
-
-#define EPS DBL_EPSILON
 
 #ifdef __cplusplus
 }

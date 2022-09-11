@@ -12,6 +12,7 @@ LIBM_OBJS = $(filter obj/%,$(ALL_OBJS))
 CFLAGS = @RTAI_FP_CFLAGS@ -std=c99 -pedantic
 CFLAGS += -ffunction-sections -fdata-sections -Iobj/include -I$(srcdir)/include
 CFLAGS += -D_XOPEN_SOURCE=700 -Wa,--noexecstack -Wall -Werror
+CFLAGS += -Wno-parentheses -Wno-unused-but-set-variable -Wno-maybe-uninitialized
 
 LDFLAGS = -Wl,--sort-section,alignment -Wl,--sort-common -Wl,--gc-sections -Wl,--hash-style=both -Wl,--no-undefined -Wl,--exclude-libs=ALL
 

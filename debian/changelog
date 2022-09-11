@@ -1,3 +1,9 @@
+rtai (5.3.2-linuxcnc) bullseye; urgency=low
+
+  * RTAI 5.3.2 for LinuxCNC; fixes, Linux 4.19.257 and Bullseye support
+
+ -- Alec Ari <neotheuser@ymail.com>  Sat, 10 Sep 2022 21:19:22 -0500
+
 rtai (5.3.1-linuxcnc) buster; urgency=low
 
   * RTAI 5.3.1 for LinuxCNC, many fixes
