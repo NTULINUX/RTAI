@@ -1,4 +1,4 @@
-From 91800cd2df34b206aa75f2607b271146949dc56a Mon Sep 17 00:00:00 2001
+From bf759603bf2f8a4121f0bdcd972f3133adb89b70 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:22:50 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -25,6 +25,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  arch/x86/Kconfig.debug               | 15 +++---
  arch/x86/events/Kconfig              |  1 +
  arch/x86/kvm/Kconfig                 |  1 +
+ certs/Kconfig                        |  1 +
  drivers/acpi/Kconfig                 | 22 +++++---
  drivers/acpi/dptf/Kconfig            |  2 +-
  drivers/acpi/nfit/Kconfig            |  1 +
@@ -70,7 +71,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/virtio/Kconfig               |  1 +
  drivers/watchdog/Kconfig             |  1 +
  fs/Kconfig.binfmt                    |  1 +
- init/Kconfig                         | 31 +++++++-----
+ init/Kconfig                         | 32 +++++++-----
  kernel/ipipe/Kconfig                 | 25 ++++++++-
  kernel/irq/Kconfig                   |  2 +-
  kernel/power/Kconfig                 |  3 +-
@@ -81,13 +82,14 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  lib/xz/Kconfig                       |  5 ++
  mm/Kconfig                           |  3 +-
  mm/Kconfig.debug                     |  2 +
+ net/wireless/Kconfig                 |  4 +-
  samples/Kconfig                      |  2 +-
  security/Kconfig                     |  7 ++-
  sound/soc/Kconfig                    |  1 +
- 65 files changed, 240 insertions(+), 114 deletions(-)
+ 67 files changed, 244 insertions(+), 116 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 18ccab9a0..ef2906454 100644
+index 165812d2f..8a17dea52 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -799,6 +799,10 @@ KBUILD_CFLAGS_KERNEL += -ffunction-sections -fdata-sections
@@ -548,6 +550,17 @@ index 1bbec387d..7a2bb7476 100644
  	default y
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
+diff --git a/certs/Kconfig b/certs/Kconfig
+index c94e93d8b..375089e37 100644
+--- a/certs/Kconfig
++++ b/certs/Kconfig
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ menu "Certificates for signature checking"
++depends on !IPIPE
+ 
+ config MODULE_SIG_KEY
+ 	string "File name or PKCS#11 URI of module signing key"
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
 index dd1eea90f..c30e20f3c 100644
 --- a/drivers/acpi/Kconfig
@@ -1304,7 +1317,7 @@ index b795f8da8..46098fdc0 100644
  	  If you say Y here, it will be possible to plug wrapper-driven binary
  	  formats into the kernel. You will like this especially when you use
 diff --git a/init/Kconfig b/init/Kconfig
-index e137ff449..58578718f 100644
+index e137ff449..ab9970aa5 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -69,7 +69,7 @@ config INIT_ENV_ARG_LIMIT
@@ -1445,7 +1458,15 @@ index e137ff449..58578718f 100644
  	bool "SLUB per cpu partial cache"
  	help
  	  Per cpu partial caches accellerate objects allocation and freeing
-@@ -1848,6 +1852,7 @@ config MODULE_FORCE_UNLOAD
+@@ -1756,6 +1760,7 @@ config MMAP_ALLOW_UNINITIALIZED
+ 
+ config SYSTEM_DATA_VERIFICATION
+ 	def_bool n
++	depends on !IPIPE
+ 	select SYSTEM_TRUSTED_KEYRING
+ 	select KEYS
+ 	select CRYPTO
+@@ -1848,6 +1853,7 @@ config MODULE_FORCE_UNLOAD
  
  config MODVERSIONS
  	bool "Module versioning support"
@@ -1453,7 +1474,7 @@ index e137ff449..58578718f 100644
  	help
  	  Usually, you have to use modules compiled with your kernel.
  	  Saying Y here makes it sometimes possible to use modules
-@@ -1873,7 +1878,7 @@ config MODULE_SRCVERSION_ALL
+@@ -1873,7 +1879,7 @@ config MODULE_SRCVERSION_ALL
  
  config MODULE_SIG
  	bool "Module signature verification"
@@ -1462,7 +1483,7 @@ index e137ff449..58578718f 100644
  	select SYSTEM_DATA_VERIFICATION
  	help
  	  Check modules for valid signatures upon load: the signature
-@@ -1988,7 +1993,7 @@ endchoice
+@@ -1988,7 +1994,7 @@ endchoice
  
  config TRIM_UNUSED_KSYMS
  	bool "Trim unused exported kernel symbols"
@@ -1832,6 +1853,21 @@ index 9a7b8b049..6e42ff79e 100644
  	select PAGE_POISONING_NO_SANITY if HIBERNATION
  	---help---
  	  Fill the pages with poison patterns after free_pages() and verify
+diff --git a/net/wireless/Kconfig b/net/wireless/Kconfig
+index 41722046b..f55211502 100644
+--- a/net/wireless/Kconfig
++++ b/net/wireless/Kconfig
+@@ -89,8 +89,8 @@ config CFG80211_CERTIFICATION_ONUS
+ 
+ config CFG80211_REQUIRE_SIGNED_REGDB
+ 	bool "require regdb signature" if CFG80211_CERTIFICATION_ONUS
+-	default y
+-	select SYSTEM_DATA_VERIFICATION
++	default n
++	depends on SYSTEM_DATA_VERIFICATION
+ 	help
+ 	  Require that in addition to the "regulatory.db" file a
+ 	  "regulatory.db.p7s" can be loaded with a valid PKCS#7
 diff --git a/samples/Kconfig b/samples/Kconfig
 index ad1ec7016..9aec662a6 100644
 --- a/samples/Kconfig
