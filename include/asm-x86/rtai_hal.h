@@ -680,15 +680,9 @@ static inline void previous_rt_set_timer_delay(int delay)
 
 static inline RTIME rt_get_tscnt(void)
 {
-#ifdef __i386__
-        unsigned long long t;
-        __asm__ __volatile__ ("rdtsc" : "=A" (t));
-       return t;
-#else
         union { unsigned int __ad[2]; RTIME t; } t;
         __asm__ __volatile__ ("rdtsc" : "=a" (t.__ad[0]), "=d" (t.__ad[1]));
         return t.t;
-#endif
 }
 
 #endif /* !_RTAI_ASM_X86_HAL_H */

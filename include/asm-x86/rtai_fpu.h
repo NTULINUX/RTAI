@@ -29,7 +29,7 @@
  * Following RTAI rewrites:
  * Copyright (C)     Paolo Mantegazza <mantegazza@aero.polimi.it>, 2005-2017.
  * Minor cleanups:
- * Copyright (C)     Alec Ari <neotheuser@ymail.com>, 2019.
+ * Copyright (C)     Alec Ari <neotheuser@ymail.com>, 2019-2022.
  */
 
 
@@ -41,8 +41,6 @@ typedef union fpregs_state FPU_ENV;
 
 extern unsigned int fpu_kernel_xstate_size;
 #define xstate_size  (fpu_kernel_xstate_size)
-#define cpu_has_xmm  (boot_cpu_has(X86_FEATURE_XMM))
-#define cpu_has_fxsr (boot_cpu_has(X86_FEATURE_FXSR))
 
 // RAW FPU MANAGEMENT FOR USAGE FROM WHAT/WHEREVER RTAI DOES IN KERNEL
 
@@ -67,49 +65,18 @@ extern unsigned int fpu_kernel_xstate_size;
 
 // initialise the hard fpu unit directly
 #define init_hard_fpenv() do { \
+	unsigned long __mxcsr; \
 	__asm__ __volatile__ ("clts; fninit"); \
-	if (cpu_has_xmm) { \
-		unsigned long __mxcsr = (0xffbfu & 0x1f80u); \
-		__asm__ __volatile__ ("ldmxcsr %0": : "m" (__mxcsr)); \
-	} \
+	__mxcsr = (0xffbfu & 0x1f80u); \
+	__asm__ __volatile__ ("ldmxcsr %0": : "m" (__mxcsr)); \
 } while (0)
 
 // initialise the given fpenv union, without touching the related hard fpu unit
 #define __init_fpenv(fpenv)  do { \
-	if (cpu_has_fxsr) { \
-		memset(&(fpenv)->fxsave, 0, xstate_size); \
-		(fpenv)->fxsave.cwd = 0x37f; \
-		if (cpu_has_xmm) { \
-			(fpenv)->fxsave.mxcsr = 0x1f80; \
-		} \
-	} else { \
-		memset(&(fpenv)->fxsave, 0, xstate_size); \
-		(fpenv)->fsave.cwd = 0xffff037fu; \
-		(fpenv)->fsave.swd = 0xffff0000u; \
-		(fpenv)->fsave.twd = 0xffffffffu; \
-		(fpenv)->fsave.fos = 0xffff0000u; \
-	} \
+	memset(&(fpenv)->fxsave, 0, xstate_size); \
+	(fpenv)->fxsave.cwd = 0x37f; \
+	(fpenv)->fxsave.mxcsr = 0x1f80; \
 } while (0)
-
-#ifdef __i386__
-
-#define __save_fpenv(fpenv)  do { \
-	if (cpu_has_fxsr) { \
-		__asm__ __volatile__ ("fxsave %0; fnclex" : "=m" ((fpenv)->fxsave)); \
-	} else { \
-		__asm__ __volatile__ ("fnsave %0; fwait"  : "=m" ((fpenv)->fsave)); \
-	} \
-} while (0)
-
-#define __restore_fpenv(fpenv)  do { \
-	if (cpu_has_fxsr) { \
-		__asm__ __volatile__ ("fxrstor %0" : : "m" ((fpenv)->fxsave)); \
-	} else { \
-		__asm__ __volatile__ ("frstor %0"  : : "m" ((fpenv)->fsave)); \
-	} \
-} while (0)
-
-#else
 
 #define __save_fpenv(fpenv) \
 ({ \
@@ -150,8 +117,6 @@ extern unsigned int fpu_kernel_xstate_size;
 \
         err; \
 })
-
-#endif
 
 // Macros used for RTAI own kernel space tasks, where it uses the FPU env union
 #define init_fpenv(fpenv)	do { __init_fpenv(&(fpenv)); } while (0)

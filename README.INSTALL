@@ -163,7 +163,7 @@ The values I have used, respectively and without quotes, are:
 
 After saving the configuration file to .config make sure the output to this command:
 
-$ grep -e "^BUILD_SALT" -e "^CONFIG_LOCALVERSION" .config
+$ grep -e "^CONFIG_BUILD_SALT" -e "^CONFIG_LOCALVERSION" .config
 
 Looks something like:
 

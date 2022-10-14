@@ -28,15 +28,9 @@
 
 static inline RTIME rt_rdtsc(void)
 {
-#ifdef __i386__
-        unsigned long long t;
-        __asm__ __volatile__ ("rdtsc" : "=A" (t));
-       return t;
-#else
         union { unsigned int __ad[2]; RTIME t; } t;
         __asm__ __volatile__ ("rdtsc" : "=a" (t.__ad[0]), "=d" (t.__ad[1]));
         return t.t;
-#endif
 }
 
 #define DIAG_KF_LAT_EVAL 0

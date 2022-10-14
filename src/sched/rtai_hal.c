@@ -1036,18 +1036,9 @@ static volatile long long tsc_offset;
 #define NUM_ITERS       5       /* likewise */
 
 static DEFINE_SPINLOCK(tsc_sync_lock);
-#ifdef __i386__
-static DEFINE_SPINLOCK(tsclock);
-#define DECLARE_TSC_FLAGS unsigned long lflags
-#define TSC_LOCK \
-	do { spin_lock_irqsave(&tsclock, lflags); } while (0)
-#define TSC_UNLOCK \
-	do { spin_unlock_irqrestore(&tsclock, lflags); } while (0)
-#else
 #define DECLARE_TSC_FLAGS
 #define TSC_LOCK
 #define TSC_UNLOCK
-#endif
 
 static volatile unsigned long long go[SLAVE + 1];
 
