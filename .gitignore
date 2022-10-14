@@ -1,6 +1,3 @@
-# CVS junk
-CVS
-
 # Build Files
 *.o
 *.d
@@ -10,7 +7,6 @@ CVS
 *.a
 *.lo
 *.la
-*.swp
 *~
 src/math/musl/obj
 src/sched/fifos.c
@@ -78,3 +74,7 @@ debian/control
 debian/rules
 debian/rtai*
 debian/files
+
+# Text editor temp files
+*.swp
+*.*swp
