@@ -675,11 +675,6 @@ static int rtai_trap_fault (unsigned trap, struct pt_regs *regs)
 			if (PrintFpuTrap) {
 				rt_printk("\nWARNING: FPU TRAP FROM HARD PID = %d\n", linux_task->pid);
 			}
-		} else {
-			init_hard_fpu(linux_task);
-			if (PrintFpuInit) {
-				rt_printk("\nWARNING: FPU INITIALIZATION FROM HARD PID = %d\n", linux_task->pid);
-			}
 		}
 		rtai_sti();
 		return 1;

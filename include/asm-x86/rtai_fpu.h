@@ -28,7 +28,7 @@
  * Copyright (C)     Pierre Cloutier <pcloutier@PoseidonControls.com>, 2000.
  * Following RTAI rewrites:
  * Copyright (C)     Paolo Mantegazza <mantegazza@aero.polimi.it>, 2005-2017.
- * Minor cleanups:
+ * Minor cleanups and further rewrites:
  * Copyright (C)     Alec Ari <neotheuser@ymail.com>, 2019-2022.
  */
 
@@ -59,63 +59,30 @@ extern unsigned int fpu_kernel_xstate_size;
 		rtai_save_flags_and_cli(flags); \
 		fpcr = read_cr0(); \
 		write_cr0(X86_CR0_TS | fpcr); \
-                rtai_restore_flags(flags); \
+		rtai_restore_flags(flags); \
 	} \
 } while (0)
 
-// initialise the hard fpu unit directly
-#define init_hard_fpenv() do { \
-	unsigned long __mxcsr; \
-	__asm__ __volatile__ ("clts; fninit"); \
-	__mxcsr = (0xffbfu & 0x1f80u); \
-	__asm__ __volatile__ ("ldmxcsr %0": : "m" (__mxcsr)); \
-} while (0)
+/*
+ * This code is based off of Linux kernel 4.19.261:
+ * arch/x86/include/asm/fpu/internal.h
+ */
 
-// initialise the given fpenv union, without touching the related hard fpu unit
+// initialise the given fpenv union
 #define __init_fpenv(fpenv)  do { \
 	memset(&(fpenv)->fxsave, 0, xstate_size); \
 	(fpenv)->fxsave.cwd = 0x37f; \
-	(fpenv)->fxsave.mxcsr = 0x1f80; \
+	(fpenv)->fxsave.mxcsr = MXCSR_DEFAULT; \
 } while (0)
 
 #define __save_fpenv(fpenv) \
 ({ \
-	int err; \
-\
-	__asm__ __volatile__ ("1:  rex64/fxsave (%[fx])\n\t" \
-                     "2:\n" \
-                     ".section .fixup,\"ax\"\n" \
-                     "3:  movl $-1,%[err]\n" \
-                     "    jmp  2b\n" \
-                     ".previous\n" \
-                     ".section __ex_table,\"a\"\n" \
-                     "   .align 8\n" \
-                     "   .quad  1b,3b\n" \
-                     ".previous" \
-                     : [err] "=r" (err), "=m" ((fpenv)->fxsave) \
-                     : [fx] "cdaSDb" (&(fpenv)->fxsave), "0" (0)); \
-\
-        err; \
+	__asm__ __volatile__ ("fxsaveq %[fx]" : [fx] "=m" ((fpenv)->fxsave)); \
 })
 
 #define __restore_fpenv(fpenv) \
 ({ \
-        int err; \
-\
-        __asm__ __volatile__ ("1:  rex64/fxrstor (%[fx])\n\t" \
-                     "2:\n" \
-                     ".section .fixup,\"ax\"\n" \
-                     "3:  movl $-1,%[err]\n" \
-                     "    jmp  2b\n" \
-                     ".previous\n" \
-                     ".section __ex_table,\"a\"\n" \
-                     "   .align 8\n" \
-                     "   .quad  1b,3b\n"  \
-                     ".previous" \
-                     : [err] "=r" (err) \
-                     : [fx] "cdaSDb" (&(fpenv)->fxsave), "m" ((fpenv)->fxsave), "0" (0)); \
-\
-        err; \
+	kernel_insn(fxrstorq %[fx], "=m" (*fpenv), [fx] "m" (*fpenv)); \
 })
 
 // Macros used for RTAI own kernel space tasks, where it uses the FPU env union
@@ -130,12 +97,6 @@ DEFINE_PER_CPU(struct fpu *, fpu_fpregs_owner_ctx);
 // FPU MANAGEMENT DRESSED FOR IN KTHREAD/THREAD/PROCESS FPU USAGE FROM RTAI
 
 // Macros used for user space, where Linux might use either a pointer or the FPU_ENV union
-#define init_hard_fpu(lnxtsk)  do { \
-	init_hard_fpenv(); \
-	set_lnxtsk_uses_fpu(lnxtsk); \
-	set_lnxtsk_using_fpu(lnxtsk); \
-} while (0)
-
 #define init_fpu(lnxtsk)  do { \
 	__init_fpenv(TASK_FPENV(lnxtsk)); \
 	set_lnxtsk_uses_fpu(lnxtsk); \
