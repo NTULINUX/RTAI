@@ -655,6 +655,18 @@ RTAI_SYSCALL_MODE int rt_task_signal_handler(RT_TASK *task, void (*handler)(void
 struct epoch_struct boot_epoch = { __SPIN_LOCK_UNLOCKED(boot_epoch.lock), 0, };
 EXPORT_SYMBOL(boot_epoch);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
+void do_gettimeofday(struct timeval *tv)
+{
+	struct timespec64 now;
+
+	ktime_get_real_ts64(&now);
+	tv->tv_sec = now.tv_sec;
+	tv->tv_usec = now.tv_nsec/1000;
+}
+EXPORT_SYMBOL(do_gettimeofday);
+#endif
+
 static inline void _rt_get_boot_epoch(volatile RTIME time_orig[])
 {
 	unsigned long flags;
@@ -2079,7 +2091,7 @@ static int PROC_READ_FUN(rtai_read_lxrt)
 	for (i = 1; i <= max_slots; i++) {
 		if (rt_get_registry_slot(i, &entry)) {
 			num2nam(entry.name, name);
-			PROC_PRINT("%4d %-6.6s 0x%08lx %-6.6s 0x%p 0x%p  %7d   %8d %7d\n",
+			PROC_PRINT("%4d %-6.6s 0x%08lx %-6.6s 0x%px 0x%px  %7d   %8d %7d\n",
 			i,    			// the slot number
 			name,       		// the name in 6 char asci
 			entry.name, 		// the name as unsigned long hex

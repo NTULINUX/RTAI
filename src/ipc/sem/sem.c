@@ -103,7 +103,7 @@ do { \
 #endif
 
 #define CHECK_SEM_MAGIC(sem) \
-do { if (sem->magic != RT_SEM_MAGIC) return RTE_OBJINV; } while (0)
+do { if (sem == NULL || sem->magic != RT_SEM_MAGIC) return RTE_OBJINV; } while (0)
 
 /* +++++++++++++++++++++ ALL SEMAPHORES TYPES SUPPORT +++++++++++++++++++++++ */
 
@@ -120,14 +120,24 @@ do { if (sem->magic != RT_SEM_MAGIC) return RTE_OBJINV; } while (0)
  *
  * @param sem must point to an allocated SEM structure.
  *
- * @param value is the initial value of the semaphore, always set to 1
- *	  for a resource semaphore.
+ * @param value is the initial value of the semaphore, its meaning depends
+ *        on the type of semaphore chosen, i.e.:
+ *        CNT_SEM: initializes the semaphore count;
+ *        BIN_SEM: initializes the semaphore count but is forced to 1 if
+ *                 it is > 1
+ *        RES_SEM: the semaphore count is always inititiazed to 1 and
+ *                 "value" is used to set the semaphore properties:
+ *                 1: recursive,
+ *                 0: non recursive,
+ *                -1: error checking.
  *
  * @param type is the semaphore type and queuing policy. It can be an OR
- * a semaphore kind: CNT_SEM for counting semaphores, BIN_SEM for binary 
+ * a semaphore kind: CNT_SEM for counting semaphores, BIN_SEM for binary
  * semaphores, RES_SEM for resource semaphores; and queuing policy:
  * FIFO_Q, PRIO_Q for a fifo and priority queueing respectively.
- * Resource semaphores will enforce a PRIO_Q policy anyhow.
+ * Resource semaphores will enforce a PRIO_Q policy anyhow, always enhanced
+ * either with priority ceiling or inheritance, an option based on the
+ * way CONFIG_RTAI_FULL_PRINHER has been set in configuring RTAI.
  * 
  * Counting semaphores can register up to 0xFFFE events. Binary
  * semaphores do not count signalled events, their count will never

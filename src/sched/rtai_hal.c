@@ -342,7 +342,7 @@ EXPORT_SYMBOL(rt_end_irq);
 int rt_set_irq_ack(unsigned irq, void *irq_ack)
 {
 	struct irq_desc *desc;
-	if (irq >= RTAI_NR_IRQS || (desc = &rtai_irq_desc(irq))) {
+	if (irq >= RTAI_NR_IRQS || !(desc = &rtai_irq_desc(irq))) {
 		return -EINVAL;
 	}
 	rtai_domain.irqs[irq].ackfn =  desc->ipipe_ack;
@@ -740,6 +740,9 @@ static int hal_intercept_syscall(struct pt_regs *regs)
 
 #include <linux/clockchips.h>
 #include <linux/ipipe_tickdev.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
+#include <uapi/linux/sched/types.h>
+#endif
 
 extern int (*rtai_syscall_hook)(struct pt_regs *);
 

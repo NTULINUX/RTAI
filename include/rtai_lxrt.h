@@ -370,6 +370,8 @@
 
 #define FORCE_SOFT 0x80000000
 
+#define MAX_FUN_EXT 32
+
 // Keep LXRT call enc/decoding together, so you are sure to act consistently.
 // This is the encoding, note " | GT_NR_SYSCALLS" to ensure not a Linux syscall, ...
 #define GT_NR_SYSCALLS  (1 << 11)
@@ -377,7 +379,7 @@
 // ... and this is the decoding.
 #define SRQ(x)   (((x) >> 12) & 0xFFF)
 #define LXRT_NARG(x)  ((x) & (GT_NR_SYSCALLS - 1))
-#define INDX(x)  (((x) >> 24) & 0xF)
+#define INDX(x)  (((x) >> 24) & (MAX_FUN_EXT - 1))
 
 #define LINUX_SYSCALL_GET_MODE       0
 #define SYNC_LINUX_SYSCALL           1

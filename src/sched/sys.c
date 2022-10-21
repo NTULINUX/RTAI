@@ -50,7 +50,6 @@ Nov. 2001, Jan Kiszka (Jan.Kiszka@web.de) fix a tiny bug in __task_init.
 #include <rtai_msg.h>
 #include <rtai_schedcore.h>
 
-#define MAX_FUN_EXT 32
 struct rt_fun_entry *rt_fun_ext[MAX_FUN_EXT];
 EXPORT_SYMBOL(rt_fun_ext);
 

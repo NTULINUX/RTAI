@@ -117,8 +117,8 @@ union rtai_lxrt_t { RTIME rt; long i[2]; void *v[2]; };
 
 static inline void _lxrt_context_switch (struct task_struct *prev, struct task_struct *next, int cpuid)
 {
-	extern void *context_switch(void *, void *, void *); // from LINUX
-        context_switch(NULL, prev, next);
+	extern void *context_switch(void *, void *, void *, void *); // from LINUX
+        context_switch(NULL, prev, next, NULL);
 }
 
 #define rt_copy_from_user(a, b, c)  \

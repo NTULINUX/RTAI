@@ -107,7 +107,7 @@ int rtai_calibrate_hard_timer(void);
 #if 0
 #define rtai_tskext(tsk, i)   ((tsk)->ptd[i])  // old (legacy) way
 #else
-#define rtai_tskext(tsk, i)   ((&task_thread_info(tsk)->ipipe_data)->ptd[i])
+#define rtai_tskext(tsk, i)   (task_thread_info(tsk)->ipipe_data.ptd[i])
 #endif
 #define rtai_tskext_t(tsk, i) ((RT_TASK *)(rtai_tskext((tsk), (i))))
 

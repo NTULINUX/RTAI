@@ -88,7 +88,7 @@ struct klist_t wake_up_srq[RTAI_NR_CPUS];
 
 /* +++++++++++++++ END OF WHAT MUST BE AVAILABLE EVERYWHERE +++++++++++++++++ */
 
-static struct { volatile int locked, rqsted; } rt_scheduling[RTAI_NR_CPUS];
+struct { volatile int locked, rqsted; } rt_scheduling[RTAI_NR_CPUS];
 EXPORT_SYMBOL(rt_scheduling);  // to allow RTDM its preferred deferred sched in intr
 
 static unsigned long rt_smp_linux_cr0[RTAI_NR_CPUS];
@@ -651,9 +651,6 @@ static RT_TASK *switch_rtai_tasks(RT_TASK *rt_current, RT_TASK *new_task, int cp
 {
 	if (rt_current->lnxtsk) {
 		unsigned long sflags;
-#ifdef IPIPE_NOSTACK_FLAG
-		ipipe_set_foreign_stack(&rtai_domain);
-#endif
 		SAVE_LOCK_LINUX(cpuid);
 		rt_linux_task.prevp = rt_current;
 		save_fpcr_and_enable_fpu(linux_cr0);
@@ -667,9 +664,6 @@ static RT_TASK *switch_rtai_tasks(RT_TASK *rt_current, RT_TASK *new_task, int cp
 		rt_exchange_tasks(rt_smp_current[cpuid], new_task);
 		restore_fpcr(linux_cr0);
 		RESTORE_UNLOCK_LINUX(cpuid);
-#ifdef IPIPE_NOSTACK_FLAG
-		ipipe_clear_foreign_stack(&rtai_domain);
-#endif
 		if (rt_linux_task.nextp != rt_current) {
 			return rt_linux_task.nextp;
 		}
@@ -695,10 +689,18 @@ static RT_TASK *switch_rtai_tasks(RT_TASK *rt_current, RT_TASK *new_task, int cp
 	return NULL;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
+extern void switch_fpu_return(void);
+#define SWITCH_FPU_RETURN() do { if (rt_current->is_hard > 0) switch_fpu_return(); } while (0)
+#else
+#define SWITCH_FPU_RETURN() do { } while (0)
+#endif
+
 #define lxrt_context_switch(prev, next, cpuid) \
 	do { \
 		SAVE_PREV_TASK(); \
 		_lxrt_context_switch(prev, next, cpuid); barrier(); \
+		SWITCH_FPU_RETURN(); \
 		RTAI_TASK_SWITCH_SIGNAL(); \
 	} while (0)
 
@@ -2103,14 +2105,18 @@ static int PROC_READ_FUN(rtai_read_sched)
 					t = 1000UL*(unsigned long)rtai_llimd(task->exectime[0], 10, tuned.clock_freq)/den;
 				}				
 			}
-			PROC_PRINT("%-10d %-11lu %-4s %-3s 0x%-3x  %1lu:%1lu   %-4d   %-4d %-4d  %p   %-lu\n",
+			PROC_PRINT("%-10d %-11lu %-4s %-3s 0x%-3x  %1lu:%1lu   %-4d   %-4d %-4d  %px   %-lu\n",
                                task->priority,
                                (unsigned long)count2nano_cpuid(task->period, task->runnable_on_cpus),
                                task->uses_fpu || task->lnxtsk ? "Yes" : "No",
                                task->signal ? "Yes" : "No",
                                task->state,
 			       task->runnable_on_cpus, // cpuid,
-			       task->lnxtsk ? CPUMASK((task->lnxtsk)->cpus_allowed) : (1 << task->runnable_on_cpus),
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
+			       task->lnxtsk ? CPUMASK((task->lnxtsk)->cpus_mask) : (1UL << task->runnable_on_cpus),
+#else
+			       task->lnxtsk ? CPUMASK((task->lnxtsk)->cpus_allowed) : (1UL << task->runnable_on_cpus),
+#endif
                                i,
 			       task->is_hard,
 			       task->lnxtsk ? task->lnxtsk->pid : 0,
@@ -2121,12 +2127,12 @@ static int PROC_READ_FUN(rtai_read_sched)
 		PROC_PRINT("TIMED\n");
 		task = &rt_linux_task;
 		while ((task = task->tnext) != &rt_linux_task) {
-			PROC_PRINT("> %p ", task);
+			PROC_PRINT("> %px ", task);
 		}
 		PROC_PRINT("\nREADY\n");
 		task = &rt_linux_task;
 		while ((task = task->rnext) != &rt_linux_task) {
-			PROC_PRINT("> %p ", task);
+			PROC_PRINT("> %px ", task);
 		}
 
         }  /* End for loop - display RT tasks on all CPUs. */
@@ -2233,7 +2239,7 @@ static struct rt_native_fun_entry rt_sched_entries[] = {
 	{ { 0, 0 },			            000 }
 };
 
-static void rtai_isr_sched_handle(int cpuid) /* Called with interrupts off */
+void rtai_isr_sched_handle(int cpuid) /* Called with interrupts off */
 {
 	SCHED_UNLOCK_SCHEDULE(cpuid);
 }
@@ -2668,10 +2674,6 @@ static void __rtai_lxrt_exit(void)
 #endif
 	rt_registry_free();
 	msleep(100);
-
-#ifdef IPIPE_NOSTACK_FLAG
-	ipipe_clear_foreign_stack(&rtai_domain);
-#endif
 
 	printk(KERN_INFO "RTAI[sched]: unloaded (forced hard/soft/hard transitions: traps %d, syscalls %d).\n", atomic_read(&traptrans), atomic_read(&systrans));
 	if (atomic_read(&systrans)) DISPLAY_SYSW_COUNTS();
