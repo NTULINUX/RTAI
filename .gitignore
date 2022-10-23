@@ -2,6 +2,7 @@
 *.o
 *.d
 *.cmd
+*.mod
 *.mod.*
 *.ko
 *.a
