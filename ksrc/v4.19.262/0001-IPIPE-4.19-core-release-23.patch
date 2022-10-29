@@ -1,4 +1,4 @@
-From 4aaaf711472c13c59243ac76afbad7413f3cb163 Mon Sep 17 00:00:00 2001
+From c3f50e928a431dfc8608f690b3f0fb95c3ec4ae7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:07:57 -0500
 Subject: IPIPE 4.19 core release 23
@@ -14419,7 +14419,7 @@ index e656d1e23..245c6243f 100644
  	help
  	  This option will modify all the calls to function tracing
 diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index d2272fff2..ec5c0242f 100644
+index ba7d36187..4df877768 100644
 --- a/kernel/trace/ftrace.c
 +++ b/kernel/trace/ftrace.c
 @@ -35,6 +35,7 @@
@@ -14466,7 +14466,7 @@ index d2272fff2..ec5c0242f 100644
  	int ret;
  
  	ret = ftrace_arch_code_modify_prepare();
-@@ -5664,10 +5678,10 @@ static int ftrace_process_locs(struct module *mod,
+@@ -5668,10 +5682,10 @@ static int ftrace_process_locs(struct module *mod,
  	 * reason to cause large interrupt latencies while we do it.
  	 */
  	if (!mod)
@@ -14479,7 +14479,7 @@ index d2272fff2..ec5c0242f 100644
  	ret = 0;
   out:
  	mutex_unlock(&ftrace_lock);
-@@ -6212,9 +6226,11 @@ void __init ftrace_init(void)
+@@ -6216,9 +6230,11 @@ void __init ftrace_init(void)
  	unsigned long count, flags;
  	int ret;
  
@@ -14493,7 +14493,7 @@ index d2272fff2..ec5c0242f 100644
  	if (ret)
  		goto failed;
  
-@@ -6367,7 +6383,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+@@ -6371,7 +6387,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
  		}
  	} while_for_each_ftrace_op(op);
  out:
@@ -14512,10 +14512,10 @@ index d2272fff2..ec5c0242f 100644
  }
  
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index 987d3447b..611e2ac6e 100644
+index a0353c8f0..8f13a4b0a 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
-@@ -2677,8 +2677,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2684,8 +2684,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
  static __always_inline int
  trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  {
@@ -14526,7 +14526,7 @@ index 987d3447b..611e2ac6e 100644
  	int bit;
  
  	if (!(pc & (NMI_MASK | HARDIRQ_MASK | SOFTIRQ_OFFSET)))
-@@ -2687,6 +2688,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2694,6 +2695,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		bit = pc & NMI_MASK ? RB_CTX_NMI :
  			pc & HARDIRQ_MASK ? RB_CTX_IRQ : RB_CTX_SOFTIRQ;
  
@@ -14537,7 +14537,7 @@ index 987d3447b..611e2ac6e 100644
  	if (unlikely(val & (1 << (bit + cpu_buffer->nest)))) {
  		/*
  		 * It is possible that this was called by transitioning
-@@ -2694,21 +2699,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2701,21 +2706,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		 * been updated yet. In this case, use the TRANSITION bit.
  		 */
  		bit = RB_CTX_TRANSITION;
