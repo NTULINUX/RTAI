@@ -11,7 +11,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.69)
 
-AC_INIT([RTAI], [5.3.2], [neotheuser@ymail.com])
+AC_INIT([RTAI], [5.3.3], [neotheuser@ymail.com])
 AC_CONFIG_AUX_DIR(scripts/autoconf)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
@@ -20,7 +20,7 @@ AC_CONFIG_HEADERS(rtai_config.h)
 AC_PROG_INSTALL
 AC_PREFIX_DEFAULT(/usr/realtime)
 LT_INIT
-RTAI_VERSION="5.3.2"
+RTAI_VERSION="5.3.3"
 
 AC_PROG_CC([gcc])
 CC="gcc"
