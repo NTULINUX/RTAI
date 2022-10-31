@@ -36,9 +36,9 @@ else
 	AC_MSG_RESULT([no])
 	AC_MSG_ERROR([GCC is required.])
 fi
-if test $GCC_VERSION_MAJOR -lt 4 -o $GCC_VERSION_MAJOR -eq 4 -a $GCC_VERSION_MINOR -lt 9 ; then
+if test $GCC_VERSION_MAJOR -lt 7 -o $GCC_VERSION_MAJOR -eq 7 -a $GCC_VERSION_MINOR -lt 4 ; then
 	AC_MSG_RESULT([no])
-	AC_MSG_ERROR([GCC version 4.9.0 or later is required.])
+	AC_MSG_ERROR([GCC version 7.4.0 or later is required.])
 else
 	AC_MSG_RESULT([yes])
 fi
@@ -118,13 +118,6 @@ if test x${CONFIG_IPIPE} = x ; then
 	AC_MSG_ERROR([IPIPE not enabled in $RTAI_LINUX_DIR])
 else
 	AC_MSG_RESULT([yes])
-fi
-
-AC_MSG_CHECKING([for IPIPE_LEGACY kernel config option])
-if $(grep "IPIPE_LEGACY" ${RTAI_LINUX_DIR}/.config >> /dev/null 2>&1) ; then
-	AC_MSG_ERROR([IPIPE_LEGACY is available -- kernel too old and not supported.])
-else
-	AC_MSG_RESULT([ok])
 fi
 
 AC_MSG_CHECKING([for module unloading support])
