@@ -34,6 +34,7 @@
 
 #include <asm/uaccess.h>
 
+#include <rtai_vla.h>
 #include <rtai_schedcore.h>
 #include <rtai_prinher.h>
 #include <rtai_sem.h>
@@ -2054,8 +2055,8 @@ RTAI_SYSCALL_MODE int _rt_poll(struct rt_poll_s *pdsa, unsigned long nr, RTIME t
 	int i, polled, semret, cpuid;
 	POLL_SEM sem = { { &sem.queue, &sem.queue, NULL }, rt_smp_current[cpuid = rtai_cpuid()], 1 };
 #ifdef CONFIG_RTAI_RT_POLL_ON_STACK
-	struct rt_poll_s pdsv[nr]; // BEWARE: consuming too much stack?
-	QUEUE pollq[nr];           // BEWARE: consuming too much stack?
+	ALLOCATE_VLA(struct rt_poll_s pdsv[nr]); // BEWARE: consuming too much stack?
+	ALLOCATE_VLA(QUEUE pollq[nr]);           // BEWARE: consuming too much stack?
 #else
 	struct rt_poll_s *pdsv;
 	QUEUE *pollq;

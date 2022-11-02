@@ -32,6 +32,7 @@ nobase_include_HEADERS = \
 		rtai_spl.h \
 		rtai_trace.h \
 		rtai_types.h \
+		rtai_vla.h \
 		rtai_wrappers.h
 
 all-local: GNUmakefile

@@ -37,6 +37,7 @@ Nov. 2001, Jan Kiszka (Jan.Kiszka@web.de) fix a tiny bug in __task_init.
 #include <asm/uaccess.h>
 
 #define DEFINE_FPU_FPREGS_OWNER_CTX
+#include <rtai_vla.h>
 #include <rtai_sched.h>
 #include <rtai_lxrt.h>
 #include <rtai_sem.h>
@@ -336,7 +337,7 @@ static inline long long handle_lxrt_request (unsigned int lxsrq, long *uarg, RT_
 	long *arg = uarg;
 #else
 	int argsize = lxsrq & 0x7FF;
-	long arg[argsize];
+	ALLOCATE_VLA(long arg[argsize/sizeof(long)]);
 	rt_copy_from_user(arg, uarg, argsize);
 #endif
 
@@ -523,7 +524,7 @@ static inline long long handle_lxrt_request (unsigned int lxsrq, long *uarg, RT_
 #ifdef CONFIG_RTAI_USE_STACK_ARGS
 			char *ldisplay = larg->display;
 #else
-			char ldisplay[larg->nch + 1];
+			ALLOCATE_VLA(char ldisplay[larg->nch + 1]);
 			rt_copy_from_user(ldisplay, larg->display, larg->nch);
 			ldisplay[larg->nch] = 0;
 #endif
