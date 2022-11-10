@@ -1,4 +1,4 @@
-From 925e7e7fad4a7846feb7894a1160fe7c313d1287 Mon Sep 17 00:00:00 2001
+From f681b06fb9b462d6d100a9835496e5470233ddc9 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:22:50 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -21,7 +21,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  Makefile                             |   4 +
  arch/Kconfig                         |   3 +-
- arch/x86/Kconfig                     | 141 +++++++++++++++------------
+ arch/x86/Kconfig                     | 139 +++++++++++++++------------
  arch/x86/Kconfig.debug               |  15 ++-
  arch/x86/events/Kconfig              |   1 +
  arch/x86/kvm/Kconfig                 |   1 +
@@ -91,7 +91,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |   2 +-
  security/Kconfig                     |   7 +-
  sound/soc/Kconfig                    |   1 +
- 72 files changed, 284 insertions(+), 175 deletions(-)
+ 72 files changed, 283 insertions(+), 174 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index bc4864f3b..ce41a68d4 100644
@@ -130,16 +130,10 @@ index dd71b34fe..284682c12 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index d29121ffe..049290ee2 100644
+index d29121ffe..9ada8c79c 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -45,21 +45,21 @@ config X86
- 	# Note: keep this list sorted alphabetically
- 	#
- 	select ACPI_LEGACY_TABLES_LOOKUP	if ACPI
--	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
-+	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI && !IPIPE
- 	select ANON_INODES
+@@ -50,16 +50,16 @@ config X86
  	select ARCH_CLOCKSOURCE_DATA
  	select ARCH_DISCARD_MEMBLOCK
  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
