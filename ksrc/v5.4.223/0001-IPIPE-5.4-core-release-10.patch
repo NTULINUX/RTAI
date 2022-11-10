@@ -1,4 +1,4 @@
-From 93d7345e7ad143584aa6132011565af890eee2ef Mon Sep 17 00:00:00 2001
+From 3aa3149d96a4561a113ee512465ec0ae61e2c3b6 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Thu, 20 Oct 2022 20:22:00 -0500
 Subject: IPIPE 5.4 core release 10
@@ -4909,7 +4909,7 @@ index a76c12b38..d28e32e79 100644
  	if (vm86->flags & VM86_SCREEN_BITMAP)
  		mark_screen_rdonly(tsk->mm);
 diff --git a/arch/x86/kvm/emulate.c b/arch/x86/kvm/emulate.c
-index fcb59dc54..5d0977486 100644
+index 1a1c9c9f3..36f78b743 100644
 --- a/arch/x86/kvm/emulate.c
 +++ b/arch/x86/kvm/emulate.c
 @@ -1076,23 +1076,29 @@ static void fetch_register_operand(struct operand *op)
@@ -5141,7 +5141,7 @@ index 3db407e3c..0dad586d1 100644
  	x86_spec_ctrl_restore_host(svm->spec_ctrl, svm->virt_spec_ctrl);
  
 diff --git a/arch/x86/kvm/vmx/vmx.c b/arch/x86/kvm/vmx/vmx.c
-index d522c9de4..1ed27c6b4 100644
+index 52f024eea..d04a2ea7e 100644
 --- a/arch/x86/kvm/vmx/vmx.c
 +++ b/arch/x86/kvm/vmx/vmx.c
 @@ -1293,19 +1293,23 @@ static void vmx_prepare_switch_to_host(struct vcpu_vmx *vmx)
@@ -5172,7 +5172,7 @@ index d522c9de4..1ed27c6b4 100644
  	vmx->msr_guest_kernel_gs_base = data;
  }
  #endif
-@@ -1733,6 +1737,7 @@ static void setup_msrs(struct vcpu_vmx *vmx)
+@@ -1743,6 +1747,7 @@ static void setup_msrs(struct vcpu_vmx *vmx)
  {
  	int save_nmsrs, index;
  
@@ -5180,7 +5180,7 @@ index d522c9de4..1ed27c6b4 100644
  	save_nmsrs = 0;
  #ifdef CONFIG_X86_64
  	/*
-@@ -1760,6 +1765,7 @@ static void setup_msrs(struct vcpu_vmx *vmx)
+@@ -1770,6 +1775,7 @@ static void setup_msrs(struct vcpu_vmx *vmx)
  
  	vmx->save_nmsrs = save_nmsrs;
  	vmx->guest_msrs_ready = false;
@@ -5188,7 +5188,7 @@ index d522c9de4..1ed27c6b4 100644
  
  	if (cpu_has_vmx_msr_bitmap())
  		vmx_update_msr_bitmap(&vmx->vcpu);
-@@ -2234,9 +2240,22 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2244,9 +2250,22 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  			u64 old_msr_data = msr->data;
  			msr->data = data;
  			if (msr - vmx->guest_msrs < vmx->save_nmsrs) {
@@ -5211,7 +5211,7 @@ index d522c9de4..1ed27c6b4 100644
  				preempt_enable();
  				if (ret)
  					msr->data = old_msr_data;
-@@ -6845,7 +6864,9 @@ static struct kvm_vcpu *vmx_create_vcpu(struct kvm *kvm, unsigned int id)
+@@ -6855,7 +6874,9 @@ static struct kvm_vcpu *vmx_create_vcpu(struct kvm *kvm, unsigned int id)
  	vmx_vcpu_load(&vmx->vcpu, cpu);
  	vmx->vcpu.cpu = cpu;
  	vmx_vcpu_setup(vmx);
@@ -14434,7 +14434,7 @@ index f470a038b..36d2c76de 100644
  	do_oops_enter_exit();
  }
 diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index 406b4cbbe..1062eebbb 100644
+index f8934f974..614507904 100644
 --- a/kernel/power/hibernate.c
 +++ b/kernel/power/hibernate.c
 @@ -290,6 +290,7 @@ static int create_image(int platform_mode)
@@ -15157,7 +15157,7 @@ index 9fa01dad6..f03600835 100644
  	help
  	  This option will modify all the calls to function tracing
 diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index 44f1469af..e75d191d5 100644
+index 5374ee664..10c706fc1 100644
 --- a/kernel/trace/ftrace.c
 +++ b/kernel/trace/ftrace.c
 @@ -35,6 +35,7 @@
@@ -15204,7 +15204,7 @@ index 44f1469af..e75d191d5 100644
  	int ret;
  
  	ret = ftrace_arch_code_modify_prepare();
-@@ -5698,10 +5712,10 @@ static int ftrace_process_locs(struct module *mod,
+@@ -5702,10 +5716,10 @@ static int ftrace_process_locs(struct module *mod,
  	 * reason to cause large interrupt latencies while we do it.
  	 */
  	if (!mod)
@@ -15217,7 +15217,7 @@ index 44f1469af..e75d191d5 100644
  	ret = 0;
   out:
  	mutex_unlock(&ftrace_lock);
-@@ -6242,9 +6256,11 @@ void __init ftrace_init(void)
+@@ -6246,9 +6260,11 @@ void __init ftrace_init(void)
  	unsigned long count, flags;
  	int ret;
  
@@ -15231,7 +15231,7 @@ index 44f1469af..e75d191d5 100644
  	if (ret)
  		goto failed;
  
-@@ -6379,7 +6395,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
+@@ -6383,7 +6399,16 @@ __ftrace_ops_list_func(unsigned long ip, unsigned long parent_ip,
  		}
  	} while_for_each_ftrace_op(op);
  out:
@@ -15250,10 +15250,10 @@ index 44f1469af..e75d191d5 100644
  }
  
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index 5e1b9f6e7..0b4d229b8 100644
+index b0b640d39..4b6f24db0 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
-@@ -2726,8 +2726,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2733,8 +2733,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
  static __always_inline int
  trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  {
@@ -15264,7 +15264,7 @@ index 5e1b9f6e7..0b4d229b8 100644
  	int bit;
  
  	if (!(pc & (NMI_MASK | HARDIRQ_MASK | SOFTIRQ_OFFSET)))
-@@ -2736,6 +2737,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2743,6 +2744,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		bit = pc & NMI_MASK ? RB_CTX_NMI :
  			pc & HARDIRQ_MASK ? RB_CTX_IRQ : RB_CTX_SOFTIRQ;
  
@@ -15275,7 +15275,7 @@ index 5e1b9f6e7..0b4d229b8 100644
  	if (unlikely(val & (1 << (bit + cpu_buffer->nest)))) {
  		/*
  		 * It is possible that this was called by transitioning
-@@ -2743,21 +2748,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2750,21 +2755,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		 * been updated yet. In this case, use the TRANSITION bit.
  		 */
  		bit = RB_CTX_TRANSITION;
@@ -15307,10 +15307,10 @@ index 5e1b9f6e7..0b4d229b8 100644
  
  /* The recursive locking above uses 5 bits */
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index 55da88f18..7deb3098e 100644
+index 62fd8798b..39bdb9c0c 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
-@@ -3137,8 +3137,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3151,8 +3151,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	/* Don't pollute graph traces with trace_vprintk internals */
  	pause_graph_tracing();
  
@@ -15321,7 +15321,7 @@ index 55da88f18..7deb3098e 100644
  
  	tbuffer = get_trace_buf();
  	if (!tbuffer) {
-@@ -3151,7 +3152,6 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3165,7 +3166,6 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	if (len > TRACE_BUF_SIZE/sizeof(int) || len < 0)
  		goto out;
  
@@ -15329,7 +15329,7 @@ index 55da88f18..7deb3098e 100644
  	size = sizeof(*entry) + sizeof(u32) * len;
  	buffer = tr->trace_buffer.buffer;
  	event = __trace_buffer_lock_reserve(buffer, TRACE_BPRINT, size,
-@@ -3172,7 +3172,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
+@@ -3186,7 +3186,7 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
  	put_trace_buf();
  
  out_nobuffer:
