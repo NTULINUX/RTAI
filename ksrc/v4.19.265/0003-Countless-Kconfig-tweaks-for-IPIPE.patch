@@ -1,4 +1,4 @@
-From f681b06fb9b462d6d100a9835496e5470233ddc9 Mon Sep 17 00:00:00 2001
+From ee89e1bebdf9d74fde169ce4c813eb48c151d92a Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:22:50 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -94,7 +94,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  72 files changed, 283 insertions(+), 174 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index bc4864f3b..ce41a68d4 100644
+index 592e6928e..0519f4e7c 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -801,6 +801,10 @@ KBUILD_CFLAGS_KERNEL += -ffunction-sections -fdata-sections

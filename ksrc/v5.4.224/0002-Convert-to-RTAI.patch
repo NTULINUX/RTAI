@@ -1,19 +1,19 @@
-From d28e8ec336a61de3fc6334970141674bf3876876 Mon Sep 17 00:00:00 2001
+From ca0ced955435559789dce7e1e7942b1718e2ffb3 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Wed, 24 Aug 2022 19:13:33 -0500
+Date: Thu, 20 Oct 2022 20:44:18 -0500
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  arch/x86/kernel/ipipe.c     |  6 ---
- include/ipipe/thread_info.h |  6 ++-
- kernel/ipipe/core.c         | 87 +++++++++++++------------------------
+ include/ipipe/thread_info.h |  5 ++-
+ kernel/ipipe/core.c         | 85 ++++++++++++-------------------------
  kernel/ipipe/timer.c        | 10 +++--
- kernel/sched/core.c         | 68 ++++++++++++++++-------------
- 5 files changed, 79 insertions(+), 98 deletions(-)
+ kernel/sched/core.c         | 15 ++++++-
+ 5 files changed, 52 insertions(+), 69 deletions(-)
 
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
-index 63c6dc683..07f0158d2 100644
+index 300d5ee81..ad5e8ea83 100644
 --- a/arch/x86/kernel/ipipe.c
 +++ b/arch/x86/kernel/ipipe.c
 @@ -263,15 +263,9 @@ EXPORT_SYMBOL_GPL(ipipe_set_irq_affinity);
@@ -33,10 +33,10 @@ index 63c6dc683..07f0158d2 100644
  EXPORT_SYMBOL_GPL(ipipe_send_ipi);
  
 diff --git a/include/ipipe/thread_info.h b/include/ipipe/thread_info.h
-index 7038c1294..1461bfc29 100644
+index 7038c1294..bfda871d5 100644
 --- a/include/ipipe/thread_info.h
 +++ b/include/ipipe/thread_info.h
-@@ -7,8 +7,12 @@
+@@ -7,8 +7,11 @@
   */
  
  struct ipipe_threadinfo {
@@ -44,14 +44,13 @@ index 7038c1294..1461bfc29 100644
  };
  
 -#define __ipipe_init_threadinfo(__p) do { } while (0)
-+static inline void __ipipe_init_threadinfo(struct ipipe_threadinfo *p)
-+{
++static inline void __ipipe_init_threadinfo(struct ipipe_threadinfo *p) {
 +	p->ptd[0] = p->ptd[1] = p->ptd[2] = p->ptd[3] = 0;
 +}
  
  #endif /* !_IPIPE_THREAD_INFO_H */
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
-index 485db973b..c4e5cfc2f 100644
+index 485db973b..085317c32 100644
 --- a/kernel/ipipe/core.c
 +++ b/kernel/ipipe/core.c
 @@ -42,6 +42,20 @@
@@ -75,12 +74,9 @@ index 485db973b..c4e5cfc2f 100644
  struct ipipe_domain ipipe_root;
  EXPORT_SYMBOL_GPL(ipipe_root);
  
-@@ -1121,14 +1135,14 @@ void ipipe_set_hooks(struct ipipe_domain *ipd, int enables)
- }
- EXPORT_SYMBOL_GPL(ipipe_set_hooks);
+@@ -1123,12 +1137,12 @@ EXPORT_SYMBOL_GPL(ipipe_set_hooks);
  
--int __weak ipipe_fastcall_hook(struct pt_regs *regs)
-+int ipipe_fastcall_hook(struct pt_regs *regs)
+ int __weak ipipe_fastcall_hook(struct pt_regs *regs)
  {
 -	return -1;	/* i.e. fall back to slow path. */
 +	return rtai_fastcall_hook ? rtai_fastcall_hook(regs) : -1;
@@ -230,10 +226,10 @@ index 485db973b..c4e5cfc2f 100644
  void __ipipe_call_mayday(struct pt_regs *regs)
  {
 diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
-index 5354cddb6..56df773b0 100644
+index 83b3c94d9..d223858ca 100644
 --- a/kernel/ipipe/timer.c
 +++ b/kernel/ipipe/timer.c
-@@ -574,9 +574,6 @@ void ipipe_timer_set(unsigned long cdelay)
+@@ -575,9 +575,6 @@ void ipipe_timer_set(unsigned long cdelay)
  	 * extra call to the tick handler would simply occur after 4
  	 * billions ticks.
  	 */
@@ -243,7 +239,7 @@ index 5354cddb6..56df773b0 100644
  	tdelay = cdelay;
  	if (t->c2t_integ != 1)
  		tdelay *= t->c2t_integ;
-@@ -587,7 +584,7 @@ void ipipe_timer_set(unsigned long cdelay)
+@@ -588,7 +585,7 @@ void ipipe_timer_set(unsigned long cdelay)
  	if (tdelay > t->max_delay_ticks)
  		tdelay = t->max_delay_ticks;
  
@@ -262,97 +258,34 @@ index 5354cddb6..56df773b0 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index b5f80a831..cd8e2c660 100644
+index e80f51059..5ebdb4db6 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2797,55 +2797,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+@@ -3438,10 +3438,22 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
  /*
   * context_switch - switch to the new MM and the new thread's register state.
   */
 -static __always_inline struct rq *
-+static struct rq *
++struct rq *
  context_switch(struct rq *rq, struct task_struct *prev,
  	       struct task_struct *next, struct rq_flags *rf)
  {
- 	struct mm_struct *mm, *oldmm;
- 
--	prepare_task_switch(rq, prev, next);
--
- 	mm = next->mm;
- 	oldmm = prev->active_mm;
--	/*
--	 * For paravirt, this is coupled with an exit in switch_to to
--	 * combine the page table reload and the switch backend into
--	 * one hypercall.
--	 */
--	arch_start_context_switch(prev);
- 
--	/*
--	 * If mm is non-NULL, we pass through switch_mm(). If mm is
--	 * NULL, we will pass through mmdrop() in finish_task_switch().
--	 * Both of these contain the full memory barrier required by
--	 * membarrier after storing to rq->curr, before returning to
--	 * user-space.
--	 */
--	if (!mm) {
--		next->active_mm = oldmm;
--		mmgrab(oldmm);
--		enter_lazy_tlb(oldmm, next);
--	} else
--		switch_mm_irqs_off(oldmm, mm, next);
--
--	if (!prev->mm) {
--		prev->active_mm = NULL;
--		rq->prev_mm = oldmm;
--	}
 +	if (likely(!rq)) {
++		struct mm_struct *mm, *oldmm;
++		mm = next->mm;
++		oldmm = prev->active_mm;
 +		switch_mm_irqs_off(oldmm, next->active_mm, next);
-+		if (!mm) enter_lazy_tlb(oldmm, next);
-+	} else {
-+		prepare_task_switch(rq, prev, next);
-+
-+		/*
-+		 * For paravirt, this is coupled with an exit in switch_to to
-+		 * combine the page table reload and the switch backend into
-+		 * one hypercall.
-+		 */
-+		arch_start_context_switch(prev);
- 
--	rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
-+		/*
-+		 * If mm is non-NULL, we pass through switch_mm(). If mm is
-+		 * NULL, we will pass through mmdrop() in finish_task_switch().
-+		 * Both of these contain the full memory barrier required by
-+		 * membarrier after storing to rq->curr, before returning to
-+		 * user-space.
-+		 */
-+		if (!mm) {
-+			next->active_mm = oldmm;
-+			mmgrab(oldmm);
++		if (!mm)
 +			enter_lazy_tlb(oldmm, next);
-+		} else
-+			switch_mm_irqs_off(oldmm, mm, next);
-+
-+		if (!prev->mm) {
-+			prev->active_mm = NULL;
-+			rq->prev_mm = oldmm;
-+		}
- 
--	prepare_lock_switch(rq, next, rf);
-+		rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
-+
-+		prepare_lock_switch(rq, next, rf);
-+	}
- 
- 	/* Here we just switch the register state and the stack. */
- 	switch_to(prev, next, prev);
- 	barrier();
- 
-+	if (likely(!rq))
++		smp_mb();
++		switch_to(prev, next, prev);
++		barrier();
 +		return NULL;
-+
- 	if (unlikely(__ipipe_switch_tail()))
- 		return NULL;
++	}
+ 	prepare_task_switch(rq, prev, next);
+ 
+ 	/*
+@@ -3498,6 +3510,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
  
  	return finish_task_switch(prev);
  }
