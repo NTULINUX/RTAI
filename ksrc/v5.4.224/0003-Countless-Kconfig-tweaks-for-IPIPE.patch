@@ -1,4 +1,4 @@
-From 5a049046cc6bc1ee8a700435c855fb979201b867 Mon Sep 17 00:00:00 2001
+From 851459cd92a1ceb90ad13a13e0cfa7c67146c5c7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 16 Nov 2022 01:26:56 -0600
 Subject: Countless Kconfig tweaks for IPIPE
@@ -21,7 +21,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  Makefile                             |   4 +
  arch/Kconfig                         |   2 +-
- arch/x86/Kconfig                     | 144 +++++++++++++++------------
+ arch/x86/Kconfig                     | 142 +++++++++++++++------------
  arch/x86/Kconfig.debug               |  15 ++-
  arch/x86/events/Kconfig              |   1 +
  arch/x86/kvm/Kconfig                 |   1 +
@@ -33,7 +33,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/char/ipmi/Kconfig            |   2 +-
  drivers/char/tpm/Kconfig             |   2 +-
  drivers/clk/Kconfig                  |   2 +-
- drivers/clocksource/Kconfig          |  16 +--
+ drivers/clocksource/Kconfig          |  22 ++---
  drivers/cpufreq/Kconfig              |   1 +
  drivers/cpuidle/Kconfig              |   1 +
  drivers/crypto/Kconfig               |   1 +
@@ -79,7 +79,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  init/Kconfig                         |  34 ++++---
  kernel/dma/Kconfig                   |   3 +-
  kernel/gcov/Kconfig                  |   1 +
- kernel/ipipe/Kconfig                 |  39 +++++---
+ kernel/ipipe/Kconfig                 |  45 ++++++---
  kernel/ipipe/Kconfig.debug           |   6 --
  kernel/irq/Kconfig                   |   2 +-
  kernel/power/Kconfig                 |   3 +-
@@ -92,8 +92,9 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  net/wireless/Kconfig                 |   4 +-
  samples/Kconfig                      |   1 +
  security/Kconfig                     |   7 +-
+ security/Kconfig.hardening           |   2 +
  sound/soc/Kconfig                    |   1 +
- 74 files changed, 278 insertions(+), 170 deletions(-)
+ 75 files changed, 291 insertions(+), 169 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 3d46653e4..54df09d4b 100644
@@ -124,7 +125,7 @@ index 2219a07dc..0705c5ce6 100644
  	default y
  	help
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 52719931e..97ec9dd0f 100644
+index 52719931e..bbb6a4797 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -60,17 +60,17 @@ config X86
@@ -140,10 +141,9 @@ index 52719931e..97ec9dd0f 100644
  	select ARCH_HAS_FORTIFY_SOURCE
 -	select ARCH_HAS_GCOV_PROFILE_ALL
 -	select ARCH_HAS_KCOV			if X86_64
--	select ARCH_HAS_MEM_ENCRYPT
 +	select ARCH_HAS_GCOV_PROFILE_ALL	if !IPIPE
 +	select ARCH_HAS_KCOV			if X86_64 && !IPIPE
-+	select ARCH_HAS_MEM_ENCRYPT		if !IPIPE
+ 	select ARCH_HAS_MEM_ENCRYPT
  	select ARCH_HAS_MEMBARRIER_SYNC_CORE
 -	select ARCH_HAS_PMEM_API		if X86_64
 +	select ARCH_HAS_PMEM_API		if X86_64 && !IPIPE
@@ -961,19 +961,25 @@ index c44247d0b..2c0064438 100644
  config COMMON_CLK_WM831X
  	tristate "Clock driver for WM831x/2x PMICs"
 diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 9bfe4c5af..18cb27461 100644
+index 9bfe4c5af..65e6f6e91 100644
 --- a/drivers/clocksource/Kconfig
 +++ b/drivers/clocksource/Kconfig
-@@ -1,4 +1,8 @@
+@@ -1,4 +1,14 @@
  # SPDX-License-Identifier: GPL-2.0-only
 +
-+config CLKSRC_I8253
++config CLKEVT_I8253
 +	bool
++
++config I8253_LOCK
++	bool
++
++config CLKBLD_I8253
++	def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
 +
  menu "Clock Source drivers"
  	depends on GENERIC_CLOCKEVENTS
  
-@@ -13,22 +17,10 @@ config TIMER_ACPI
+@@ -13,22 +23,10 @@ config TIMER_ACPI
  config TIMER_PROBE
  	bool
  
@@ -1784,10 +1790,10 @@ index 3941a9c48..e2bdbced7 100644
  config GCOV_KERNEL
  	bool "Enable gcov-based kernel profiling"
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f..ebc30a0db 100644
+index d17edb89f..d0da39b3a 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -1,12 +1,31 @@
+@@ -1,12 +1,37 @@
  
 -config HAVE_IPIPE_SUPPORT
 -       depends on GENERIC_CLOCKEVENTS
@@ -1810,6 +1816,7 @@ index d17edb89f..ebc30a0db 100644
 +	select EXPERT
 +	select FB
 +	select FB_SIMPLE
++	select FRAMEBUFFER_CONSOLE
 +	select HIGH_RES_TIMERS
 +	select KALLSYMS
 +	select MODULES
@@ -1819,13 +1826,18 @@ index d17edb89f..ebc30a0db 100644
 +	select POSIX_TIMERS
 +	select PRINTK
 +	select PROC_FS
++	select PROC_SYSCTL
 +	select SCHED_OMIT_FRAME_POINTER
++	select SYSFS
++	select TTY
++	select VGA_CONSOLE
++	select VT
 +	select X86_PM_TIMER
 +	select X86_SYSFB
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
-@@ -37,11 +56,3 @@ config IPIPE_TARGET_APIREV
+@@ -37,11 +62,3 @@ config IPIPE_TARGET_APIREV
  
  config IPIPE_HAVE_HOSTRT
         bool
@@ -2267,6 +2279,26 @@ index 52e5109f2..321af7bab 100644
  	imply STRICT_DEVMEM
  	help
  	  This option checks for obviously wrong memory regions when
+diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
+index af4c979b3..5c3f5d3df 100644
+--- a/security/Kconfig.hardening
++++ b/security/Kconfig.hardening
+@@ -169,6 +169,7 @@ config STACKLEAK_RUNTIME_DISABLE
+ 
+ config INIT_ON_ALLOC_DEFAULT_ON
+ 	bool "Enable heap memory zeroing on allocation by default"
++	depends on !IPIPE
+ 	help
+ 	  This has the effect of setting "init_on_alloc=1" on the kernel
+ 	  command line. This can be disabled with "init_on_alloc=0".
+@@ -181,6 +182,7 @@ config INIT_ON_ALLOC_DEFAULT_ON
+ 
+ config INIT_ON_FREE_DEFAULT_ON
+ 	bool "Enable heap memory zeroing on free by default"
++	depends on !IPIPE
+ 	help
+ 	  This has the effect of setting "init_on_free=1" on the kernel
+ 	  command line. This can be disabled with "init_on_free=0".
 diff --git a/sound/soc/Kconfig b/sound/soc/Kconfig
 index bdc305cec..63d63e58a 100644
 --- a/sound/soc/Kconfig

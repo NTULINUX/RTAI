@@ -1,4 +1,4 @@
-From e6eaf28ac88599df282ddae26cec052674d252c2 Mon Sep 17 00:00:00 2001
+From d2e6cfce750df2a097c36c9f1f18a61506a501cb Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:22:50 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -76,7 +76,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/ipipe.h                |   2 -
  init/Kconfig                         |  35 ++++---
  kernel/gcov/Kconfig                  |   1 +
- kernel/ipipe/Kconfig                 |  39 +++++---
+ kernel/ipipe/Kconfig                 |  45 ++++++---
  kernel/ipipe/Kconfig.debug           |   6 --
  kernel/irq/Kconfig                   |   2 +-
  kernel/power/Kconfig                 |   3 +-
@@ -91,7 +91,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |   2 +-
  security/Kconfig                     |   7 +-
  sound/soc/Kconfig                    |   1 +
- 72 files changed, 281 insertions(+), 173 deletions(-)
+ 72 files changed, 287 insertions(+), 173 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 592e6928e..0519f4e7c 100644
@@ -1700,10 +1700,10 @@ index 1e3823fa7..85450d4d6 100644
  config GCOV_KERNEL
  	bool "Enable gcov-based kernel profiling"
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f..ebc30a0db 100644
+index d17edb89f..d0da39b3a 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -1,12 +1,31 @@
+@@ -1,12 +1,37 @@
  
 -config HAVE_IPIPE_SUPPORT
 -       depends on GENERIC_CLOCKEVENTS
@@ -1726,6 +1726,7 @@ index d17edb89f..ebc30a0db 100644
 +	select EXPERT
 +	select FB
 +	select FB_SIMPLE
++	select FRAMEBUFFER_CONSOLE
 +	select HIGH_RES_TIMERS
 +	select KALLSYMS
 +	select MODULES
@@ -1735,13 +1736,18 @@ index d17edb89f..ebc30a0db 100644
 +	select POSIX_TIMERS
 +	select PRINTK
 +	select PROC_FS
++	select PROC_SYSCTL
 +	select SCHED_OMIT_FRAME_POINTER
++	select SYSFS
++	select TTY
++	select VGA_CONSOLE
++	select VT
 +	select X86_PM_TIMER
 +	select X86_SYSFB
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
-@@ -37,11 +56,3 @@ config IPIPE_TARGET_APIREV
+@@ -37,11 +62,3 @@ config IPIPE_TARGET_APIREV
  
  config IPIPE_HAVE_HOSTRT
         bool
