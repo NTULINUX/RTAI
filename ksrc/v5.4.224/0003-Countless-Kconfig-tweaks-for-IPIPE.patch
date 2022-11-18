@@ -1,4 +1,4 @@
-From b494f75a120c1e2259c719492acb50a557504bfe Mon Sep 17 00:00:00 2001
+From 5a049046cc6bc1ee8a700435c855fb979201b867 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 16 Nov 2022 01:26:56 -0600
 Subject: Countless Kconfig tweaks for IPIPE
@@ -52,7 +52,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/mfd/Kconfig                  |   3 +-
  drivers/net/ethernet/stmicro/Kconfig |   2 +-
  drivers/of/Kconfig                   |   1 +
- drivers/pci/Kconfig                  |   2 +
+ drivers/pci/Kconfig                  |   3 +
  drivers/pci/hotplug/Kconfig          |   2 +-
  drivers/pci/pcie/Kconfig             |   2 +-
  drivers/perf/Kconfig                 |   2 +-
@@ -93,7 +93,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |   1 +
  security/Kconfig                     |   7 +-
  sound/soc/Kconfig                    |   1 +
- 74 files changed, 277 insertions(+), 170 deletions(-)
+ 74 files changed, 278 insertions(+), 170 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 3d46653e4..54df09d4b 100644
@@ -1249,10 +1249,18 @@ index d91618641..ffbe547f4 100644
  	  This option enables the device tree infrastructure.
  	  It is automatically selected by platforms that need it or can
 diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index a304f5ea1..734fde9eb 100644
+index a304f5ea1..d19c5102c 100644
 --- a/drivers/pci/Kconfig
 +++ b/drivers/pci/Kconfig
-@@ -139,6 +139,7 @@ config PCI_IOV
+@@ -129,6 +129,7 @@ config PCI_BRIDGE_EMUL
+ 
+ config PCI_IOV
+ 	bool "PCI IOV support"
++	depends on !IPIPE
+ 	select PCI_ATS
+ 	help
+ 	  I/O Virtualization is a PCI feature supported by some devices
+@@ -139,6 +140,7 @@ config PCI_IOV
  
  config PCI_PRI
  	bool "PCI PRI support"
@@ -1260,7 +1268,7 @@ index a304f5ea1..734fde9eb 100644
  	select PCI_ATS
  	help
  	  PRI is the PCI Page Request Interface. It allows PCI devices that are
-@@ -148,6 +149,7 @@ config PCI_PRI
+@@ -148,6 +150,7 @@ config PCI_PRI
  
  config PCI_PASID
  	bool "PCI PASID support"

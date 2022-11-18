@@ -1,4 +1,4 @@
-From ee89e1bebdf9d74fde169ce4c813eb48c151d92a Mon Sep 17 00:00:00 2001
+From e6eaf28ac88599df282ddae26cec052674d252c2 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Wed, 24 Aug 2022 19:22:50 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -52,7 +52,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/mfd/Kconfig                  |   3 +-
  drivers/net/ethernet/stmicro/Kconfig |   2 +-
  drivers/of/Kconfig                   |   1 +
- drivers/pci/Kconfig                  |   9 +-
+ drivers/pci/Kconfig                  |   6 +-
  drivers/pci/hotplug/Kconfig          |   2 +-
  drivers/pci/pcie/Kconfig             |   2 +-
  drivers/perf/Kconfig                 |   2 +-
@@ -91,7 +91,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |   2 +-
  security/Kconfig                     |   7 +-
  sound/soc/Kconfig                    |   1 +
- 72 files changed, 283 insertions(+), 174 deletions(-)
+ 72 files changed, 281 insertions(+), 173 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 592e6928e..0519f4e7c 100644
@@ -1214,18 +1214,9 @@ index 5e1315900..0de8e9546 100644
  	  This option enables the device tree infrastructure.
  	  It is automatically selected by platforms that need it or can
 diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 56ff8f6d3..c4e4bd7a9 100644
+index 56ff8f6d3..bc2cd56ca 100644
 --- a/drivers/pci/Kconfig
 +++ b/drivers/pci/Kconfig
-@@ -47,7 +47,7 @@ config PCI_DEBUG
- 
- config PCI_REALLOC_ENABLE_AUTO
- 	bool "Enable PCI resource re-allocation detection"
--	depends on PCI
-+	depends on PCI && !IPIPE
- 	depends on PCI_IOV
- 	help
- 	  Say Y here if you want the PCI core to detect if PCI resource
 @@ -100,7 +100,7 @@ config PCI_LOCKLESS_CONFIG
  
  config PCI_IOV
@@ -1253,14 +1244,6 @@ index 56ff8f6d3..c4e4bd7a9 100644
  	select PCI_ATS
  	help
  	  Process Address Space Identifiers (PASIDs) can be used by PCI devices
-@@ -140,6 +140,7 @@ config PCI_LABEL
- config PCI_HYPERV
-         tristate "Hyper-V PCI Frontend"
-         depends on PCI && X86 && HYPERV && PCI_MSI && PCI_MSI_IRQ_DOMAIN && X86_64
-+        depends on !IPIPE
-         help
-           The PCI device frontend driver allows the kernel to import arbitrary
-           PCI devices from a PCI backend to support PCI driver domains.
 diff --git a/drivers/pci/hotplug/Kconfig b/drivers/pci/hotplug/Kconfig
 index e9f78eb39..c99a0435c 100644
 --- a/drivers/pci/hotplug/Kconfig
