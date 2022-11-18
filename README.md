@@ -1,4 +1,4 @@
-## RTAI 5.3.3 (Beta) for LinuxCNC
+## RTAI 5.3.3 (Delta) for LinuxCNC
 
 ### Only AMD64 CPUs are supported!
 

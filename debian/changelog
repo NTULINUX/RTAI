@@ -1,3 +1,9 @@
+rtai (5.3.3-linuxcnc-delta) bullseye; urgency=low
+
+  * RTAI 5.3.3 Delta pre-release
+
+ -- Alec Ari <neotheuser@ymail.com>  Fri, 18 Nov 2022 11:17:35 -0600
+
 rtai (5.3.3-linuxcnc-beta) bullseye; urgency=low
 
   * RTAI 5.3.3 Beta for LinuxCNC
