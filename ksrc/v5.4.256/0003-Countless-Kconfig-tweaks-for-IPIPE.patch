@@ -1,6 +1,6 @@
-From bc61c4ecfd13cac7aa609cca4c50935a9ac8ef4d Mon Sep 17 00:00:00 2001
+From f643de5f441709d37a82e2093c345b81e62dd81e Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Wed, 16 Nov 2022 01:26:56 -0600
+Date: Thu, 14 Sep 2023 20:59:22 +0000
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -98,10 +98,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  76 files changed, 293 insertions(+), 167 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 3d46653e4..54df09d4b 100644
+index e5761a10f4a6..b3dc0819d0eb 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -866,6 +866,10 @@ ifdef CONFIG_LIVEPATCH
+@@ -877,6 +877,10 @@ ifdef CONFIG_LIVEPATCH
  KBUILD_CFLAGS += $(call cc-option, -flive-patching=inline-clone)
  endif
  
@@ -113,10 +113,10 @@ index 3d46653e4..54df09d4b 100644
  NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
  
 diff --git a/arch/Kconfig b/arch/Kconfig
-index 2219a07dc..0705c5ce6 100644
+index 4d03616bf597..e7ed5518ea09 100644
 --- a/arch/Kconfig
 +++ b/arch/Kconfig
-@@ -524,7 +524,7 @@ config STACKPROTECTOR
+@@ -527,7 +527,7 @@ config STACKPROTECTOR
  
  config STACKPROTECTOR_STRONG
  	bool "Strong Stack Protector"
@@ -126,13 +126,13 @@ index 2219a07dc..0705c5ce6 100644
  	default y
  	help
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 52719931e..4b8f8f12c 100644
+index 1c2db5895704..59161a70272b 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -60,17 +60,17 @@ config X86
- 	select ARCH_CLOCKSOURCE_DATA
+@@ -61,17 +61,17 @@ config X86
  	select ARCH_CLOCKSOURCE_INIT
  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+ 	select ARCH_HAS_CPU_FINALIZE_INIT
 -	select ARCH_HAS_DEBUG_VIRTUAL
 +	select ARCH_HAS_DEBUG_VIRTUAL		if !IPIPE
  	select ARCH_HAS_DEVMEM_IS_ALLOWED
@@ -151,7 +151,7 @@ index 52719931e..4b8f8f12c 100644
  	select ARCH_HAS_PTE_DEVMAP		if X86_64
  	select ARCH_HAS_PTE_SPECIAL
  	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
-@@ -80,7 +80,7 @@ config X86
+@@ -81,7 +81,7 @@ config X86
  	select ARCH_HAS_STRICT_KERNEL_RWX
  	select ARCH_HAS_STRICT_MODULE_RWX
  	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
@@ -160,7 +160,7 @@ index 52719931e..4b8f8f12c 100644
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
  	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
  	select ARCH_MIGHT_HAVE_PC_PARPORT
-@@ -88,7 +88,7 @@ config X86
+@@ -89,7 +89,7 @@ config X86
  	select ARCH_STACKWALK
  	select ARCH_SUPPORTS_ACPI
  	select ARCH_SUPPORTS_ATOMIC_RMW
@@ -169,7 +169,7 @@ index 52719931e..4b8f8f12c 100644
  	select ARCH_USE_BUILTIN_BSWAP
  	select ARCH_USE_QUEUED_RWLOCKS
  	select ARCH_USE_QUEUED_SPINLOCKS
-@@ -101,14 +101,14 @@ config X86
+@@ -102,14 +102,14 @@ config X86
  	select CLOCKSOURCE_VALIDATE_LAST_CYCLE
  	select CLOCKSOURCE_WATCHDOG
  	select DCACHE_WORD_ACCESS
@@ -187,7 +187,7 @@ index 52719931e..4b8f8f12c 100644
  	select GENERIC_EARLY_IOREMAP
  	select GENERIC_FIND_FIRST_BIT
  	select GENERIC_IOMAP
-@@ -125,16 +125,16 @@ config X86
+@@ -126,16 +126,16 @@ config X86
  	select GENERIC_TIME_VSYSCALL
  	select GENERIC_GETTIMEOFDAY
  	select GUP_GET_PTE_LOW_HIGH		if X86_PAE
@@ -210,7 +210,7 @@ index 52719931e..4b8f8f12c 100644
  	select HAVE_ARCH_MMAP_RND_BITS		if MMU
  	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
  	select HAVE_ARCH_COMPAT_MMAP_BASES	if MMU && COMPAT
-@@ -153,53 +153,48 @@ config X86
+@@ -154,53 +154,48 @@ config X86
  	select HAVE_CONTEXT_TRACKING		if X86_64 && !IPIPE
  	select HAVE_COPY_THREAD_TLS
  	select HAVE_C_RECORDMCOUNT
@@ -280,7 +280,7 @@ index 52719931e..4b8f8f12c 100644
  	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
  	select HAVE_PCI
  	select HAVE_PERF_REGS
-@@ -209,13 +204,16 @@ config X86
+@@ -210,13 +205,16 @@ config X86
  	select HAVE_RELIABLE_STACKTRACE		if X86_64 && (UNWINDER_FRAME_POINTER || UNWINDER_ORC) && STACK_VALIDATION
  	select HAVE_FUNCTION_ARG_ACCESS_API
  	select HAVE_STACKPROTECTOR		if CC_HAS_SANE_STACKPROTECTOR
@@ -299,7 +299,7 @@ index 52719931e..4b8f8f12c 100644
  	select IRQ_FORCED_THREADING
  	select NEED_SG_DMA_LENGTH
  	select PCI_DOMAINS			if PCI
-@@ -311,9 +309,11 @@ config NEED_PER_CPU_PAGE_FIRST_CHUNK
+@@ -312,9 +310,11 @@ config NEED_PER_CPU_PAGE_FIRST_CHUNK
  
  config ARCH_HIBERNATION_POSSIBLE
  	def_bool y
@@ -311,7 +311,7 @@ index 52719931e..4b8f8f12c 100644
  
  config ARCH_WANT_GENERAL_HUGETLB
  	def_bool y
-@@ -323,6 +323,7 @@ config ZONE_DMA32
+@@ -324,6 +324,7 @@ config ZONE_DMA32
  
  config AUDIT_ARCH
  	def_bool y if X86_64
@@ -319,7 +319,7 @@ index 52719931e..4b8f8f12c 100644
  
  config ARCH_SUPPORTS_DEBUG_PAGEALLOC
  	def_bool y
-@@ -437,7 +438,7 @@ config X86_X2APIC
+@@ -438,7 +439,7 @@ config X86_X2APIC
  config X86_MPPARSE
  	bool "Enable MPS table" if ACPI || SFI
  	default y
@@ -328,7 +328,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  For old smp systems that do not have proper acpi support. Newer systems
  	  (esp with 64bit cpus) with acpi support, MADT and DSDT will override it
-@@ -449,6 +450,7 @@ config GOLDFISH
+@@ -450,6 +451,7 @@ config GOLDFISH
  config RETPOLINE
  	bool "Avoid speculative indirect branches in kernel"
  	default y
@@ -336,7 +336,7 @@ index 52719931e..4b8f8f12c 100644
  	select STACK_VALIDATION if HAVE_STACK_VALIDATION
  	help
  	  Compile kernel with the retpoline compiler options to guard against
-@@ -458,7 +460,7 @@ config RETPOLINE
+@@ -459,7 +461,7 @@ config RETPOLINE
  
  config X86_CPU_RESCTRL
  	bool "x86 CPU resource control support"
@@ -345,7 +345,7 @@ index 52719931e..4b8f8f12c 100644
  	select KERNFS
  	help
  	  Enable x86 CPU resource control support.
-@@ -507,6 +509,7 @@ endif
+@@ -508,6 +510,7 @@ endif
  if X86_64
  config X86_EXTENDED_PLATFORM
  	bool "Support for extended (non-PC) x86 platforms"
@@ -353,7 +353,7 @@ index 52719931e..4b8f8f12c 100644
  	default y
  	---help---
  	  If you disable this option then the kernel will only support
-@@ -629,7 +632,7 @@ config X86_INTEL_QUARK
+@@ -630,7 +633,7 @@ config X86_INTEL_QUARK
  
  config X86_INTEL_LPSS
  	bool "Intel Low Power Subsystem Support"
@@ -362,7 +362,7 @@ index 52719931e..4b8f8f12c 100644
  	select COMMON_CLK
  	select PINCTRL
  	select IOSF_MBI
-@@ -641,7 +644,7 @@ config X86_INTEL_LPSS
+@@ -642,7 +645,7 @@ config X86_INTEL_LPSS
  
  config X86_AMD_PLATFORM_DEVICE
  	bool "AMD ACPI2Platform devices support"
@@ -371,7 +371,7 @@ index 52719931e..4b8f8f12c 100644
  	select COMMON_CLK
  	select PINCTRL
  	---help---
-@@ -753,6 +756,7 @@ config SCHED_OMIT_FRAME_POINTER
+@@ -754,6 +757,7 @@ config SCHED_OMIT_FRAME_POINTER
  
  menuconfig HYPERVISOR_GUEST
  	bool "Linux guest support"
@@ -379,7 +379,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Say Y here to enable options for running Linux under various hyper-
  	  visors. This option enables basic hypervisor detection and platform
-@@ -765,7 +769,6 @@ if HYPERVISOR_GUEST
+@@ -766,7 +770,6 @@ if HYPERVISOR_GUEST
  
  config PARAVIRT
  	bool "Enable paravirtualization code"
@@ -387,7 +387,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  This changes the kernel so it can modify itself when it is run
  	  under a hypervisor, potentially improving performance significantly
-@@ -922,7 +925,7 @@ config GART_IOMMU
+@@ -923,7 +926,7 @@ config GART_IOMMU
  	bool "Old AMD GART IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -396,7 +396,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Provides a driver for older AMD Athlon64/Opteron/Turion/Sempron
  	  GART based hardware IOMMUs.
-@@ -944,7 +947,7 @@ config CALGARY_IOMMU
+@@ -945,7 +948,7 @@ config CALGARY_IOMMU
  	bool "IBM Calgary IOMMU support"
  	select IOMMU_HELPER
  	select SWIOTLB
@@ -405,7 +405,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
  	  systems. Needed to run systems with more than 3GB of memory
-@@ -1008,8 +1011,9 @@ config NR_CPUS_RANGE_END
+@@ -1009,8 +1012,9 @@ config NR_CPUS_RANGE_END
  config NR_CPUS_RANGE_END
  	int
  	depends on X86_64
@@ -417,7 +417,7 @@ index 52719931e..4b8f8f12c 100644
  	default    1 if !SMP
  
  config NR_CPUS_DEFAULT
-@@ -1024,6 +1028,7 @@ config NR_CPUS_DEFAULT
+@@ -1025,6 +1029,7 @@ config NR_CPUS_DEFAULT
  	depends on X86_64
  	default 8192 if  MAXSMP
  	default   64 if  SMP
@@ -425,7 +425,7 @@ index 52719931e..4b8f8f12c 100644
  	default    1 if !SMP
  
  config NR_CPUS
-@@ -1036,16 +1041,19 @@ config NR_CPUS
+@@ -1037,16 +1042,19 @@ config NR_CPUS
  	  supported value is 8192, otherwise the maximum value is 512.  The
  	  minimum value which makes sense is 2.
  
@@ -448,7 +448,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1139,6 +1147,7 @@ config X86_REROUTE_FOR_BROKEN_BOOT_IRQS
+@@ -1140,6 +1148,7 @@ config X86_REROUTE_FOR_BROKEN_BOOT_IRQS
  
  config X86_MCE
  	bool "Machine Check / overheating reporting"
@@ -456,7 +456,7 @@ index 52719931e..4b8f8f12c 100644
  	select GENERIC_ALLOCATOR
  	default y
  	---help---
-@@ -1249,7 +1258,7 @@ config X86_ESPFIX64
+@@ -1250,7 +1259,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -465,7 +465,7 @@ index 52719931e..4b8f8f12c 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1282,6 +1291,7 @@ config TOSHIBA
+@@ -1283,6 +1292,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -473,7 +473,7 @@ index 52719931e..4b8f8f12c 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1359,7 +1369,7 @@ config MICROCODE_AMD
+@@ -1360,7 +1370,7 @@ config MICROCODE_AMD
  config MICROCODE_OLD_INTERFACE
  	bool "Ancient loading interface (DEPRECATED)"
  	default n
@@ -482,7 +482,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  DO NOT USE THIS! This is the ancient /dev/cpu/microcode interface
  	  which was used by userspace tools like iucode_tool and microcode.ctl.
-@@ -1504,7 +1514,7 @@ config X86_5LEVEL
+@@ -1505,7 +1515,7 @@ config X86_5LEVEL
  	bool "Enable 5-level page tables support"
  	select DYNAMIC_MEMORY_LAYOUT
  	select SPARSEMEM_VMEMMAP
@@ -491,7 +491,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  5-level paging enables access to larger address space:
  	  upto 128 PiB of virtual address space and 4 PiB of
-@@ -1531,7 +1541,7 @@ config X86_DIRECT_GBPAGES
+@@ -1532,7 +1542,7 @@ config X86_DIRECT_GBPAGES
  
  config X86_CPA_STATISTICS
  	bool "Enable statistic for Change Page Attribute"
@@ -500,7 +500,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Expose statistics about the Change Page Attribute mechanims, which
  	  helps to determine the effectiveness of preserving large and huge
-@@ -1539,7 +1549,7 @@ config X86_CPA_STATISTICS
+@@ -1540,7 +1550,7 @@ config X86_CPA_STATISTICS
  
  config AMD_MEM_ENCRYPT
  	bool "AMD Secure Memory Encryption (SME) support"
@@ -509,7 +509,7 @@ index 52719931e..4b8f8f12c 100644
  	select DYNAMIC_PHYSICAL_MASK
  	select ARCH_USE_MEMREMAP_PROT
  	select ARCH_HAS_FORCE_DMA_UNENCRYPTED
-@@ -1566,6 +1576,7 @@ config NUMA
+@@ -1567,6 +1577,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -517,7 +517,7 @@ index 52719931e..4b8f8f12c 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1677,8 +1688,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1678,8 +1689,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -527,7 +527,7 @@ index 52719931e..4b8f8f12c 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1880,6 +1890,7 @@ config ARCH_RANDOM
+@@ -1881,6 +1891,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -535,7 +535,7 @@ index 52719931e..4b8f8f12c 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1891,7 +1902,7 @@ config X86_SMAP
+@@ -1892,7 +1903,7 @@ config X86_SMAP
  
  config X86_INTEL_UMIP
  	def_bool y
@@ -544,7 +544,7 @@ index 52719931e..4b8f8f12c 100644
  	prompt "Intel User Mode Instruction Prevention" if EXPERT
  	---help---
  	  The User Mode Instruction Prevention (UMIP) is a security
-@@ -1909,7 +1920,7 @@ config X86_INTEL_MPX
+@@ -1910,7 +1921,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -553,7 +553,7 @@ index 52719931e..4b8f8f12c 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1937,7 +1948,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1938,7 +1949,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -562,7 +562,7 @@ index 52719931e..4b8f8f12c 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1996,7 +2007,7 @@ endchoice
+@@ -1997,7 +2008,7 @@ endchoice
  
  config EFI
  	bool "EFI runtime service support"
@@ -571,7 +571,7 @@ index 52719931e..4b8f8f12c 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	select ARCH_USE_MEMREMAP_PROT
-@@ -2055,6 +2066,7 @@ source "kernel/Kconfig.hz"
+@@ -2056,6 +2067,7 @@ source "kernel/Kconfig.hz"
  
  config KEXEC
  	bool "kexec system call"
@@ -579,7 +579,7 @@ index 52719931e..4b8f8f12c 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -2077,6 +2089,7 @@ config KEXEC_FILE
+@@ -2078,6 +2090,7 @@ config KEXEC_FILE
  	depends on X86_64
  	depends on CRYPTO=y
  	depends on CRYPTO_SHA256=y
@@ -587,7 +587,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -2118,6 +2131,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -2119,6 +2132,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -595,7 +595,7 @@ index 52719931e..4b8f8f12c 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2179,6 +2193,7 @@ config PHYSICAL_START
+@@ -2180,6 +2194,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -603,7 +603,7 @@ index 52719931e..4b8f8f12c 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2302,7 +2317,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2303,7 +2318,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -612,7 +612,7 @@ index 52719931e..4b8f8f12c 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2375,7 +2390,7 @@ config COMPAT_VDSO
+@@ -2376,7 +2391,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -621,7 +621,7 @@ index 52719931e..4b8f8f12c 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2393,6 +2408,7 @@ choice
+@@ -2394,6 +2409,7 @@ choice
  
  	config LEGACY_VSYSCALL_EMULATE
  		bool "Full emulation"
@@ -629,7 +629,7 @@ index 52719931e..4b8f8f12c 100644
  		help
  		  The kernel traps and emulates calls into the fixed vsyscall
  		  address mapping. This makes the mapping non-executable, but
-@@ -2407,6 +2423,7 @@ choice
+@@ -2408,6 +2424,7 @@ choice
  
  	config LEGACY_VSYSCALL_XONLY
  		bool "Emulate execution only"
@@ -637,7 +637,7 @@ index 52719931e..4b8f8f12c 100644
  		help
  		  The kernel traps and emulates calls into the fixed vsyscall
  		  address mapping and does not allow reads.  This
-@@ -2472,6 +2489,7 @@ config CMDLINE_OVERRIDE
+@@ -2473,6 +2490,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -645,7 +645,7 @@ index 52719931e..4b8f8f12c 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2496,7 +2514,7 @@ config ARCH_HAS_ADD_PAGES
+@@ -2497,7 +2515,7 @@ config ARCH_HAS_ADD_PAGES
  
  config ARCH_ENABLE_MEMORY_HOTPLUG
  	def_bool y
@@ -654,7 +654,7 @@ index 52719931e..4b8f8f12c 100644
  
  config ARCH_ENABLE_MEMORY_HOTREMOVE
  	def_bool y
-@@ -2917,6 +2935,7 @@ endmenu
+@@ -2937,6 +2955,7 @@ endmenu
  
  
  menu "Binary Emulations"
@@ -663,7 +663,7 @@ index 52719931e..4b8f8f12c 100644
  config IA32_EMULATION
  	bool "IA32 Emulation"
 diff --git a/arch/x86/Kconfig.debug b/arch/x86/Kconfig.debug
-index bf9cd83de..b8176d082 100644
+index bf9cd83de777..b8176d08293e 100644
 --- a/arch/x86/Kconfig.debug
 +++ b/arch/x86/Kconfig.debug
 @@ -181,10 +181,10 @@ config X86_DECODER_SELFTEST
@@ -733,7 +733,7 @@ index bf9cd83de..b8176d082 100644
  	---help---
  	  This option enables the "guess" unwinder for unwinding kernel stack
 diff --git a/arch/x86/events/Kconfig b/arch/x86/events/Kconfig
-index 4a809c6cb..ad28cdb04 100644
+index 4a809c6cbd2f..ad28cdb04f8d 100644
 --- a/arch/x86/events/Kconfig
 +++ b/arch/x86/events/Kconfig
 @@ -1,5 +1,6 @@
@@ -744,7 +744,7 @@ index 4a809c6cb..ad28cdb04 100644
  config PERF_EVENTS_INTEL_UNCORE
  	tristate "Intel uncore performance events"
 diff --git a/arch/x86/kvm/Kconfig b/arch/x86/kvm/Kconfig
-index 840e12583..3629546e7 100644
+index 840e12583b85..3629546e7878 100644
 --- a/arch/x86/kvm/Kconfig
 +++ b/arch/x86/kvm/Kconfig
 @@ -8,6 +8,7 @@ source "virt/kvm/Kconfig"
@@ -756,7 +756,7 @@ index 840e12583..3629546e7 100644
  	---help---
  	  Say Y here to get to see options for using your Linux host to run other
 diff --git a/certs/Kconfig b/certs/Kconfig
-index 76e469b56..cfea091ac 100644
+index 76e469b56a77..cfea091ace57 100644
 --- a/certs/Kconfig
 +++ b/certs/Kconfig
 @@ -1,5 +1,6 @@
@@ -767,7 +767,7 @@ index 76e469b56..cfea091ac 100644
  config MODULE_SIG_KEY
  	string "File name or PKCS#11 URI of module signing key"
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ebe1e9e5f..505942eed 100644
+index ebe1e9e5fd81..505942eed5f6 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -62,6 +62,7 @@ config ACPI_CCA_REQUIRED
@@ -913,7 +913,7 @@ index ebe1e9e5f..505942eed 100644
  	help
  	  Select this option to enable support for ACPI configuration from
 diff --git a/drivers/acpi/dptf/Kconfig b/drivers/acpi/dptf/Kconfig
-index 90a2fd979..bc4189889 100644
+index 90a2fd979282..bc4189889638 100644
 --- a/drivers/acpi/dptf/Kconfig
 +++ b/drivers/acpi/dptf/Kconfig
 @@ -1,7 +1,7 @@
@@ -926,7 +926,7 @@ index 90a2fd979..bc4189889 100644
  	  This driver adds support for Dynamic Platform and Thermal Framework
  	  (DPTF) Platform Power Participant device (INT3407) support.
 diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index a6beb2c5a..e8e278fb0 100644
+index a6beb2c5a692..e8e278fb0562 100644
 --- a/drivers/ata/Kconfig
 +++ b/drivers/ata/Kconfig
 @@ -92,7 +92,8 @@ config SATA_AHCI
@@ -940,7 +940,7 @@ index a6beb2c5a..e8e278fb0 100644
  	depends on SATA_AHCI
  	help
 diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 47c2bb444..6162844be 100644
+index 47c2bb444ab4..6162844be0a2 100644
 --- a/drivers/bus/Kconfig
 +++ b/drivers/bus/Kconfig
 @@ -4,6 +4,7 @@
@@ -952,7 +952,7 @@ index 47c2bb444..6162844be 100644
  config ARM_CCI
  	bool
 diff --git a/drivers/char/ipmi/Kconfig b/drivers/char/ipmi/Kconfig
-index 4bad06141..2e407624e 100644
+index 4bad0614109b..2e407624e85b 100644
 --- a/drivers/char/ipmi/Kconfig
 +++ b/drivers/char/ipmi/Kconfig
 @@ -5,7 +5,7 @@
@@ -965,7 +965,7 @@ index 4bad06141..2e407624e 100644
         help
           This enables the central IPMI message handler, required for IPMI
 diff --git a/drivers/char/tpm/Kconfig b/drivers/char/tpm/Kconfig
-index 9c37047f4..b72370a6c 100644
+index 9c37047f4b56..b72370a6c573 100644
 --- a/drivers/char/tpm/Kconfig
 +++ b/drivers/char/tpm/Kconfig
 @@ -5,7 +5,7 @@
@@ -978,7 +978,7 @@ index 9c37047f4..b72370a6c 100644
  	select CRYPTO
  	select CRYPTO_HASH_INFO
 diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-index c44247d0b..2c0064438 100644
+index cc871ae3a179..6c6142b155e3 100644
 --- a/drivers/clk/Kconfig
 +++ b/drivers/clk/Kconfig
 @@ -21,7 +21,7 @@ config COMMON_CLK
@@ -991,7 +991,7 @@ index c44247d0b..2c0064438 100644
  config COMMON_CLK_WM831X
  	tristate "Clock driver for WM831x/2x PMICs"
 diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-index 9bfe4c5af..65e6f6e91 100644
+index 9bfe4c5af87e..65e6f6e91a2a 100644
 --- a/drivers/clocksource/Kconfig
 +++ b/drivers/clocksource/Kconfig
 @@ -1,4 +1,14 @@
@@ -1033,7 +1033,7 @@ index 9bfe4c5af..65e6f6e91 100644
  	bool
  
 diff --git a/drivers/cpufreq/Kconfig b/drivers/cpufreq/Kconfig
-index bff529501..39fcd34d0 100644
+index bff5295016ae..39fcd34d046f 100644
 --- a/drivers/cpufreq/Kconfig
 +++ b/drivers/cpufreq/Kconfig
 @@ -1,5 +1,6 @@
@@ -1044,7 +1044,7 @@ index bff529501..39fcd34d0 100644
  config CPU_FREQ
  	bool "CPU Frequency scaling"
 diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 88727b7c0..332d5e65d 100644
+index 88727b7c0d59..332d5e65d580 100644
 --- a/drivers/cpuidle/Kconfig
 +++ b/drivers/cpuidle/Kconfig
 @@ -1,5 +1,6 @@
@@ -1055,7 +1055,7 @@ index 88727b7c0..332d5e65d 100644
  config CPU_IDLE
  	bool "CPU idle PM support"
 diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
-index 1f6308cdf..87586854b 100644
+index 1f6308cdf79a..87586854bcfb 100644
 --- a/drivers/crypto/Kconfig
 +++ b/drivers/crypto/Kconfig
 @@ -2,6 +2,7 @@
@@ -1067,7 +1067,7 @@ index 1f6308cdf..87586854b 100644
  	---help---
  	  Say Y here to get to see options for hardware crypto devices and
 diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
-index 1433f2ba9..cbbb40cf7 100644
+index 1433f2ba9d3b..cbbb40cf72a8 100644
 --- a/drivers/devfreq/Kconfig
 +++ b/drivers/devfreq/Kconfig
 @@ -1,6 +1,7 @@
@@ -1079,7 +1079,7 @@ index 1433f2ba9..cbbb40cf7 100644
  	select PM_OPP
  	help
 diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-index 1322461f1..e7f3175ee 100644
+index 1322461f1f3c..e7f3175eee2c 100644
 --- a/drivers/dma/Kconfig
 +++ b/drivers/dma/Kconfig
 @@ -5,7 +5,7 @@
@@ -1092,7 +1092,7 @@ index 1322461f1..e7f3175ee 100644
  	  DMA engines can do asynchronous data transfers without
  	  involving the host CPU.  Currently, this framework can be
 diff --git a/drivers/firmware/tegra/Kconfig b/drivers/firmware/tegra/Kconfig
-index a887731f5..ba9ec55a8 100644
+index a887731f50d6..ba9ec55a864c 100644
 --- a/drivers/firmware/tegra/Kconfig
 +++ b/drivers/firmware/tegra/Kconfig
 @@ -1,5 +1,6 @@
@@ -1103,7 +1103,7 @@ index a887731f5..ba9ec55a8 100644
  config TEGRA_IVC
  	bool "Tegra IVC protocol"
 diff --git a/drivers/gpu/drm/i915/Kconfig b/drivers/gpu/drm/i915/Kconfig
-index 331779894..fc0294879 100644
+index 3317798945e8..fc029487960d 100644
 --- a/drivers/gpu/drm/i915/Kconfig
 +++ b/drivers/gpu/drm/i915/Kconfig
 @@ -107,6 +107,7 @@ config DRM_I915_GVT
@@ -1123,7 +1123,7 @@ index 331779894..fc0294879 100644
  endmenu
  
 diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
-index 3558df043..bb970a3a3 100644
+index 3558df043592..bb970a3a32ee 100644
 --- a/drivers/gpu/drm/nouveau/Kconfig
 +++ b/drivers/gpu/drm/nouveau/Kconfig
 @@ -42,14 +42,15 @@ config NOUVEAU_PLATFORM_DRIVER
@@ -1158,7 +1158,7 @@ index 3558df043..bb970a3a3 100644
  	  Selects the default debug level
  
 diff --git a/drivers/hv/Kconfig b/drivers/hv/Kconfig
-index 79e5356a7..8b44d8b11 100644
+index 79e5356a737a..8b44d8b11664 100644
 --- a/drivers/hv/Kconfig
 +++ b/drivers/hv/Kconfig
 @@ -1,6 +1,7 @@
@@ -1170,7 +1170,7 @@ index 79e5356a7..8b44d8b11 100644
  config HYPERV
  	tristate "Microsoft Hyper-V client drivers"
 diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
-index 37740e992..bdbab3b66 100644
+index 37740e992cfa..bdbab3b66172 100644
 --- a/drivers/hwspinlock/Kconfig
 +++ b/drivers/hwspinlock/Kconfig
 @@ -5,6 +5,7 @@
@@ -1182,7 +1182,7 @@ index 37740e992..bdbab3b66 100644
  config HWSPINLOCK_OMAP
  	tristate "OMAP Hardware Spinlock device"
 diff --git a/drivers/i2c/Kconfig b/drivers/i2c/Kconfig
-index 1474e57ec..0fa343930 100644
+index 1474e57ecafc..0fa3439307a5 100644
 --- a/drivers/i2c/Kconfig
 +++ b/drivers/i2c/Kconfig
 @@ -27,7 +27,7 @@ config I2C
@@ -1195,7 +1195,7 @@ index 1474e57ec..0fa343930 100644
  	help
  	  Say Y here if you want to enable ACPI I2C operation region support.
 diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index fc0160e8e..bcc8f3f98 100644
+index fc0160e8ed33..bcc8f3f984ec 100644
 --- a/drivers/iommu/Kconfig
 +++ b/drivers/iommu/Kconfig
 @@ -9,7 +9,7 @@ config IOMMU_API
@@ -1208,7 +1208,7 @@ index fc0160e8e..bcc8f3f98 100644
  	---help---
  	  Say Y here if you want to compile device drivers for IO Memory
 diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index ab4eb750b..8c481eb90 100644
+index ab4eb750bbdd..8c481eb90512 100644
 --- a/drivers/mailbox/Kconfig
 +++ b/drivers/mailbox/Kconfig
 @@ -1,6 +1,7 @@
@@ -1220,7 +1220,7 @@ index ab4eb750b..8c481eb90 100644
  	  Mailbox is a framework to control hardware communication between
  	  on-chip processors through queued messages and interrupt driven
 diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 7dd6e9825..7f9e52ef6 100644
+index 7dd6e98257c7..7f9e52ef6fea 100644
 --- a/drivers/md/Kconfig
 +++ b/drivers/md/Kconfig
 @@ -487,7 +487,7 @@ config DM_FLAKEY
@@ -1233,7 +1233,7 @@ index 7dd6e9825..7f9e52ef6 100644
  	select CRYPTO_HASH
  	select DM_BUFIO
 diff --git a/drivers/memory/Kconfig b/drivers/memory/Kconfig
-index 9bddca292..751c61028 100644
+index 9bddca292330..751c6102897b 100644
 --- a/drivers/memory/Kconfig
 +++ b/drivers/memory/Kconfig
 @@ -4,6 +4,7 @@
@@ -1245,7 +1245,7 @@ index 9bddca292..751c61028 100644
  
  if MEMORY
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 43169f25d..30f42640a 100644
+index 43169f25da1f..30f42640acce 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
 @@ -1369,9 +1369,8 @@ config MFD_PALMAS
@@ -1260,7 +1260,7 @@ index 43169f25d..30f42640a 100644
  	select REGULATOR_FIXED_VOLTAGE
  	help
 diff --git a/drivers/net/ethernet/stmicro/Kconfig b/drivers/net/ethernet/stmicro/Kconfig
-index 39ef86360..d3126202d 100644
+index 39ef86360417..d3126202d746 100644
 --- a/drivers/net/ethernet/stmicro/Kconfig
 +++ b/drivers/net/ethernet/stmicro/Kconfig
 @@ -6,7 +6,7 @@
@@ -1273,7 +1273,7 @@ index 39ef86360..d3126202d 100644
  	  If you have a network (Ethernet) card based on Synopsys Ethernet IP
  	  Cores, say Y.
 diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
-index d91618641..ffbe547f4 100644
+index d91618641be6..ffbe547f4f91 100644
 --- a/drivers/of/Kconfig
 +++ b/drivers/of/Kconfig
 @@ -4,6 +4,7 @@ config DTC
@@ -1285,7 +1285,7 @@ index d91618641..ffbe547f4 100644
  	  This option enables the device tree infrastructure.
  	  It is automatically selected by platforms that need it or can
 diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index a304f5ea1..d19c5102c 100644
+index a304f5ea11b9..d19c5102c4f8 100644
 --- a/drivers/pci/Kconfig
 +++ b/drivers/pci/Kconfig
 @@ -129,6 +129,7 @@ config PCI_BRIDGE_EMUL
@@ -1313,7 +1313,7 @@ index a304f5ea1..d19c5102c 100644
  	help
  	  Process Address Space Identifiers (PASIDs) can be used by PCI devices
 diff --git a/drivers/pci/hotplug/Kconfig b/drivers/pci/hotplug/Kconfig
-index e7b493c22..2a3f9945c 100644
+index e7b493c22bf3..2a3f9945c6f3 100644
 --- a/drivers/pci/hotplug/Kconfig
 +++ b/drivers/pci/hotplug/Kconfig
 @@ -5,7 +5,7 @@
@@ -1326,7 +1326,7 @@ index e7b493c22..2a3f9945c 100644
  	  Say Y here if you have a motherboard with a PCI Hotplug controller.
  	  This allows you to add and remove PCI cards while the machine is
 diff --git a/drivers/pci/pcie/Kconfig b/drivers/pci/pcie/Kconfig
-index 362eb8cfa..595a668e4 100644
+index 362eb8cfa53b..595a668e4d0e 100644
 --- a/drivers/pci/pcie/Kconfig
 +++ b/drivers/pci/pcie/Kconfig
 @@ -4,7 +4,7 @@
@@ -1339,7 +1339,7 @@ index 362eb8cfa..595a668e4 100644
  	  This enables PCI Express Port Bus support. Users can then enable
  	  support for Native Hot-Plug, Advanced Error Reporting, Power
 diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-index 09ae8a970..ea348b4c9 100644
+index 09ae8a970880..ea348b4c9598 100644
 --- a/drivers/perf/Kconfig
 +++ b/drivers/perf/Kconfig
 @@ -4,7 +4,7 @@
@@ -1352,7 +1352,7 @@ index 09ae8a970..ea348b4c9 100644
  config ARM_CCI_PMU
  	tristate "ARM CCI PMU driver"
 diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-index b372419d6..a793785c1 100644
+index b372419d61f2..a793785c1630 100644
 --- a/drivers/pinctrl/Kconfig
 +++ b/drivers/pinctrl/Kconfig
 @@ -5,6 +5,7 @@
@@ -1364,7 +1364,7 @@ index b372419d6..a793785c1 100644
  if PINCTRL
  
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 000d5693f..e04c18da3 100644
+index 000d5693fae7..e04c18da3841 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
 @@ -111,7 +111,7 @@ config ASUS_LAPTOP
@@ -1377,7 +1377,7 @@ index 000d5693f..e04c18da3 100644
  	  The Dell Systems Management Base Driver provides a sysfs interface
  	  for systems management software to perform System Management
 diff --git a/drivers/power/avs/Kconfig b/drivers/power/avs/Kconfig
-index b5a217b82..0ae35f708 100644
+index b5a217b828dc..0ae35f708d5d 100644
 --- a/drivers/power/avs/Kconfig
 +++ b/drivers/power/avs/Kconfig
 @@ -1,6 +1,7 @@
@@ -1389,7 +1389,7 @@ index b5a217b82..0ae35f708 100644
  	  AVS is a power management technique which finely controls the
  	  operating voltage of a device in order to optimize (i.e. reduce)
 diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
-index a56423727..d88c974ab 100644
+index a564237278ff..d88c974abb35 100644
 --- a/drivers/power/reset/Kconfig
 +++ b/drivers/power/reset/Kconfig
 @@ -1,6 +1,7 @@
@@ -1401,7 +1401,7 @@ index a56423727..d88c974ab 100644
  	  Provides a number of drivers which either reset a complete board
  	  or shut it down, by manipulating the main power supply on the board.
 diff --git a/drivers/powercap/Kconfig b/drivers/powercap/Kconfig
-index dc1c1381d..2714ef411 100644
+index 61fd5dfaf7a0..73f6e27d6fba 100644
 --- a/drivers/powercap/Kconfig
 +++ b/drivers/powercap/Kconfig
 @@ -5,6 +5,7 @@
@@ -1413,7 +1413,7 @@ index dc1c1381d..2714ef411 100644
  	  The power capping sysfs interface allows kernel subsystems to expose power
  	  capping settings to user space in a consistent way.  Usually, it consists
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index e3a251850..5884c7aec 100644
+index e3a2518503ed..5884c7aecd12 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
 @@ -1,6 +1,7 @@
@@ -1425,7 +1425,7 @@ index e3a251850..5884c7aec 100644
  	  Generic Pulse-Width Modulation (PWM) support.
  
 diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-index c2a236f2e..d6e46af14 100644
+index c2a236f2e846..d6e46af14838 100644
 --- a/drivers/ras/Kconfig
 +++ b/drivers/ras/Kconfig
 @@ -1,6 +1,7 @@
@@ -1437,7 +1437,7 @@ index c2a236f2e..d6e46af14 100644
  	  Reliability, availability and serviceability (RAS) is a computer
  	  hardware engineering term. Computers designed with higher levels
 diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 3ee63531f..5c7ccc88c 100644
+index 3ee63531f6d5..5c7ccc88c7ff 100644
 --- a/drivers/regulator/Kconfig
 +++ b/drivers/regulator/Kconfig
 @@ -1,6 +1,7 @@
@@ -1449,7 +1449,7 @@ index 3ee63531f..5c7ccc88c 100644
  	  Generic Voltage and Current Regulator support.
  
 diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index 94afdde4b..797660911 100644
+index 94afdde4bc9f..797660911d8f 100644
 --- a/drivers/remoteproc/Kconfig
 +++ b/drivers/remoteproc/Kconfig
 @@ -1,5 +1,6 @@
@@ -1460,7 +1460,7 @@ index 94afdde4b..797660911 100644
  config REMOTEPROC
  	bool "Support for Remote Processor subsystem"
 diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
-index 7b07281aa..913d6c118 100644
+index 7b07281aa0ae..913d6c118231 100644
 --- a/drivers/reset/Kconfig
 +++ b/drivers/reset/Kconfig
 @@ -4,6 +4,7 @@ config ARCH_HAS_RESET_CONTROLLER
@@ -1472,7 +1472,7 @@ index 7b07281aa..913d6c118 100644
  	help
  	  Generic Reset Controller support.
 diff --git a/drivers/rpmsg/Kconfig b/drivers/rpmsg/Kconfig
-index d0322b41e..e11bc9ccc 100644
+index d0322b41eca5..e11bc9ccc1ed 100644
 --- a/drivers/rpmsg/Kconfig
 +++ b/drivers/rpmsg/Kconfig
 @@ -1,6 +1,7 @@
@@ -1484,7 +1484,7 @@ index d0322b41e..e11bc9ccc 100644
  # RPMSG always gets selected by whoever wants it
  config RPMSG
 diff --git a/drivers/scsi/ufs/Kconfig b/drivers/scsi/ufs/Kconfig
-index 0b845ab7c..46dd336c3 100644
+index 0b845ab7c3bf..46dd336c367c 100644
 --- a/drivers/scsi/ufs/Kconfig
 +++ b/drivers/scsi/ufs/Kconfig
 @@ -34,7 +34,7 @@
@@ -1497,7 +1497,7 @@ index 0b845ab7c..46dd336c3 100644
  	select DEVFREQ_GOV_SIMPLE_ONDEMAND
  	select NLS
 diff --git a/drivers/sfi/Kconfig b/drivers/sfi/Kconfig
-index 1878d3788..296c88690 100644
+index 1878d378869a..296c886902a7 100644
 --- a/drivers/sfi/Kconfig
 +++ b/drivers/sfi/Kconfig
 @@ -5,6 +5,7 @@
@@ -1509,7 +1509,7 @@ index 1878d3788..296c88690 100644
  	The Simple Firmware Interface (SFI) provides a lightweight method
  	for platform firmware to pass information to the operating system
 diff --git a/drivers/soc/Kconfig b/drivers/soc/Kconfig
-index 833e04a78..b1266cad8 100644
+index 833e04a7835c..b1266cad8562 100644
 --- a/drivers/soc/Kconfig
 +++ b/drivers/soc/Kconfig
 @@ -1,5 +1,6 @@
@@ -1520,7 +1520,7 @@ index 833e04a78..b1266cad8 100644
  source "drivers/soc/actions/Kconfig"
  source "drivers/soc/amlogic/Kconfig"
 diff --git a/drivers/usb/chipidea/Kconfig b/drivers/usb/chipidea/Kconfig
-index ae850b3fd..104ba9306 100644
+index ae850b3fddf2..104ba930697d 100644
 --- a/drivers/usb/chipidea/Kconfig
 +++ b/drivers/usb/chipidea/Kconfig
 @@ -3,8 +3,8 @@
@@ -1534,7 +1534,7 @@ index ae850b3fd..104ba9306 100644
  	select USB_ROLE_SWITCH
  	help
 diff --git a/drivers/virt/Kconfig b/drivers/virt/Kconfig
-index 363af2eaf..c77208e34 100644
+index 363af2eaf2ba..c77208e34285 100644
 --- a/drivers/virt/Kconfig
 +++ b/drivers/virt/Kconfig
 @@ -5,6 +5,7 @@
@@ -1546,7 +1546,7 @@ index 363af2eaf..c77208e34 100644
  	  Say Y here to get to see options for device drivers that support
  	  virtualization environments.
 diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index 078615cf2..bd66fc770 100644
+index 078615cf2afc..bd66fc7706b4 100644
 --- a/drivers/virtio/Kconfig
 +++ b/drivers/virtio/Kconfig
 @@ -8,6 +8,7 @@ config VIRTIO
@@ -1558,7 +1558,7 @@ index 078615cf2..bd66fc770 100644
  
  if VIRTIO_MENU
 diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 3fabd4177..d0aa38ced 100644
+index 3fabd4177b0e..d0aa38ced061 100644
 --- a/drivers/watchdog/Kconfig
 +++ b/drivers/watchdog/Kconfig
 @@ -6,6 +6,7 @@
@@ -1570,7 +1570,7 @@ index 3fabd4177..d0aa38ced 100644
  	  If you say Y here (and to one of the following options) and create a
  	  character special file /dev/watchdog with major number 10 and minor
 diff --git a/fs/Kconfig.binfmt b/fs/Kconfig.binfmt
-index 62dc4f577..8a58df9d0 100644
+index 62dc4f577ba1..8a58df9d0da8 100644
 --- a/fs/Kconfig.binfmt
 +++ b/fs/Kconfig.binfmt
 @@ -176,6 +176,7 @@ config BINFMT_EM86
@@ -1582,7 +1582,7 @@ index 62dc4f577..8a58df9d0 100644
  	  If you say Y here, it will be possible to plug wrapper-driven binary
  	  formats into the kernel. You will like this especially when you use
 diff --git a/fs/verity/Kconfig b/fs/verity/Kconfig
-index 88fb25119..94313b3d5 100644
+index 88fb25119899..94313b3d5160 100644
 --- a/fs/verity/Kconfig
 +++ b/fs/verity/Kconfig
 @@ -2,6 +2,7 @@
@@ -1594,7 +1594,7 @@ index 88fb25119..94313b3d5 100644
  	# SHA-256 is selected as it's intended to be the default hash algorithm.
  	# To avoid bloat, other wanted algorithms must be selected explicitly.
 diff --git a/include/linux/ipipe.h b/include/linux/ipipe.h
-index fe90cb55d..785d5860a 100644
+index fe90cb55d462..785d5860a3f1 100644
 --- a/include/linux/ipipe.h
 +++ b/include/linux/ipipe.h
 @@ -30,9 +30,7 @@
@@ -1608,7 +1608,7 @@ index fe90cb55d..785d5860a 100644
  struct cpuidle_device;
  struct cpuidle_state;
 diff --git a/init/Kconfig b/init/Kconfig
-index e90350c37..9fecaf3c0 100644
+index c7f97ca28dc6..5c6b9c094ba8 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
 @@ -88,7 +88,7 @@ config INIT_ENV_ARG_LIMIT
@@ -1800,7 +1800,7 @@ index e90350c37..9fecaf3c0 100644
  	  The kernel and some modules make many symbols available for
  	  other modules to use via EXPORT_SYMBOL() and variants. Depending
 diff --git a/kernel/dma/Kconfig b/kernel/dma/Kconfig
-index 73c5c2b8e..60cd885a4 100644
+index 73c5c2b8e824..60cd885a4445 100644
 --- a/kernel/dma/Kconfig
 +++ b/kernel/dma/Kconfig
 @@ -156,6 +156,7 @@ endif
@@ -1821,7 +1821,7 @@ index 73c5c2b8e..60cd885a4 100644
  	  Perform extra checking that callers of dma_map_sg() have respected the
  	  appropriate segment length/boundary limits for the given device when
 diff --git a/kernel/gcov/Kconfig b/kernel/gcov/Kconfig
-index 3941a9c48..e2bdbced7 100644
+index 3941a9c48f83..e2bdbced7f28 100644
 --- a/kernel/gcov/Kconfig
 +++ b/kernel/gcov/Kconfig
 @@ -1,5 +1,6 @@
@@ -1832,7 +1832,7 @@ index 3941a9c48..e2bdbced7 100644
  config GCOV_KERNEL
  	bool "Enable gcov-based kernel profiling"
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f..d0da39b3a 100644
+index d17edb89f1f5..d0da39b3acdf 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
 @@ -1,12 +1,37 @@
@@ -1892,7 +1892,7 @@ index d17edb89f..d0da39b3a 100644
 -comment "RAW_PRINTK to work. Otherwise, you will get no output on raw_printk()"
 -endif
 diff --git a/kernel/ipipe/Kconfig.debug b/kernel/ipipe/Kconfig.debug
-index d1894cf62..05a410b04 100644
+index d1894cf62d54..05a410b04d00 100644
 --- a/kernel/ipipe/Kconfig.debug
 +++ b/kernel/ipipe/Kconfig.debug
 @@ -6,7 +6,6 @@ config IPIPE_DEBUG
@@ -1944,7 +1944,7 @@ index d1894cf62..05a410b04 100644
  	  Instead of reserving static kernel data, the required buffer
  	  is allocated via vmalloc during boot-up when this option is
 diff --git a/kernel/irq/Kconfig b/kernel/irq/Kconfig
-index 4e1112026..d33749837 100644
+index 4e11120265c7..d33749837716 100644
 --- a/kernel/irq/Kconfig
 +++ b/kernel/irq/Kconfig
 @@ -127,7 +127,7 @@ config SPARSE_IRQ
@@ -1957,7 +1957,7 @@ index 4e1112026..d33749837 100644
  	---help---
  
 diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index d3667b407..abc8ca374 100644
+index d3667b4075c1..abc8ca374cbc 100644
 --- a/kernel/power/Kconfig
 +++ b/kernel/power/Kconfig
 @@ -153,6 +153,7 @@ config PM_WAKELOCKS_GC
@@ -1969,7 +1969,7 @@ index d3667b407..abc8ca374 100644
  	  Enable functionality allowing I/O devices to be put into energy-saving
  	  (low power) states, for example after a specified period of inactivity
 diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index f03600835..d9ff3c7b4 100644
+index f0360083525e..d9ff3c7b42ad 100644
 --- a/kernel/trace/Kconfig
 +++ b/kernel/trace/Kconfig
 @@ -133,6 +133,7 @@ if TRACING_SUPPORT
@@ -1981,7 +1981,7 @@ index f03600835..d9ff3c7b4 100644
  	help
  	  Enable the kernel tracing infrastructure.
 diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 0c35ef335..9f74b1dce 100644
+index 4a441c8e615b..b6be76270c50 100644
 --- a/lib/Kconfig.debug
 +++ b/lib/Kconfig.debug
 @@ -99,6 +99,7 @@ config DYNAMIC_DEBUG
@@ -1992,7 +1992,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  
  	  Compiles debug level messages into the kernel, which would not
-@@ -264,7 +265,7 @@ config FRAME_WARN
+@@ -266,7 +267,7 @@ config FRAME_WARN
  
  config STRIP_ASM_SYMS
  	bool "Strip assembler-generated symbols during link"
@@ -2001,7 +2001,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  Strip internal assembler-generated symbols during a link (symbols
  	  that look like '.Lxxx') so they don't pollute the output of
-@@ -315,6 +316,7 @@ config OPTIMIZE_INLINING
+@@ -317,6 +318,7 @@ config OPTIMIZE_INLINING
  
  config DEBUG_SECTION_MISMATCH
  	bool "Enable full Section mismatch analysis"
@@ -2009,7 +2009,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  The section mismatch analysis checks if there are illegal
  	  references from one section to another section.
-@@ -343,6 +345,17 @@ config SECTION_MISMATCH_WARN_ONLY
+@@ -345,6 +347,17 @@ config SECTION_MISMATCH_WARN_ONLY
  
  	  If unsure, say Y.
  
@@ -2027,7 +2027,7 @@ index 0c35ef335..9f74b1dce 100644
  #
  # Select this config option from the architecture Kconfig, if it
  # is preferred to always offer frame pointers as a config
-@@ -430,6 +443,7 @@ source "kernel/ipipe/Kconfig.debug"
+@@ -432,6 +445,7 @@ source "kernel/ipipe/Kconfig.debug"
  
  config DEBUG_KERNEL
  	bool "Kernel debugging"
@@ -2035,7 +2035,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  Say Y here if you are developing drivers or trying to debug and
  	  identify kernel problems.
-@@ -532,7 +546,7 @@ config SLUB_DEBUG_ON
+@@ -534,7 +548,7 @@ config SLUB_DEBUG_ON
  config SLUB_STATS
  	default n
  	bool "Enable SLUB performance statistics"
@@ -2044,7 +2044,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  SLUB statistics are useful to debug SLUBs allocation behavior in
  	  order find ways to optimize the allocator. This should never be
-@@ -808,7 +822,15 @@ config DEBUG_SHIRQ
+@@ -810,7 +824,15 @@ config DEBUG_SHIRQ
  	  Drivers ought to be able to handle interrupts coming in at those
  	  points; some don't and need to be caught.
  
@@ -2060,7 +2060,7 @@ index 0c35ef335..9f74b1dce 100644
  
  config LOCKUP_DETECTOR
  	bool
-@@ -854,13 +876,6 @@ config HARDLOCKUP_DETECTOR_PERF
+@@ -856,13 +878,6 @@ config HARDLOCKUP_DETECTOR_PERF
  	bool
  	select SOFTLOCKUP_DETECTOR
  
@@ -2074,7 +2074,7 @@ index 0c35ef335..9f74b1dce 100644
  #
  # arch/ can define HAVE_HARDLOCKUP_DETECTOR_ARCH to provide their own hard
  # lockup detector rather than the perf based detector.
-@@ -1033,6 +1048,7 @@ config SCHED_STACK_END_CHECK
+@@ -1035,6 +1050,7 @@ config SCHED_STACK_END_CHECK
  
  config DEBUG_TIMEKEEPING
  	bool "Enable extra timekeeping sanity checking"
@@ -2082,7 +2082,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  This option will enable additional timekeeping sanity checks
  	  which may be helpful when diagnosing issues where timekeeping
-@@ -1055,6 +1071,7 @@ config DEBUG_PREEMPT
+@@ -1057,6 +1073,7 @@ config DEBUG_PREEMPT
  	  will detect preemption count underflows.
  
  menu "Lock Debugging (spinlocks, mutexes, etc...)"
@@ -2090,7 +2090,7 @@ index 0c35ef335..9f74b1dce 100644
  
  config LOCK_DEBUGGING_SUPPORT
  	bool
-@@ -1333,7 +1350,7 @@ config HAVE_DEBUG_BUGVERBOSE
+@@ -1335,7 +1352,7 @@ config HAVE_DEBUG_BUGVERBOSE
  	bool
  
  config DEBUG_BUGVERBOSE
@@ -2099,7 +2099,7 @@ index 0c35ef335..9f74b1dce 100644
  	depends on BUG && (GENERIC_BUG || HAVE_DEBUG_BUGVERBOSE)
  	default y
  	help
-@@ -1629,7 +1646,7 @@ source "kernel/trace/Kconfig"
+@@ -1637,7 +1654,7 @@ source "kernel/trace/Kconfig"
  
  config PROVIDE_OHCI1394_DMA_INIT
  	bool "Remote debugging over FireWire early on boot"
@@ -2108,7 +2108,7 @@ index 0c35ef335..9f74b1dce 100644
  	help
  	  If you want to debug problems which hang or crash the kernel early
  	  on boot and the crashing machine has a FireWire port, you can use
-@@ -1658,6 +1675,7 @@ config PROVIDE_OHCI1394_DMA_INIT
+@@ -1666,6 +1683,7 @@ config PROVIDE_OHCI1394_DMA_INIT
  
  menuconfig RUNTIME_TESTING_MENU
  	bool "Runtime Testing"
@@ -2116,7 +2116,7 @@ index 0c35ef335..9f74b1dce 100644
  	def_bool y
  
  if RUNTIME_TESTING_MENU
-@@ -2064,6 +2082,7 @@ endif # RUNTIME_TESTING_MENU
+@@ -2072,6 +2090,7 @@ endif # RUNTIME_TESTING_MENU
  
  config MEMTEST
  	bool "Memtest"
@@ -2125,7 +2125,7 @@ index 0c35ef335..9f74b1dce 100644
  	  This option adds a kernel parameter 'memtest', which allows memtest
  	  to be set.
 diff --git a/lib/Kconfig.ubsan b/lib/Kconfig.ubsan
-index 0e04fcb3a..72e7783af 100644
+index 0e04fcb3ab3d..72e7783af681 100644
 --- a/lib/Kconfig.ubsan
 +++ b/lib/Kconfig.ubsan
 @@ -4,6 +4,7 @@ config ARCH_HAS_UBSAN_SANITIZE_ALL
@@ -2137,7 +2137,7 @@ index 0e04fcb3a..72e7783af 100644
  	  This option enables undefined behaviour sanity checker
  	  Compile-time instrumentation is used to detect various undefined
 diff --git a/lib/xz/Kconfig b/lib/xz/Kconfig
-index 22528743d..5d6c394b0 100644
+index 22528743d4ce..5d6c394b07c0 100644
 --- a/lib/xz/Kconfig
 +++ b/lib/xz/Kconfig
 @@ -17,26 +17,31 @@ config XZ_DEC_X86
@@ -2173,7 +2173,7 @@ index 22528743d..5d6c394b0 100644
  
  endif
 diff --git a/mm/Kconfig b/mm/Kconfig
-index fbdc5c70e..77be7f83f 100644
+index fbdc5c70e487..77be7f83fac3 100644
 --- a/mm/Kconfig
 +++ b/mm/Kconfig
 @@ -513,6 +513,7 @@ config CMA_AREAS
@@ -2202,7 +2202,7 @@ index fbdc5c70e..77be7f83f 100644
  	  This feature collects and exposes statistics via debugfs. The
  	  information includes global and per chunk statistics, which can
 diff --git a/mm/Kconfig.debug b/mm/Kconfig.debug
-index 327b3ebf2..8037422e9 100644
+index 327b3ebf23bf..8037422e9a9e 100644
 --- a/mm/Kconfig.debug
 +++ b/mm/Kconfig.debug
 @@ -1,6 +1,7 @@
@@ -2222,7 +2222,7 @@ index 327b3ebf2..8037422e9 100644
  	---help---
  	  Fill the pages with poison patterns after free_pages() and verify
 diff --git a/net/wireless/Kconfig b/net/wireless/Kconfig
-index 211007c09..5b410a393 100644
+index 211007c091d5..5b410a393a25 100644
 --- a/net/wireless/Kconfig
 +++ b/net/wireless/Kconfig
 @@ -90,8 +90,8 @@ config CFG80211_CERTIFICATION_ONUS
@@ -2237,7 +2237,7 @@ index 211007c09..5b410a393 100644
  	  Require that in addition to the "regulatory.db" file a
  	  "regulatory.db.p7s" can be loaded with a valid PKCS#7
 diff --git a/samples/Kconfig b/samples/Kconfig
-index c8dacb4dd..c1beba3c0 100644
+index c8dacb4dda80..c1beba3c0012 100644
 --- a/samples/Kconfig
 +++ b/samples/Kconfig
 @@ -1,6 +1,7 @@
@@ -2249,7 +2249,7 @@ index c8dacb4dd..c1beba3c0 100644
  	  You can build and test sample kernel code here.
  
 diff --git a/security/Kconfig b/security/Kconfig
-index 52e5109f2..321af7bab 100644
+index 52e5109f2c1b..321af7babafe 100644
 --- a/security/Kconfig
 +++ b/security/Kconfig
 @@ -9,6 +9,7 @@ source "security/keys/Kconfig"
@@ -2295,7 +2295,7 @@ index 52e5109f2..321af7bab 100644
  	help
  	  This option checks for obviously wrong memory regions when
 diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
-index af4c979b3..5c3f5d3df 100644
+index af4c979b38ee..5c3f5d3df497 100644
 --- a/security/Kconfig.hardening
 +++ b/security/Kconfig.hardening
 @@ -169,6 +169,7 @@ config STACKLEAK_RUNTIME_DISABLE
@@ -2315,7 +2315,7 @@ index af4c979b3..5c3f5d3df 100644
  	  This has the effect of setting "init_on_free=1" on the kernel
  	  command line. This can be disabled with "init_on_free=0".
 diff --git a/sound/soc/Kconfig b/sound/soc/Kconfig
-index bdc305cec..63d63e58a 100644
+index bdc305cece6e..63d63e58a8bf 100644
 --- a/sound/soc/Kconfig
 +++ b/sound/soc/Kconfig
 @@ -5,6 +5,7 @@
@@ -2327,5 +2327,5 @@ index bdc305cec..63d63e58a 100644
  	select AC97_BUS if SND_SOC_AC97_BUS
  	select SND_JACK
 -- 
-2.30.2
+2.42.0
 
