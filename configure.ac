@@ -741,7 +741,7 @@ RTAI_KBUILD_DISTCLEAN=""
 
 dnl Extra options to be passed to the compiler
 RTAI_USER_CFLAGS="-O2 -march=x86-64 -fomit-frame-pointer -pipe"
-RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -mcmodel=kernel -nostdinc -ffreestanding -fno-pic -fno-builtin -fno-common -fno-unwind-tables -fno-asynchronous-unwind-tables -frounding-math -mpreferred-stack-boundary=4 -mstackrealign -mfpmath=sse -msse -msse2"
+RTAI_FP_CFLAGS="${RTAI_USER_CFLAGS} -D__IN_RTAI__ -mcmodel=kernel -std=gnu11 -nostdinc -ffreestanding -fno-pic -fno-builtin -fno-common -fno-unwind-tables -fno-asynchronous-unwind-tables -frounding-math -mpreferred-stack-boundary=4 -mstackrealign -mfpmath=sse -msse -msse2"
 
 AC_SUBST(RTAI_TARGET_SUBARCH)
 AC_SUBST(RTAI_BUILTIN_MODLIST)
