@@ -1,4 +1,4 @@
-From d83643c10106a79eb190f2c0df9aa25666b9486b Mon Sep 17 00:00:00 2001
+From f6a607e3a9424b28db18786d69cf421d790aa451 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Thu, 14 Sep 2023 20:51:27 +0000
 Subject: IPIPE 4.19 core release 27
@@ -5003,7 +5003,7 @@ index 2f41a34c8f57..0ea5c7e9c738 100644
  
  static void flush_tlb_func_local(void *info, enum tlb_flush_reason reason)
 diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 0332800dffd8..eed567f75d00 100644
+index 6e380ad9d08a..b332f7b997d3 100644
 --- a/drivers/base/core.c
 +++ b/drivers/base/core.c
 @@ -3283,6 +3283,17 @@ EXPORT_SYMBOL(dev_printk_emit);
@@ -13621,7 +13621,7 @@ index 936f3d14dd6b..078f9ae05226 100644
   * The __lock_function inlines are taken from
   * spinlock : include/linux/spinlock_api_smp.h
 diff --git a/kernel/module.c b/kernel/module.c
-index 6ec0b2e0f01f..997427fbdec1 100644
+index 2ec961945fa8..f42d703615ae 100644
 --- a/kernel/module.c
 +++ b/kernel/module.c
 @@ -1123,7 +1123,7 @@ bool try_module_get(struct module *module)
@@ -14471,10 +14471,10 @@ index 81f5c9c85d06..cf7e07ba1847 100644
  }
  
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index c8a7de7a1d63..db855bd3d949 100644
+index 320aa60664dc..05204ff4ba3f 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
-@@ -2693,8 +2693,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2695,8 +2695,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
  static __always_inline int
  trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  {
@@ -14485,7 +14485,7 @@ index c8a7de7a1d63..db855bd3d949 100644
  	int bit;
  
  	if (!(pc & (NMI_MASK | HARDIRQ_MASK | SOFTIRQ_OFFSET)))
-@@ -2703,6 +2704,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2705,6 +2706,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		bit = pc & NMI_MASK ? RB_CTX_NMI :
  			pc & HARDIRQ_MASK ? RB_CTX_IRQ : RB_CTX_SOFTIRQ;
  
@@ -14496,7 +14496,7 @@ index c8a7de7a1d63..db855bd3d949 100644
  	if (unlikely(val & (1 << (bit + cpu_buffer->nest)))) {
  		/*
  		 * It is possible that this was called by transitioning
-@@ -2710,21 +2715,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2712,21 +2717,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		 * been updated yet. In this case, use the TRANSITION bit.
  		 */
  		bit = RB_CTX_TRANSITION;
@@ -15301,5 +15301,5 @@ index 1817871b0239..b206de3e098f 100644
  }
  
 -- 
-2.42.0
+2.39.2
 
