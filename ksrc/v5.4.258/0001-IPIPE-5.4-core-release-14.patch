@@ -1,6 +1,6 @@
-From 98b60db8dbd694296682cfbd68b1093c5f4ea3e7 Mon Sep 17 00:00:00 2001
+From 5b5e25d9098a24ca5222e7889d501d09486337b7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Thu, 14 Sep 2023 20:58:31 +0000
+Date: Sat, 14 Oct 2023 16:58:36 -0500
 Subject: IPIPE 5.4 core release 14
 
 Based off of ipipe-core-5.4.253-x86-14.patch
@@ -1409,7 +1409,7 @@ index 3f8e22615812..e8a2c167afb8 100644
  		prepare_exit_to_usermode(regs);
  		return 0;	/* Keep it simple: use IRET. */
 diff --git a/arch/x86/entry/entry_64.S b/arch/x86/entry/entry_64.S
-index bd7a4ad0937c..6b22645a5606 100644
+index 640c7d36c26c..0519c7bc0e4f 100644
 --- a/arch/x86/entry/entry_64.S
 +++ b/arch/x86/entry/entry_64.S
 @@ -30,6 +30,7 @@
@@ -1486,7 +1486,7 @@ index bd7a4ad0937c..6b22645a5606 100644
  ret_from_intr:
  	DISABLE_INTERRUPTS(CLBR_ANY)
 @@ -621,6 +644,7 @@ ret_from_intr:
- GLOBAL(retint_user)
+ .Lretint_user:
  	mov	%rsp,%rdi
  	call	prepare_exit_to_usermode
 +retint_user_early:
@@ -3410,7 +3410,7 @@ index 5c7ee3df4d0b..343927455003 100644
  
  	BLANK();
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 0c0c2cb038ad..6489a4e6ed94 100644
+index 1592f309c3c1..833b3e88dbfb 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -1874,6 +1874,7 @@ void syscall_init(void)
@@ -8433,7 +8433,7 @@ index c764d16328f6..1a1d48b6a674 100644
  	/* sync mm's RSS info before statistics gathering */
  	if (tsk->mm)
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 39134effb2bf..63d6ff827d6b 100644
+index 1728aa77861c..5e8d59e6daf6 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -57,6 +57,7 @@
@@ -8452,7 +8452,7 @@ index 39134effb2bf..63d6ff827d6b 100644
  #include <linux/stackleak.h>
  
  #include <asm/pgtable.h>
-@@ -904,6 +906,10 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
+@@ -912,6 +914,10 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
  #endif
  
  	setup_thread_stack(tsk, orig);
@@ -8463,7 +8463,7 @@ index 39134effb2bf..63d6ff827d6b 100644
  	clear_user_return_notifier(tsk);
  	clear_tsk_need_resched(tsk);
  	set_task_stack_end_magic(tsk);
-@@ -1077,6 +1083,7 @@ static inline void __mmput(struct mm_struct *mm)
+@@ -1085,6 +1091,7 @@ static inline void __mmput(struct mm_struct *mm)
  	exit_aio(mm);
  	ksm_exit(mm);
  	khugepaged_exit(mm); /* must run before exit_mmap */
@@ -13731,7 +13731,7 @@ index 0ff08380f531..7d7a34aa3e40 100644
   * The __lock_function inlines are taken from
   * spinlock : include/linux/spinlock_api_smp.h
 diff --git a/kernel/module.c b/kernel/module.c
-index 30ac7514bd2b..c7d3dab84a80 100644
+index ba1df1fb1c5d..7c2c5f160a53 100644
 --- a/kernel/module.c
 +++ b/kernel/module.c
 @@ -1134,7 +1134,7 @@ bool try_module_get(struct module *module)
@@ -14629,10 +14629,10 @@ index 412505d94865..9d68e22c52d9 100644
  }
  
 diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index 445475c229b3..f6112d9ed8a2 100644
+index 9d6ba3879196..0138e3847e24 100644
 --- a/kernel/trace/ring_buffer.c
 +++ b/kernel/trace/ring_buffer.c
-@@ -2770,8 +2770,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2775,8 +2775,9 @@ rb_wakeups(struct ring_buffer *buffer, struct ring_buffer_per_cpu *cpu_buffer)
  static __always_inline int
  trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  {
@@ -14643,7 +14643,7 @@ index 445475c229b3..f6112d9ed8a2 100644
  	int bit;
  
  	if (!(pc & (NMI_MASK | HARDIRQ_MASK | SOFTIRQ_OFFSET)))
-@@ -2780,6 +2781,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2785,6 +2786,10 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		bit = pc & NMI_MASK ? RB_CTX_NMI :
  			pc & HARDIRQ_MASK ? RB_CTX_IRQ : RB_CTX_SOFTIRQ;
  
@@ -14654,7 +14654,7 @@ index 445475c229b3..f6112d9ed8a2 100644
  	if (unlikely(val & (1 << (bit + cpu_buffer->nest)))) {
  		/*
  		 * It is possible that this was called by transitioning
-@@ -2787,21 +2792,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
+@@ -2792,21 +2797,29 @@ trace_recursive_lock(struct ring_buffer_per_cpu *cpu_buffer)
  		 * been updated yet. In this case, use the TRANSITION bit.
  		 */
  		bit = RB_CTX_TRANSITION;
@@ -14686,7 +14686,7 @@ index 445475c229b3..f6112d9ed8a2 100644
  
  /* The recursive locking above uses 5 bits */
 diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
-index ad0ee4de9248..90d94f23a151 100644
+index 85ad403006a2..b20e3c11f517 100644
 --- a/kernel/trace/trace.c
 +++ b/kernel/trace/trace.c
 @@ -3160,8 +3160,9 @@ int trace_vbprintk(unsigned long ip, const char *fmt, va_list args)
@@ -15461,5 +15461,5 @@ index 5797e1eeaa7e..80dff9b8d391 100644
  }
  
 -- 
-2.42.0
+2.39.2
 

@@ -8,14 +8,14 @@ Commands marked with # specify root, commands marked with $ are user commands.
 $ git clone https://github.com/NTULINUX/RTAI.git
 
 
-2.) Patch kernel with IPIPE, in this case we use 5.4.256
+2.) Patch kernel with IPIPE, in this case we use 5.4.258
 
 # cd /usr/src
-# wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.256.tar.xz
-# tar xf linux-5.4.256.tar.xz
-# ln -sfv linux-5.4.256 linux
+# wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.258.tar.xz
+# tar xf linux-5.4.258.tar.xz
+# ln -sfv linux-5.4.258 linux
 # cd linux
-# for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v5.4.256/"*.patch ; do patch -p1 < "${i}" ; done
+# for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v5.4.258/"*.patch ; do patch -p1 < "${i}" ; done
 # make olddefconfig
 # make menuconfig
 
@@ -98,7 +98,7 @@ Remove any previously installed RTAI packages:
 Notice: You must run the command above from inside a directory that
 does not contain any .deb packages, otherwise you may see errors such as:
 
-E: Unable to locate package linux-5.4.256-rtai_5.4.256-rtai-1_amd64.changes
+E: Unable to locate package linux-5.4.258-rtai_5.4.258-rtai-1_amd64.changes
 
 If you plan on building RTAI and LinuxCNC Debian packages, your kernel must also packaged as well.
 
@@ -131,13 +131,13 @@ $ tar xf /path/to/data.tar.xz
 
 You should now have a directory named "boot" where you decompressed the tarball. Inside that boot directory will be a file called "config-5.10.0-25-amd64"
 
-Prepare the 5.4.256 kernel source:
+Prepare the 5.4.258 kernel source:
 
 $ cd ~/
-$ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.256.tar.xz
-$ tar xf linux-5.4.256.tar.xz
-$ cd linux-5.4.256
-$ for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v5.4.256"/*.patch ; do patch -p1 < "${i}" ; done
+$ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.258.tar.xz
+$ tar xf linux-5.4.258.tar.xz
+$ cd linux-5.4.258
+$ for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v5.4.258"/*.patch ; do patch -p1 < "${i}" ; done
 
 Load it accordingly:
 
@@ -180,8 +180,8 @@ $ make -j`nproc` bindeb-pkg
 
 Install the Debian kernel packages:
 
-# dpkg -i /path/to/linux-headers-5.4.256-rtai-amd64_5.4.256-rtai-amd64-1_amd64.deb
-# dpkg -i /path/to/linux-image-5.4.256-rtai-amd64_5.4.256-rtai-amd64-1_amd64.deb
+# dpkg -i /path/to/linux-headers-5.4.258-rtai-amd64_5.4.258-rtai-amd64-1_amd64.deb
+# dpkg -i /path/to/linux-image-5.4.258-rtai-amd64_5.4.258-rtai-amd64-1_amd64.deb
 
 If you've previously built kernel packages, you may need to modify your dpkg commands (i.e. replace -1 with -2 etc.)
 
@@ -193,7 +193,7 @@ $ uname -r
 
 Should return:
 
-5.4.256-rtai-amd64
+5.4.258-rtai-amd64
 
 Now generate the rtai-modules Debian package:
 
@@ -207,7 +207,7 @@ Configure the RTAI tree:
 
 $ ./autogen.sh
 
-$ ./debian/configure 5.4.256 rtai amd64
+$ ./debian/configure 5.4.258 rtai amd64
 
 Now you are ready to build the actual package:
 
@@ -215,7 +215,7 @@ $ dpkg-buildpackage -uc -us
 
 Install the rtai-modules package:
 
-# dpkg -i /path/to/rtai-modules-5.4.256_5.3.2-linuxcnc_amd64.deb
+# dpkg -i /path/to/rtai-modules-5.4.258_5.3.2-linuxcnc_amd64.deb
 
 As previously stated above,
 
