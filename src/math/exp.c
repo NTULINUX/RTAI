@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <math.h>
-#include <stdint.h>
+#include "math.h"
+#include "stdint.h"
 #include "libm.h"
 #include "exp_data.h"
 

@@ -5,11 +5,11 @@
 extern "C" {
 #endif
 
-#include <features.h>
+#include "features.h"
 
 #define __NEED_float_t
 #define __NEED_double_t
-#include <alltypes.h>
+#include "alltypes.h"
 
 #if 100*__GNUC__+__GNUC_MINOR__ >= 303
 #define NAN       __builtin_nanf("")

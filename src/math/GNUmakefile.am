@@ -10,24 +10,16 @@
 
 moduledir = @RTAI_MODULE_DIR@
 
-libm:
-	$(MAKE) -C musl
-
-rtai_math.ko: libm
 rtai_math.ko: @RTAI_KBUILD_ENV@
-rtai_math.ko: rtai_libm.c
+rtai_math.ko: acos.c asin.c atan2.c atan.c ceil.c __cos.c cos.c exp.c exp_data.c \
+ fabs.c floor.c fmax.c fmin.c fmod.c __math_invalid.c __math_oflow.c __math_uflow.c \
+ __math_xflow.c pow.c pow_data.c __rem_pio2.c  __rem_pio2_large.c round.c \
+ scalbn.c __sin.c sin.c sincos.c sqrt.c __tan.c tan.c rtai_libm.c
 	@RTAI_KBUILD_TOP@ \
-	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@" \
+	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@ -D_XOPEN_SOURCE=700 -Wno-parentheses -Wno-declaration-after-statement" \
 	@RTAI_KBUILD_BOTTOM@
-	rm -f libm
-	@echo -e "\nIgnore the undefined symbol warnings above.\n"
-	mv $@ $@.tmp
-	$(LD) -r -static -o $@ $@.tmp musl/lib/libm.a
-	rm -f $@.tmp
 
 clean-local:
-	rm -f libm
-	$(MAKE) -C musl clean
 	@RTAI_KBUILD_CLEAN@
 
 all-local: rtai_math.ko

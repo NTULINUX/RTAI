@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <math.h>
-#include <stdint.h>
+#include "math.h"
+#include "stdint.h"
 #include "libm.h"
 #include "exp_data.h"
 #include "pow_data.h"
@@ -57,16 +57,12 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 
 	/* Note: 1/c is j/N or j/N/2 where j is an integer in [N,2N) and
      |z/c - 1| < 1/N, so r = z/c - 1 is exactly representible.  */
-#if __FP_FAST_FMA
-	r = __builtin_fma(z, invc, -1.0);
-#else
 	/* Split z such that rhi, rlo and rhi*rhi are exact and |rlo| <= |r|.  */
 	double_t zhi = asdouble((iz + (1ULL << 31)) & (-1ULL << 32));
 	double_t zlo = z - zhi;
 	double_t rhi = zhi * invc - 1.0;
 	double_t rlo = zlo * invc;
 	r = rhi + rlo;
-#endif
 
 	/* k*Ln2 + log(c) + r.  */
 	t1 = kd * Ln2hi + logc;
@@ -80,17 +76,11 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 	ar2 = r * ar;
 	ar3 = r * ar2;
 	/* k*Ln2 + log(c) + r + A[0]*r*r.  */
-#if __FP_FAST_FMA
-	hi = t2 + ar2;
-	lo3 = __builtin_fma(ar, r, -ar2);
-	lo4 = t2 - hi + ar2;
-#else
 	double_t arhi = A[0] * rhi;
 	double_t arhi2 = rhi * arhi;
 	hi = t2 + arhi2;
 	lo3 = rlo * (ar + arhi);
 	lo4 = t2 - hi + arhi2;
-#endif
 	/* p = log1p(r) - r - A[0]*r*r.  */
 	p = (ar3 * (A[1] + r * A[2] +
 		    ar2 * (A[3] + r * A[4] + ar2 * (A[5] + r * A[6]))));
@@ -328,16 +318,11 @@ double pow(double x, double y)
 	double_t lo;
 	double_t hi = log_inline(ix, &lo);
 	double_t ehi, elo;
-#if __FP_FAST_FMA
-	ehi = y * hi;
-	elo = y * lo + __builtin_fma(y, hi, -ehi);
-#else
 	double_t yhi = asdouble(iy & -1ULL << 27);
 	double_t ylo = y - yhi;
 	double_t lhi = asdouble(asuint64(hi) & -1ULL << 27);
 	double_t llo = hi - lhi + lo;
 	ehi = yhi * lhi;
 	elo = ylo * lhi + y * llo; /* |elo| < |ehi| * 2^-25.  */
-#endif
 	return exp_inline(ehi, elo, sign_bias);
 }

@@ -1,10 +1,10 @@
 #ifndef _LIBM_H
 #define _LIBM_H
 
-#include <stdint.h>
-#include <float.h>
-#include <math.h>
-#include <endian.h>
+#include "stdint.h"
+#include "float.h"
+#include "math.h"
+#include "endian.h"
 
 #if LDBL_MANT_DIG == 64 && LDBL_MAX_EXP == 16384 && __BYTE_ORDER == __LITTLE_ENDIAN
 union ldshape {

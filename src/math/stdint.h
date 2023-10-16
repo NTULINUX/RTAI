@@ -17,7 +17,7 @@
 #define __NEED_intmax_t
 #define __NEED_uintmax_t
 
-#include <alltypes.h>
+#include "alltypes.h"
 
 typedef int8_t int_fast8_t;
 typedef int64_t int_fast64_t;

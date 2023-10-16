@@ -1,6 +1,6 @@
-#include <math.h>
+#include "math.h"
 
-double fmax(double x, double y)
+double fmin(double x, double y)
 {
 	if (isnan(x))
 		return y;
@@ -8,6 +8,6 @@ double fmax(double x, double y)
 		return x;
 	/* handle signed zeros, see C99 Annex F.9.9.2 */
 	if (signbit(x) != signbit(y))
-		return signbit(x) ? y : x;
-	return x < y ? y : x;
+		return signbit(x) ? x : y;
+	return x < y ? x : y;
 }

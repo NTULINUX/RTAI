@@ -1,13 +1,13 @@
 #ifndef _ENDIAN_H
 #define _ENDIAN_H
 
-#include <features.h>
+#include "features.h"
 
 #define __NEED_uint16_t
 #define __NEED_uint32_t
 #define __NEED_uint64_t
 
-#include <alltypes.h>
+#include "alltypes.h"
 
 #define __PDP_ENDIAN 3412
 

@@ -1,5 +1,5 @@
-#include <math.h>
-#include <stdint.h>
+#include "math.h"
+#include "stdint.h"
 
 double scalbn(double x, int n)
 {

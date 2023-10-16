@@ -787,7 +787,6 @@ AC_CONFIG_FILES([ \
 	src/ipc/mbx/GNUmakefile \
 	src/malloc/GNUmakefile \
 	src/math/GNUmakefile \
-	src/math/musl/GNUmakefile \
 	scripts/GNUmakefile \
 	scripts/rtai-config \
 	scripts/rtai-load \
