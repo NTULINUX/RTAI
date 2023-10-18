@@ -37,6 +37,7 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 {
 	/* double_t for better performance on targets with FLT_EVAL_METHOD==2.  */
 	double_t z, r, y, invc, logc, logctail, kd, hi, t1, t2, lo, lo1, lo2, p;
+	double_t ar, ar2, ar3, lo3, lo4;
 	uint64_t iz, tmp;
 	int k, i;
 
@@ -71,7 +72,6 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 	lo2 = t1 - t2 + r;
 
 	/* Evaluation is optimized assuming superscalar pipelined execution.  */
-	double_t ar, ar2, ar3, lo3, lo4;
 	ar = A[0] * r; /* A[0] = -0.5.  */
 	ar2 = r * ar;
 	ar3 = r * ar2;
@@ -244,6 +244,7 @@ static inline int zeroinfnan(uint64_t i)
 
 double pow(double x, double y)
 {
+	double_t lo;
 	uint32_t sign_bias = 0;
 	uint64_t ix, iy;
 	uint32_t topx, topy;
@@ -315,7 +316,6 @@ double pow(double x, double y)
 		}
 	}
 
-	double_t lo;
 	double_t hi = log_inline(ix, &lo);
 	double_t ehi, elo;
 	double_t yhi = asdouble(iy & -1ULL << 27);
