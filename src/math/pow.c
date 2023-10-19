@@ -37,7 +37,9 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 {
 	/* double_t for better performance on targets with FLT_EVAL_METHOD==2.  */
 	double_t z, r, y, invc, logc, logctail, kd, hi, t1, t2, lo, lo1, lo2, p;
+	double_t zhi, zlo, rhi, rlo;
 	double_t ar, ar2, ar3, lo3, lo4;
+	double_t arhi, arhi2;
 	uint64_t iz, tmp;
 	int k, i;
 
@@ -59,10 +61,10 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 	/* Note: 1/c is j/N or j/N/2 where j is an integer in [N,2N) and
      |z/c - 1| < 1/N, so r = z/c - 1 is exactly representible.  */
 	/* Split z such that rhi, rlo and rhi*rhi are exact and |rlo| <= |r|.  */
-	double_t zhi = asdouble((iz + (1ULL << 31)) & (-1ULL << 32));
-	double_t zlo = z - zhi;
-	double_t rhi = zhi * invc - 1.0;
-	double_t rlo = zlo * invc;
+	zhi = asdouble((iz + (1ULL << 31)) & (-1ULL << 32));
+	zlo = z - zhi;
+	rhi = zhi * invc - 1.0;
+	rlo = zlo * invc;
 	r = rhi + rlo;
 
 	/* k*Ln2 + log(c) + r.  */
@@ -76,8 +78,8 @@ static inline double_t log_inline(uint64_t ix, double_t *tail)
 	ar2 = r * ar;
 	ar3 = r * ar2;
 	/* k*Ln2 + log(c) + r + A[0]*r*r.  */
-	double_t arhi = A[0] * rhi;
-	double_t arhi2 = rhi * arhi;
+	arhi = A[0] * rhi;
+	arhi2 = rhi * arhi;
 	hi = t2 + arhi2;
 	lo3 = rlo * (ar + arhi);
 	lo4 = t2 - hi + arhi2;
@@ -244,7 +246,10 @@ static inline int zeroinfnan(uint64_t i)
 
 double pow(double x, double y)
 {
+	double_t hi;
 	double_t lo;
+	double_t ehi, elo;
+	double_t yhi, ylo, lhi, llo;
 	uint32_t sign_bias = 0;
 	uint64_t ix, iy;
 	uint32_t topx, topy;
@@ -316,12 +321,11 @@ double pow(double x, double y)
 		}
 	}
 
-	double_t hi = log_inline(ix, &lo);
-	double_t ehi, elo;
-	double_t yhi = asdouble(iy & -1ULL << 27);
-	double_t ylo = y - yhi;
-	double_t lhi = asdouble(asuint64(hi) & -1ULL << 27);
-	double_t llo = hi - lhi + lo;
+	hi = log_inline(ix, &lo);
+	yhi = asdouble(iy & -1ULL << 27);
+	ylo = y - yhi;
+	lhi = asdouble(asuint64(hi) & -1ULL << 27);
+	llo = hi - lhi + lo;
 	ehi = yhi * lhi;
 	elo = ylo * lhi + y * llo; /* |elo| < |ehi| * 2^-25.  */
 	return exp_inline(ehi, elo, sign_bias);
