@@ -1,5 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
-# Copyright (C) 2019-2022 Alec Ari <neotheuser@ymail.com>
+# Copyright (C) 2019-2023 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.

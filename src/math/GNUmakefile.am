@@ -1,5 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
-# Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+# Copyright (C) 2019-2023 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -11,10 +11,11 @@
 moduledir = @RTAI_MODULE_DIR@
 
 rtai_math.ko: @RTAI_KBUILD_ENV@
-rtai_math.ko: acos.c asin.c atan2.c atan.c ceil.c __cos.c cos.c exp.c exp_data.c \
- fabs.c floor.c fmax.c fmin.c fmod.c __math_invalid.c __math_oflow.c __math_uflow.c \
- __math_xflow.c pow.c pow_data.c __rem_pio2.c  __rem_pio2_large.c round.c \
- scalbn.c __sin.c sin.c sincos.c sqrt.c __tan.c tan.c rtai_libm.c
+rtai_math.ko: __cos.c __math_invalid.c __math_oflow.c __math_uflow.c \
+ __math_xflow.c __rem_pio2.c  __rem_pio2_large.c __sin.c __tan.c acos.c asin.c \
+ atan2.c atan.c ceil.c cos.c exp.c exp_data.c fabs.c floor.c fmax.c fmin.c \
+ fmod.c pow.c pow_data.c round.c scalbn.c  sin.c sincos.c sqrt.c tan.c \
+ rtai_libm.c
 	@RTAI_KBUILD_TOP@ \
 	@RTAI_KBUILD_CMD@ rtai_extradef="@RTAI_FP_CFLAGS@ -D_XOPEN_SOURCE=700" \
 	@RTAI_KBUILD_BOTTOM@
