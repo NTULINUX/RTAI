@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
- * Copyright (C) 2019 Alec Ari <neotheuser@ymail.com>
+ * Copyright (C) 2019-2024 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -689,12 +689,8 @@ static RT_TASK *switch_rtai_tasks(RT_TASK *rt_current, RT_TASK *new_task, int cp
 	return NULL;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
 extern void switch_fpu_return(void);
 #define SWITCH_FPU_RETURN() do { if (rt_current->is_hard > 0) switch_fpu_return(); } while (0)
-#else
-#define SWITCH_FPU_RETURN() do { } while (0)
-#endif
 
 #define lxrt_context_switch(prev, next, cpuid) \
 	do { \
@@ -2112,11 +2108,7 @@ static int PROC_READ_FUN(rtai_read_sched)
                                task->signal ? "Yes" : "No",
                                task->state,
 			       task->runnable_on_cpus, // cpuid,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
 			       task->lnxtsk ? CPUMASK((task->lnxtsk)->cpus_mask) : (1UL << task->runnable_on_cpus),
-#else
-			       task->lnxtsk ? CPUMASK((task->lnxtsk)->cpus_allowed) : (1UL << task->runnable_on_cpus),
-#endif
                                i,
 			       task->is_hard,
 			       task->lnxtsk ? task->lnxtsk->pid : 0,

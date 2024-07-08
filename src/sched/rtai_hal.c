@@ -740,9 +740,7 @@ static int hal_intercept_syscall(struct pt_regs *regs)
 
 #include <linux/clockchips.h>
 #include <linux/ipipe_tickdev.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
 #include <uapi/linux/sched/types.h>
-#endif
 
 extern int (*rtai_syscall_hook)(struct pt_regs *);
 

@@ -7,7 +7,7 @@
  * This file is part of the RTAI project.
  *
  * @note Copyright &copy; 1999-2017 Paolo Mantegazza <mantegazza@aero.polimi.it>
- * @note Copyright &copy; 2019 Alec Ari <neotheuser@ymail.com>
+ * @note Copyright &copy; 2019-2024 Alec Ari <neotheuser@ymail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -655,7 +655,6 @@ RTAI_SYSCALL_MODE int rt_task_signal_handler(RT_TASK *task, void (*handler)(void
 struct epoch_struct boot_epoch = { __SPIN_LOCK_UNLOCKED(boot_epoch.lock), 0, };
 EXPORT_SYMBOL(boot_epoch);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,4,0)
 void do_gettimeofday(struct timeval *tv)
 {
 	struct timespec64 now;
@@ -665,7 +664,6 @@ void do_gettimeofday(struct timeval *tv)
 	tv->tv_usec = now.tv_nsec/1000;
 }
 EXPORT_SYMBOL(do_gettimeofday);
-#endif
 
 static inline void _rt_get_boot_epoch(volatile RTIME time_orig[])
 {
