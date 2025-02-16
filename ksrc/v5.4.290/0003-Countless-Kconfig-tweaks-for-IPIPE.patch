@@ -1,4 +1,4 @@
-From 59786c031b5c691d864da8f6b535b46b7508748e Mon Sep 17 00:00:00 2001
+From 3b95db5d71a0e8716c917265da182e6e785dac53 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 8 Jul 2024 13:33:21 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -125,7 +125,7 @@ index 4d03616bf..e7ed5518e 100644
  	default y
  	help
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 1c2db5895..e62565e77 100644
+index 1c2db5895..6cddf3d38 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -61,17 +61,17 @@ config X86
@@ -431,7 +431,7 @@ index 1c2db5895..e62565e77 100644
 -	  This is purely to save memory: each supported CPU adds about 8KB
 -	  to the kernel image.
 +	  For IPIPE-enabled platforms, large values causes serious problems.
-+	  The max limit in this case is 16.
++	  The max limit in this case is 32.
 +
 +	  Each supported CPU adds approximately 8KB to the kernel image.
  
