@@ -1,4 +1,4 @@
-From ccec48998c2c6ae2f1c9023980fa27a15d690dee Mon Sep 17 00:00:00 2001
+From dc93ca82eeb64715aef0538d8d593f9d2c93b2b7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 8 Jul 2024 13:30:02 -0500
 Subject: Convert to RTAI
@@ -13,7 +13,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  5 files changed, 52 insertions(+), 69 deletions(-)
 
 diff --git a/arch/x86/kernel/ipipe.c b/arch/x86/kernel/ipipe.c
-index 300d5ee8187f..ad5e8ea8325d 100644
+index 300d5ee81..ad5e8ea83 100644
 --- a/arch/x86/kernel/ipipe.c
 +++ b/arch/x86/kernel/ipipe.c
 @@ -263,15 +263,9 @@ EXPORT_SYMBOL_GPL(ipipe_set_irq_affinity);
@@ -33,7 +33,7 @@ index 300d5ee8187f..ad5e8ea8325d 100644
  EXPORT_SYMBOL_GPL(ipipe_send_ipi);
  
 diff --git a/include/ipipe/thread_info.h b/include/ipipe/thread_info.h
-index 7038c12942c8..bfda871d5cdb 100644
+index 7038c1294..bfda871d5 100644
 --- a/include/ipipe/thread_info.h
 +++ b/include/ipipe/thread_info.h
 @@ -7,8 +7,11 @@
@@ -50,7 +50,7 @@ index 7038c12942c8..bfda871d5cdb 100644
  
  #endif /* !_IPIPE_THREAD_INFO_H */
 diff --git a/kernel/ipipe/core.c b/kernel/ipipe/core.c
-index 485db973b81b..085317c32ec6 100644
+index 485db973b..085317c32 100644
 --- a/kernel/ipipe/core.c
 +++ b/kernel/ipipe/core.c
 @@ -42,6 +42,20 @@
@@ -226,7 +226,7 @@ index 485db973b81b..085317c32ec6 100644
  void __ipipe_call_mayday(struct pt_regs *regs)
  {
 diff --git a/kernel/ipipe/timer.c b/kernel/ipipe/timer.c
-index 83b3c94d92b3..d223858caf3b 100644
+index 83b3c94d9..d223858ca 100644
 --- a/kernel/ipipe/timer.c
 +++ b/kernel/ipipe/timer.c
 @@ -575,9 +575,6 @@ void ipipe_timer_set(unsigned long cdelay)
@@ -258,7 +258,7 @@ index 83b3c94d92b3..d223858caf3b 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 08e61b6a668f..acba6b999cb1 100644
+index 08e61b6a6..acba6b999 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -3441,10 +3441,22 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
@@ -294,5 +294,5 @@ index 08e61b6a668f..acba6b999cb1 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.45.2
+2.39.5
 

@@ -1,4 +1,4 @@
-From 4d76e7baedba6891ce42692f920cad85662b69fb Mon Sep 17 00:00:00 2001
+From 7aa932a9c0d72eca708b493866da66feeaa6ed00 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Mon, 8 Jul 2024 13:33:34 -0500
 Subject: Allow OOT modules without tainting kernel
@@ -14,7 +14,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/module.c b/kernel/module.c
-index 7c2c5f160a53..de41f773faa8 100644
+index 7c2c5f160..de41f773f 100644
 --- a/kernel/module.c
 +++ b/kernel/module.c
 @@ -3284,12 +3284,13 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
@@ -33,5 +33,5 @@ index 7c2c5f160a53..de41f773faa8 100644
  	check_modinfo_retpoline(mod, info);
  
 -- 
-2.45.2
+2.39.5
 
