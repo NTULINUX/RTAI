@@ -1,3 +1,14 @@
+rtai (5.3.3-linuxcnc) bookworm; urgency=low
+
+  * 5.3.3 stable release
+  * Update kernel to 5.4.290
+  * Drop 4.19 kernel support
+  * Move all math code into Kbuild
+  * Switch from gnu89/C99 to GNU11
+  * Many bug fixes and updates
+
+ -- Alec Ari <neotheuser@ymail.com>  Sun, 16 Feb 2025 13:51:26 -0600
+
 rtai (5.3.3-linuxcnc-delta) bullseye; urgency=low
 
   * RTAI 5.3.3 Delta pre-release

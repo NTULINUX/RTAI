@@ -83,55 +83,57 @@ Or to run LinuxCNC itself:
 
 $ linuxcnc
 
-For more information on building and installing LinuxCNC, please visit:
-
-http://linuxcnc.org/docs/master/html/code/building-linuxcnc.html
-
-Currently, LinuxCNC does not support building Debian packages against RTAI. This behavior should hopefully be restored soon.
 
 === Creating RTAI Debian packages ===
+
+
+1.) System preparation
 
 Remove any previously installed RTAI packages:
 
 # apt-get purge linux-*-rtai* rtai-modules*
 
-Notice: You must run the command above from inside a directory that
-does not contain any .deb packages, otherwise you may see errors such as:
+Notice: You must run the command above from inside a directory that does not contain any files pertaining to a Debian package, otherwise you may see errors such as:
 
 E: Unable to locate package linux-5.4.290-rtai_5.4.290-rtai-1_amd64.changes
 
+
 If you plan on building RTAI and LinuxCNC Debian packages, your kernel must also packaged as well.
 
-For information on building .deb packages for Linux kernels, please visit:
+For more information on building Debian packages for Linux kernels, please visit:
 
 https://wiki.debian.org/BuildADebianKernelPackage
 
 In short, but not too short:
 
-Install required dependencies (or at least most of them) with the following command:
+2.) Install required dependencies (or at least most of them) with the following command:
 
-# apt build-dep xorg mesa linux
-# apt install fakeroot git patch python3-opengl tcl-dev tk-dev libmodbus-dev bwidget blt mesa-utils libusb-1.0-0-dev libgtk-3-dev libgtk2.0-dev intltool libreadline-dev python3-tk libglu1-mesa-dev libxmu-dev python3-gi-cairo
+# apt build-dep xorg mesa linux linuxcnc
+# apt install bc bison flex fakeroot git patch python3-opengl tcl-dev tk-dev libmodbus-dev bwidget blt mesa-utils libusb-1.0-0-dev libgtk-3-dev libgtk2.0-dev intltool libreadline-dev python3-tk libglu1-mesa-dev libxmu-dev python3-gi-cairo iptables python3-numpy python3-gi-cairo python3-opengl python3-configobj libgtksourceview-4-dev tclreadline python3-pyqt5.qsci python3-pyqt5.qtsvg python3-pyqt5.qtopengl python3-opencv python3-espeak python3-dbus.mainloop.pyqt5 python3-pyqt5.qtwebengine python3-pyqt5.qtwebkit espeak-ng pyqt5-dev-tools gstreamer1.0-tools espeak python3-poppler-qt5
 
 If things are still missing, it should be easy to tell which.
 
-Download the latest 5.10 kernel from Debian Bullseye:
+
+3.) Download the latest 5.10 kernel from Debian Bullseye:
 
 https://packages.debian.org/bullseye/amd64/linux-image-5.10.0-33-amd64/download
 
-Decompress the Debian package:
 
-$ ar -x /path/to/linux-image-5.10.0-33-amd64_5.10.218-1_amd64.deb
+4.) Decompress the Debian package:
+
+$ ar -x /path/to/linux-image-5.10.0-33-amd64_5.10.226-1_amd64.deb
 
 The above command will leave you with a tarball called data.tar.xz
 
-Extract the tarball containing the kernel configuration file:
+
+5.) Extract the tarball containing the kernel configuration file:
 
 $ tar xf /path/to/data.tar.xz
 
 You should now have a directory named "boot" where you decompressed the tarball. Inside that boot directory will be a file called "config-5.10.0-33-amd64"
 
-Prepare the 5.4.290 kernel source:
+
+6.) Prepare the 5.4.290 Linux kernel source:
 
 $ cd ~/
 $ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.290.tar.xz
@@ -174,20 +176,26 @@ The -rtai-amd64 bits are most important. This is so you can build the LinuxCNC R
 
 IMPORTANT: The RTAI kernel packages, RTAI modules and LinuxCNC itself must all be built against each other. If any modification is made to the kernel, then the rtai-modules and linuxcnc packages must be re-created as well. DO NOT MIX AND MATCH KERNELS, MODULES AND/OR LINUXCNC! KEEP TRACK OF ALL YOUR WORK!
 
-Generate the Debian kernel package:
+
+7.) Generate the Debian kernel package:
 
 $ make -j`nproc` bindeb-pkg
 
-Install the Debian kernel packages:
+
+8.) Install the Debian kernel packages:
 
 # dpkg -i /path/to/linux-headers-5.4.290-rtai-amd64_5.4.290-rtai-amd64-1_amd64.deb
 # dpkg -i /path/to/linux-image-5.4.290-rtai-amd64_5.4.290-rtai-amd64-1_amd64.deb
 
 If you've previously built kernel packages, you may need to modify your dpkg commands (i.e. replace -1 with -2 etc.)
 
-Update GRUB if Debian did not handle this for you so you can select the RTAI kernel on boot. I handle GRUB from my Gentoo system so GRUB is not even installed for me within Debian.
 
-At this point, you should be booted into your RTAI kernel:
+9.) Update GRUB if Debian did not handle this for you so you can select the RTAI kernel on boot:
+
+# grub-mkconfig -o /boot/grub/grub.cfg
+
+
+10.) Reboot into your RTAI kernel, this is mandatory.
 
 $ uname -r
 
@@ -195,7 +203,8 @@ Should return:
 
 5.4.290-rtai-amd64
 
-Now generate the rtai-modules Debian package:
+
+11.) Generate the rtai-modules Debian package:
 
 $ cd ~/RTAI
 
@@ -213,14 +222,26 @@ Now you are ready to build the actual package:
 
 $ dpkg-buildpackage -uc -us
 
-Install the rtai-modules package:
 
-# dpkg -i /path/to/rtai-modules-5.4.290_5.3.2-linuxcnc_amd64.deb
+12.) Install the rtai-modules package:
 
-As previously stated above,
+# dpkg -i /path/to/rtai-modules-5.4.290_5.3.3-linuxcnc_amd64.deb
 
-For information on building and installing LinuxCNC, please visit:
 
-http://linuxcnc.org/docs/master/html/code/building-linuxcnc.html
+Currently, LinuxCNC does not support building Debian packages against RTAI. This behavior should hopefully be restored soon. In the meantime, you can build LinuxCNC 2.9.4 Debian packages by using a fork.
 
-Currently, LinuxCNC does not support building Debian packages against RTAI. This behavior should hopefully be restored soon.
+13.) Clone the ntulinux/rtai-2.9 branch of LinuxCNC:
+
+$ cd "${HOME}"
+$ git clone --single-branch -b ntulinux/2.9-rtai --depth=1 https://github.com/NTULINUX/linuxcnc.git linuxcnc-rtai
+
+
+14.) Build the LinuxCNC Debian packages:
+
+$ cd linuxcnc-rtai
+$ ./debian/configure -r
+$ dpkg-buildpackage -uc -us
+
+15.) Install LinuxCNC:
+
+# dpkg -i /path/to/linuxcnc_2.9.4_amd64.deb
