@@ -96,11 +96,9 @@ eval linux_$(grep "^VERSION" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 eval linux_$(grep "^PATCHLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 eval linux_$(grep "^SUBLEVEL" $RTAI_LINUX_DIR/Makefile | sed -e 's/ //g')
 RTAI_LINUX_VERSION="$linux_VERSION.$linux_PATCHLEVEL.$linux_SUBLEVEL"
-if test $linux_VERSION -lt 5 -o $linux_VERSION -eq 5 -a $linux_PATCHLEVEL -lt 4 \
- -o $linux_VERSION -ge 6 -o $linux_VERSION -eq 5 -a $linux_PATCHLEVEL -eq 4 \
- -a $linux_SUBLEVEL -lt 290 -o $linux_VERSION -eq 5 -a $linux_PATCHLEVEL -eq 4 \
- -a $linux_SUBLEVEL -gt 290 -o $linux_VERSION -eq 5 -a $linux_PATCHLEVEL -gt 4; then
-	AC_MSG_ERROR([Kernel must be 5.4.290])
+if test $linux_VERSION -lt 4 -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -lt 19 \
+ -o $linux_VERSION -eq 4 -a $linux_PATCHLEVEL -eq 19 -a $linux_SUBLEVEL -lt 325 ; then
+	AC_MSG_ERROR([Kernel must be at least 4.19.325])
 fi
 AC_MSG_RESULT([$RTAI_LINUX_VERSION])
 
