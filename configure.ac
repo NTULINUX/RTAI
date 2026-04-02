@@ -531,7 +531,7 @@ AC_ARG_ENABLE(cpus,
 	esac])
 if test x$CONFIG_RTAI_CPUS = x ; then
 	# Use a reasonable default if unset
-	CONFIG_RTAI_CPUS=8
+	CONFIG_RTAI_CPUS=16
 fi
 AC_MSG_RESULT(${CONFIG_RTAI_CPUS:-1})
 if test $CONFIG_RTAI_CPUS -lt 1 -o $CONFIG_RTAI_CPUS -gt 32 ; then
