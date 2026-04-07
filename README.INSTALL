@@ -226,7 +226,7 @@ $ dpkg-buildpackage -uc -us
 
 12.) Install the rtai-modules package:
 
-# dpkg -i /path/to/rtai-modules-4.19.325-cip130-st14_5.3.3-linuxcnc_amd64.deb
+# dpkg -i /path/to/rtai-modules-4.19.325-cip130-st14_5.3.4-linuxcnc_amd64.deb
 
 
 Currently, LinuxCNC does not support building Debian packages against RTAI. You are advised to use LinuxCNC's `master` branch and use a run-in-place environment for now.

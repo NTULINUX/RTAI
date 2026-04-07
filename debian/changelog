@@ -1,3 +1,11 @@
+rtai (5.3.4-linuxcnc) trixie; urgency=medium
+
+  * Various fixes and improvements
+  * Restore 4.19 kernel support, use cip branch
+  * Bump 5.4 kernel to last release
+
+ -- Alec Ari <neotheuser@ymail.com>  Tue, 07 Apr 2026 11:48:14 -0500
+
 rtai (5.3.3-linuxcnc) bookworm; urgency=low
 
   * 5.3.3 stable release
