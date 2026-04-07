@@ -1,4 +1,4 @@
-From 84ee3c8ad6b89cffe5087201b3933d0b4958b215 Mon Sep 17 00:00:00 2001
+From b15e9bd1f473e0f43cab4d695479bce4ad906932 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 7 Apr 2026 10:11:27 -0500
 Subject: Fix build with GCC 15

@@ -1,4 +1,4 @@
-From 49e791ba5e8d729a306884672b6a5280fce2c597 Mon Sep 17 00:00:00 2001
+From 276d9d7260c4b123817448d62a8798f99b1c037d Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 7 Apr 2026 10:10:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -92,9 +92,9 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  net/wireless/Kconfig                 |   4 +-
  samples/Kconfig                      |   1 +
  security/Kconfig                     |   7 +-
- security/Kconfig.hardening           |   2 +
+ security/Kconfig.hardening           |   4 +-
  sound/soc/Kconfig                    |   1 +
- 75 files changed, 295 insertions(+), 167 deletions(-)
+ 75 files changed, 296 insertions(+), 168 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index b5687c330..4f76324be 100644
@@ -2278,9 +2278,18 @@ index b3dff990c..01f214a61 100644
  	help
  	  This option checks for obviously wrong memory regions when
 diff --git a/security/Kconfig.hardening b/security/Kconfig.hardening
-index af4c979b3..5c3f5d3df 100644
+index af4c979b3..42f820759 100644
 --- a/security/Kconfig.hardening
 +++ b/security/Kconfig.hardening
+@@ -90,7 +90,7 @@ choice
+ 
+ 	config INIT_STACK_ALL
+ 		bool "0xAA-init everything on the stack (strongest)"
+-		depends on CC_HAS_AUTO_VAR_INIT
++		depends on CC_HAS_AUTO_VAR_INIT && !IPIPE
+ 		help
+ 		  Initializes everything on the stack with a 0xAA
+ 		  pattern. This is intended to eliminate all classes
 @@ -169,6 +169,7 @@ config STACKLEAK_RUNTIME_DISABLE
  
  config INIT_ON_ALLOC_DEFAULT_ON
