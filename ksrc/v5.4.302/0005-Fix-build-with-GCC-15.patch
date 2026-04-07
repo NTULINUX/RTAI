@@ -1,0 +1,39 @@
+From 84ee3c8ad6b89cffe5087201b3933d0b4958b215 Mon Sep 17 00:00:00 2001
+From: Alec Ari <neotheuser@ymail.com>
+Date: Tue, 7 Apr 2026 10:11:27 -0500
+Subject: Fix build with GCC 15
+
+Signed-off-by: Alec Ari <neotheuser@ymail.com>
+---
+ arch/x86/Makefile                 | 2 +-
+ arch/x86/boot/compressed/Makefile | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/Makefile b/arch/x86/Makefile
+index 69f0cb01c..ef93e7371 100644
+--- a/arch/x86/Makefile
++++ b/arch/x86/Makefile
+@@ -31,7 +31,7 @@ endif
+ CODE16GCC_CFLAGS := -m32 -Wa,$(srctree)/arch/x86/boot/code16gcc.h
+ M16_CFLAGS	 := $(call cc-option, -m16, $(CODE16GCC_CFLAGS))
+ 
+-REALMODE_CFLAGS	:= $(M16_CFLAGS) -g -Os -DDISABLE_BRANCH_PROFILING \
++REALMODE_CFLAGS	:= $(M16_CFLAGS) -std=gnu11 -g -Os -DDISABLE_BRANCH_PROFILING \
+ 		   -Wall -Wstrict-prototypes -march=i386 -mregparm=3 \
+ 		   -fno-strict-aliasing -fomit-frame-pointer -fno-pic \
+ 		   -mno-mmx -mno-sse $(call cc-option,-fcf-protection=none)
+diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
+index 62ef24bb2..3989055bd 100644
+--- a/arch/x86/boot/compressed/Makefile
++++ b/arch/x86/boot/compressed/Makefile
+@@ -28,6 +28,7 @@ targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
+ 
+ KBUILD_CFLAGS := -m$(BITS) -O2
+ KBUILD_CFLAGS += -fno-strict-aliasing $(call cc-option, -fPIE, -fPIC)
++KBUILD_CFLAGS += -std=gnu11
+ KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
+ cflags-$(CONFIG_X86_32) := -march=i386
+ cflags-$(CONFIG_X86_64) := -mcmodel=small
+-- 
+2.47.3
+

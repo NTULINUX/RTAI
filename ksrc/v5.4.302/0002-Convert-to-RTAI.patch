@@ -1,6 +1,6 @@
-From dc93ca82eeb64715aef0538d8d593f9d2c93b2b7 Mon Sep 17 00:00:00 2001
+From 133b616e75d1b2e6568030d62c2344f9058d449b Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Mon, 8 Jul 2024 13:30:02 -0500
+Date: Tue, 7 Apr 2026 10:03:42 -0500
 Subject: Convert to RTAI
 
 Signed-off-by: Alec Ari <neotheuser@ymail.com>
@@ -258,10 +258,10 @@ index 83b3c94d9..d223858ca 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 08e61b6a6..acba6b999 100644
+index 411a6d0c5..e6564aa21 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -3441,10 +3441,22 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
+@@ -3443,10 +3443,22 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
  /*
   * context_switch - switch to the new MM and the new thread's register state.
   */
@@ -285,7 +285,7 @@ index 08e61b6a6..acba6b999 100644
  	prepare_task_switch(rq, prev, next);
  
  	/*
-@@ -3501,6 +3513,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
+@@ -3503,6 +3515,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
  
  	return finish_task_switch(prev);
  }
@@ -294,5 +294,5 @@ index 08e61b6a6..acba6b999 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.39.5
+2.47.3
 

@@ -1,6 +1,6 @@
-From 3b95db5d71a0e8716c917265da182e6e785dac53 Mon Sep 17 00:00:00 2001
+From 49e791ba5e8d729a306884672b6a5280fce2c597 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Mon, 8 Jul 2024 13:33:21 -0500
+Date: Tue, 7 Apr 2026 10:10:00 -0500
 Subject: Countless Kconfig tweaks for IPIPE
 
 Disables every problematic option I can think of and enables
@@ -97,10 +97,10 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  75 files changed, 295 insertions(+), 167 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index dc7f459fc..9e75ffb92 100644
+index b5687c330..4f76324be 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -877,6 +877,10 @@ ifdef CONFIG_LIVEPATCH
+@@ -888,6 +888,10 @@ ifdef CONFIG_LIVEPATCH
  KBUILD_CFLAGS += $(call cc-option, -flive-patching=inline-clone)
  endif
  
@@ -125,7 +125,7 @@ index 4d03616bf..e7ed5518e 100644
  	default y
  	help
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 1c2db5895..6cddf3d38 100644
+index 9ef1f3b75..73e4cc666 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -61,17 +61,17 @@ config X86
@@ -222,7 +222,7 @@ index 1c2db5895..6cddf3d38 100644
 +	select HAVE_DYNAMIC_FTRACE_WITH_REGS	if !IPIPE
  	select HAVE_EBPF_JIT
  	select HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	select HAVE_EISA
+ 	select HAVE_EISA			if X86_32
  	select HAVE_EXIT_THREAD
  	select HAVE_FAST_GUP
  	select HAVE_FENTRY			if X86_64 || DYNAMIC_FTRACE
@@ -758,7 +758,7 @@ index 76e469b56..cfea091ac 100644
  config MODULE_SIG_KEY
  	string "File name or PKCS#11 URI of module signing key"
 diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index ebe1e9e5f..505942eed 100644
+index 3902fe64c..689b078b0 100644
 --- a/drivers/acpi/Kconfig
 +++ b/drivers/acpi/Kconfig
 @@ -62,6 +62,7 @@ config ACPI_CCA_REQUIRED
@@ -873,7 +873,7 @@ index ebe1e9e5f..505942eed 100644
 @@ -432,6 +440,7 @@ config ACPI_SBS
  
  config ACPI_HED
- 	tristate "Hardware Error Device"
+ 	bool "Hardware Error Device"
 +	depends on !IPIPE
  	help
  	  This driver supports the Hardware Error Device (PNP0C33),
@@ -917,15 +917,15 @@ index 90a2fd979..bc4189889 100644
  	  This driver adds support for Dynamic Platform and Thermal Framework
  	  (DPTF) Platform Power Participant device (INT3407) support.
 diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index a6beb2c5a..e8e278fb0 100644
+index dbde78fed..ddd3b803d 100644
 --- a/drivers/ata/Kconfig
 +++ b/drivers/ata/Kconfig
 @@ -92,7 +92,8 @@ config SATA_AHCI
  
  config SATA_MOBILE_LPM_POLICY
  	int "Default SATA Link Power Management policy for mobile chipsets"
--	range 0 4
-+	range 0 4 if !IPIPE
+-	range 0 5
++	range 0 5 if !IPIPE
 +	range 1 1 if IPIPE
  	default 0
  	depends on SATA_AHCI
@@ -1343,7 +1343,7 @@ index 09ae8a970..ea348b4c9 100644
  config ARM_CCI_PMU
  	tristate "ARM CCI PMU driver"
 diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-index b372419d6..a793785c1 100644
+index 57426dc52..5a9511359 100644
 --- a/drivers/pinctrl/Kconfig
 +++ b/drivers/pinctrl/Kconfig
 @@ -5,6 +5,7 @@
@@ -1587,10 +1587,10 @@ index fe90cb55d..785d5860a 100644
  struct cpuidle_device;
  struct cpuidle_state;
 diff --git a/init/Kconfig b/init/Kconfig
-index c7f97ca28..5c6b9c094 100644
+index c1144eb37..8a07d19ef 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -88,7 +88,7 @@ config INIT_ENV_ARG_LIMIT
+@@ -90,7 +90,7 @@ config INIT_ENV_ARG_LIMIT
  
  config COMPILE_TEST
  	bool "Compile also drivers which will not load"
@@ -1599,7 +1599,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Some drivers can be compiled on a different platform than they are
  	  intended to be run on. Despite they cannot be loaded there (or even
-@@ -283,7 +283,7 @@ config ARCH_NO_SWAP
+@@ -285,7 +285,7 @@ config ARCH_NO_SWAP
  
  config SWAP
  	bool "Support for paging of anonymous memory (swap)"
@@ -1608,7 +1608,7 @@ index c7f97ca28..5c6b9c094 100644
  	default y
  	help
  	  This option allows you to choose whether you want to have support
-@@ -346,6 +346,7 @@ config CROSS_MEMORY_ATTACH
+@@ -348,6 +348,7 @@ config CROSS_MEMORY_ATTACH
  
  config USELIB
  	bool "uselib syscall"
@@ -1616,7 +1616,7 @@ index c7f97ca28..5c6b9c094 100644
  	def_bool ALPHA || M68K || SPARC || X86_32 || IA32_EMULATION
  	help
  	  This option enables the uselib syscall, a system call used in the
-@@ -356,7 +357,7 @@ config USELIB
+@@ -358,7 +359,7 @@ config USELIB
  
  config AUDIT
  	bool "Auditing support"
@@ -1625,7 +1625,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Enable auditing infrastructure that can be used with another
  	  kernel subsystem, such as SELinux (which requires this for
-@@ -433,6 +434,7 @@ endchoice
+@@ -435,6 +436,7 @@ endchoice
  config IRQ_TIME_ACCOUNTING
  	bool "Fine granularity task level IRQ time accounting"
  	depends on HAVE_IRQ_TIME_ACCOUNTING && !VIRT_CPU_ACCOUNTING_NATIVE
@@ -1633,7 +1633,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Select this option to enable fine granularity task irq time
  	  accounting. This is done by reading a timestamp on each
-@@ -874,6 +876,7 @@ config CGROUP_WRITEBACK
+@@ -876,6 +878,7 @@ config CGROUP_WRITEBACK
  
  menuconfig CGROUP_SCHED
  	bool "CPU controller"
@@ -1641,7 +1641,7 @@ index c7f97ca28..5c6b9c094 100644
  	default n
  	help
  	  This feature lets CPU scheduler recognize task groups and control CPU
-@@ -987,7 +990,7 @@ config CGROUP_HUGETLB
+@@ -989,7 +992,7 @@ config CGROUP_HUGETLB
  
  config CPUSETS
  	bool "Cpuset controller"
@@ -1650,7 +1650,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  This option will let you create and manage CPUSETs which
  	  allow dynamically partitioning a system into sets of CPUs and
-@@ -1015,7 +1018,7 @@ config CGROUP_CPUACCT
+@@ -1017,7 +1020,7 @@ config CGROUP_CPUACCT
  
  config CGROUP_PERF
  	bool "Perf controller"
@@ -1659,7 +1659,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  This option extends the perf per-cpu mode to restrict monitoring
  	  to threads which belong to the cgroup specified and run on the
-@@ -1127,6 +1130,7 @@ config CHECKPOINT_RESTORE
+@@ -1129,6 +1132,7 @@ config CHECKPOINT_RESTORE
  
  config SCHED_AUTOGROUP
  	bool "Automatic process group scheduling"
@@ -1667,7 +1667,7 @@ index c7f97ca28..5c6b9c094 100644
  	select CGROUPS
  	select CGROUP_SCHED
  	select FAIR_GROUP_SCHED
-@@ -1228,6 +1232,7 @@ config CC_OPTIMIZE_FOR_PERFORMANCE_O3
+@@ -1230,6 +1234,7 @@ config CC_OPTIMIZE_FOR_PERFORMANCE_O3
  
  config CC_OPTIMIZE_FOR_SIZE
  	bool "Optimize for size (-Os)"
@@ -1675,7 +1675,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Choosing this option will pass "-Os" to your compiler resulting
  	  in a smaller kernel.
-@@ -1247,7 +1252,7 @@ config HAVE_LD_DEAD_CODE_DATA_ELIMINATION
+@@ -1249,7 +1254,7 @@ config HAVE_LD_DEAD_CODE_DATA_ELIMINATION
  config LD_DEAD_CODE_DATA_ELIMINATION
  	bool "Dead code and data elimination (EXPERIMENTAL)"
  	depends on HAVE_LD_DEAD_CODE_DATA_ELIMINATION
@@ -1684,7 +1684,7 @@ index c7f97ca28..5c6b9c094 100644
  	depends on !(FUNCTION_TRACER && CC_IS_GCC && GCC_VERSION < 40800)
  	depends on $(cc-option,-ffunction-sections -fdata-sections)
  	depends on $(ld-option,--gc-sections)
-@@ -1298,8 +1303,6 @@ config BPF
+@@ -1300,8 +1305,6 @@ config BPF
  
  menuconfig EXPERT
  	bool "Configure standard kernel features (expert users)"
@@ -1693,7 +1693,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  This option allows certain base kernel options and settings
            to be disabled or tweaked. This is for specialized
-@@ -1349,7 +1352,7 @@ config SYSFS_SYSCALL
+@@ -1351,7 +1354,7 @@ config SYSFS_SYSCALL
  
  config SYSCTL_SYSCALL
  	bool "Sysctl syscall support" if EXPERT
@@ -1702,7 +1702,7 @@ index c7f97ca28..5c6b9c094 100644
  	default n
  	select SYSCTL
  	---help---
-@@ -1760,7 +1763,7 @@ config VM_EVENT_COUNTERS
+@@ -1762,7 +1765,7 @@ config VM_EVENT_COUNTERS
  config SLUB_DEBUG
  	default y
  	bool "Enable SLUB debugging support" if EXPERT
@@ -1711,7 +1711,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  SLUB has extensive debug support features. Disabling these can
  	  result in significant savings in code size. This also disables
-@@ -1770,7 +1773,7 @@ config SLUB_DEBUG
+@@ -1772,7 +1775,7 @@ config SLUB_DEBUG
  config SLUB_MEMCG_SYSFS_ON
  	default n
  	bool "Enable memcg SLUB sysfs support by default" if EXPERT
@@ -1720,7 +1720,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  SLUB creates a directory under /sys/kernel/slab for each
  	  allocation cache to host info and debug files. If memory
-@@ -1886,7 +1889,7 @@ config SHUFFLE_PAGE_ALLOCATOR
+@@ -1888,7 +1891,7 @@ config SHUFFLE_PAGE_ALLOCATOR
  
  config SLUB_CPU_PARTIAL
  	default y
@@ -1729,7 +1729,7 @@ index c7f97ca28..5c6b9c094 100644
  	bool "SLUB per cpu partial cache"
  	help
  	  Per cpu partial caches accelerate objects allocation and freeing
-@@ -1919,6 +1922,7 @@ config MMAP_ALLOW_UNINITIALIZED
+@@ -1921,6 +1924,7 @@ config MMAP_ALLOW_UNINITIALIZED
  
  config SYSTEM_DATA_VERIFICATION
  	def_bool n
@@ -1737,7 +1737,7 @@ index c7f97ca28..5c6b9c094 100644
  	select SYSTEM_TRUSTED_KEYRING
  	select KEYS
  	select CRYPTO
-@@ -1937,6 +1941,7 @@ config SYSTEM_DATA_VERIFICATION
+@@ -1939,6 +1943,7 @@ config SYSTEM_DATA_VERIFICATION
  
  config PROFILING
  	bool "Profiling support"
@@ -1745,7 +1745,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Say Y here to enable the extended profiling support mechanisms used
  	  by profilers such as OProfile.
-@@ -2015,6 +2020,7 @@ config MODULE_FORCE_UNLOAD
+@@ -2017,6 +2022,7 @@ config MODULE_FORCE_UNLOAD
  
  config MODVERSIONS
  	bool "Module versioning support"
@@ -1753,7 +1753,7 @@ index c7f97ca28..5c6b9c094 100644
  	help
  	  Usually, you have to use modules compiled with your kernel.
  	  Saying Y here makes it sometimes possible to use modules
-@@ -2048,6 +2054,7 @@ config MODULE_SRCVERSION_ALL
+@@ -2050,6 +2056,7 @@ config MODULE_SRCVERSION_ALL
  
  config MODULE_SIG
  	bool "Module signature verification"
@@ -1761,7 +1761,7 @@ index c7f97ca28..5c6b9c094 100644
  	select MODULE_SIG_FORMAT
  	help
  	  Check modules for valid signatures upon load: the signature
-@@ -2179,6 +2186,7 @@ config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
+@@ -2182,6 +2189,7 @@ config MODULE_ALLOW_MISSING_NAMESPACE_IMPORTS
  
  config UNUSED_SYMBOLS
  	bool "Enable unused/obsolete exported symbols"
@@ -1769,7 +1769,7 @@ index c7f97ca28..5c6b9c094 100644
  	default y if X86
  	help
  	  Unused but exported symbols make the kernel needlessly bigger.  For
-@@ -2195,7 +2203,7 @@ config UNUSED_SYMBOLS
+@@ -2198,7 +2206,7 @@ config UNUSED_SYMBOLS
  
  config TRIM_UNUSED_KSYMS
  	bool "Trim unused exported kernel symbols"
@@ -2310,5 +2310,5 @@ index bdc305cec..63d63e58a 100644
  	select AC97_BUS if SND_SOC_AC97_BUS
  	select SND_JACK
 -- 
-2.39.5
+2.47.3
 
