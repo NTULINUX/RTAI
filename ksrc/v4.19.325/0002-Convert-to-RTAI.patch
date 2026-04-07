@@ -1,4 +1,4 @@
-From a6ed88c81f2330b6fd31b82e938f3c84c25bc22d Mon Sep 17 00:00:00 2001
+From ffedb4ac46265e33f6a0ef7e1379daacf0ee4ec2 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 13:09:04 -0500
 Subject: Convert to RTAI
@@ -361,5 +361,5 @@ index 74055425a..ada4b8dad 100644
  /*
   * nr_running and nr_context_switches:
 -- 
-2.53.0
+2.47.3
 

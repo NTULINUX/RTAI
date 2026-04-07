@@ -1,4 +1,4 @@
-From e56dbe3915d27a84a087bb702f423200e895f879 Mon Sep 17 00:00:00 2001
+From 99b498408605a1dcc3a48a57229d8d534e19a113 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 13:08:01 -0500
 Subject: IPIPE 4.19 core release 27
@@ -15303,5 +15303,5 @@ index 1817871b0..b206de3e0 100644
  }
  
 -- 
-2.53.0
+2.47.3
 

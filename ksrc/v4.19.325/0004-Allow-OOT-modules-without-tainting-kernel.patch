@@ -1,4 +1,4 @@
-From 8bb77dd80cff53557cf194ee8e99fe81c09c1844 Mon Sep 17 00:00:00 2001
+From 4aabc9663e1147b2deddad26ce9122732d5168ac Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 13:13:01 -0500
 Subject: Allow OOT modules without tainting kernel
@@ -33,5 +33,5 @@ index f42d70361..c0300f9df 100644
  	check_modinfo_retpoline(mod, info);
  
 -- 
-2.53.0
+2.47.3
 

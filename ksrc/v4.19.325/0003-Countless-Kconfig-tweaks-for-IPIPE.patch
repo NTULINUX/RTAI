@@ -1,4 +1,4 @@
-From f67718d07ba823f8a96b153d7bae252afeab06b5 Mon Sep 17 00:00:00 2001
+From 1ced6b35eb3f19290feb693526683f589851d25a Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 13:12:30 -0500
 Subject: Countless Kconfig tweaks for IPIPE
@@ -21,7 +21,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
 ---
  Makefile                             |   4 +
  arch/Kconfig                         |   3 +-
- arch/x86/Kconfig                     | 147 +++++++++++++++------------
+ arch/x86/Kconfig                     | 146 +++++++++++++++------------
  arch/x86/Kconfig.debug               |  15 ++-
  arch/x86/events/Kconfig              |   1 +
  arch/x86/kvm/Kconfig                 |   1 +
@@ -61,7 +61,6 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  drivers/power/reset/Kconfig          |   1 +
  drivers/powercap/Kconfig             |   1 +
  drivers/pwm/Kconfig                  |   1 +
- drivers/ras/Kconfig                  |   1 +
  drivers/regulator/Kconfig            |   1 +
  drivers/remoteproc/Kconfig           |   1 +
  drivers/reset/Kconfig                |   1 +
@@ -77,7 +76,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/ipipe.h                |   2 -
  init/Kconfig                         |  34 ++++---
  kernel/gcov/Kconfig                  |   1 +
- kernel/ipipe/Kconfig                 |  45 +++++---
+ kernel/ipipe/Kconfig                 |  48 ++++++---
  kernel/ipipe/Kconfig.debug           |   6 --
  kernel/irq/Kconfig                   |   2 +-
  kernel/power/Kconfig                 |   1 +
@@ -92,7 +91,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  samples/Kconfig                      |   2 +-
  security/Kconfig                     |   7 +-
  sound/soc/Kconfig                    |   1 +
- 73 files changed, 289 insertions(+), 171 deletions(-)
+ 72 files changed, 290 insertions(+), 171 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 0c829cb17..57e29036c 100644
@@ -131,7 +130,7 @@ index 6e77e7955..f3646deaa 100644
  	  Enabling this switches the refcounting infrastructure from a fast
  	  unchecked atomic_t implementation to a fully state checked
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 1862453e9..ab4e17977 100644
+index 1862453e9..57764fa26 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -51,16 +51,16 @@ config X86
@@ -415,7 +414,7 @@ index 1862453e9..ab4e17977 100644
  	depends on X86_64
  	default 8192 if  MAXSMP
  	default   64 if  SMP
-+	default    8 if  IPIPE
++	default   16 if  IPIPE
  	default    1 if !SMP
  
  config NR_CPUS
@@ -426,7 +425,7 @@ index 1862453e9..ab4e17977 100644
 -	  This is purely to save memory: each supported CPU adds about 8KB
 -	  to the kernel image.
 +	  For IPIPE-enabled platforms, large values causes serious problems.
-+	  The max limit in this case is 16.
++	  The max limit in this case is 32.
 +
 +	  Each supported CPU adds approximately 8KB to the kernel image.
  
@@ -442,15 +441,7 @@ index 1862453e9..ab4e17977 100644
  	---help---
  	  Multi-core scheduler support improves the CPU scheduler's decision
  	  making when dealing with multi-core CPU chips at a cost of slightly
-@@ -1110,6 +1119,7 @@ config X86_REROUTE_FOR_BROKEN_BOOT_IRQS
- 
- config X86_MCE
- 	bool "Machine Check / overheating reporting"
-+	depends on !IPIPE
- 	select GENERIC_ALLOCATOR
- 	default y
- 	---help---
-@@ -1221,7 +1231,7 @@ config X86_ESPFIX64
+@@ -1221,7 +1230,7 @@ config X86_ESPFIX64
  config X86_VSYSCALL_EMULATION
         bool "Enable vsyscall emulation" if EXPERT
         default y
@@ -459,7 +450,7 @@ index 1862453e9..ab4e17977 100644
         ---help---
  	 This enables emulation of the legacy vsyscall page.  Disabling
  	 it is roughly equivalent to booting with vsyscall=none, except
-@@ -1254,6 +1264,7 @@ config TOSHIBA
+@@ -1254,6 +1263,7 @@ config TOSHIBA
  
  config I8K
  	tristate "Dell i8k legacy laptop support"
@@ -467,7 +458,7 @@ index 1862453e9..ab4e17977 100644
  	select HWMON
  	select SENSORS_DELL_SMM
  	---help---
-@@ -1468,7 +1479,7 @@ config X86_5LEVEL
+@@ -1468,7 +1478,7 @@ config X86_5LEVEL
  	bool "Enable 5-level page tables support"
  	select DYNAMIC_MEMORY_LAYOUT
  	select SPARSEMEM_VMEMMAP
@@ -476,7 +467,7 @@ index 1862453e9..ab4e17977 100644
  	---help---
  	  5-level paging enables access to larger address space:
  	  upto 128 PiB of virtual address space and 4 PiB of
-@@ -1498,7 +1509,7 @@ config ARCH_HAS_MEM_ENCRYPT
+@@ -1498,7 +1508,7 @@ config ARCH_HAS_MEM_ENCRYPT
  
  config AMD_MEM_ENCRYPT
  	bool "AMD Secure Memory Encryption (SME) support"
@@ -485,7 +476,7 @@ index 1862453e9..ab4e17977 100644
  	select DYNAMIC_PHYSICAL_MASK
  	select ARCH_USE_MEMREMAP_PROT
  	---help---
-@@ -1524,6 +1535,7 @@ config NUMA
+@@ -1524,6 +1534,7 @@ config NUMA
  	bool "Numa Memory Allocation and Scheduler Support"
  	depends on SMP
  	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
@@ -493,7 +484,7 @@ index 1862453e9..ab4e17977 100644
  	default y if X86_BIGSMP
  	---help---
  	  Enable NUMA (Non Uniform Memory Access) support.
-@@ -1639,8 +1651,7 @@ config X86_PMEM_LEGACY_DEVICE
+@@ -1639,8 +1650,7 @@ config X86_PMEM_LEGACY_DEVICE
  
  config X86_PMEM_LEGACY
  	tristate "Support non-standard NVDIMMs and ADR protected memory"
@@ -503,7 +494,7 @@ index 1862453e9..ab4e17977 100644
  	select X86_PMEM_LEGACY_DEVICE
  	select LIBNVDIMM
  	help
-@@ -1842,6 +1853,7 @@ config ARCH_RANDOM
+@@ -1842,6 +1852,7 @@ config ARCH_RANDOM
  
  config X86_SMAP
  	def_bool y
@@ -511,7 +502,7 @@ index 1862453e9..ab4e17977 100644
  	prompt "Supervisor Mode Access Prevention" if EXPERT
  	---help---
  	  Supervisor Mode Access Prevention (SMAP) is a security
-@@ -1853,7 +1865,7 @@ config X86_SMAP
+@@ -1853,7 +1864,7 @@ config X86_SMAP
  
  config X86_INTEL_UMIP
  	def_bool y
@@ -520,7 +511,7 @@ index 1862453e9..ab4e17977 100644
  	prompt "Intel User Mode Instruction Prevention" if EXPERT
  	---help---
  	  The User Mode Instruction Prevention (UMIP) is a security
-@@ -1871,7 +1883,7 @@ config X86_INTEL_MPX
+@@ -1871,7 +1882,7 @@ config X86_INTEL_MPX
  	prompt "Intel MPX (Memory Protection Extensions)"
  	def_bool n
  	# Note: only available in 64-bit mode due to VMA flags shortage
@@ -529,7 +520,7 @@ index 1862453e9..ab4e17977 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	---help---
  	  MPX provides hardware features that can be used in
-@@ -1899,7 +1911,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+@@ -1899,7 +1910,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
  	prompt "Intel Memory Protection Keys"
  	def_bool y
  	# Note: only available in 64-bit mode
@@ -538,7 +529,7 @@ index 1862453e9..ab4e17977 100644
  	select ARCH_USES_HIGH_VMA_FLAGS
  	select ARCH_HAS_PKEYS
  	---help---
-@@ -1958,7 +1970,7 @@ endchoice
+@@ -1958,7 +1969,7 @@ endchoice
  
  config EFI
  	bool "EFI runtime service support"
@@ -547,7 +538,7 @@ index 1862453e9..ab4e17977 100644
  	select UCS2_STRING
  	select EFI_RUNTIME_WRAPPERS
  	select ARCH_USE_MEMREMAP_PROT
-@@ -2017,6 +2029,7 @@ source kernel/Kconfig.hz
+@@ -2017,6 +2028,7 @@ source kernel/Kconfig.hz
  
  config KEXEC
  	bool "kexec system call"
@@ -555,7 +546,7 @@ index 1862453e9..ab4e17977 100644
  	select KEXEC_CORE
  	---help---
  	  kexec is a system call that implements the ability to shutdown your
-@@ -2039,6 +2052,7 @@ config KEXEC_FILE
+@@ -2039,6 +2051,7 @@ config KEXEC_FILE
  	depends on X86_64
  	depends on CRYPTO=y
  	depends on CRYPTO_SHA256=y
@@ -563,7 +554,7 @@ index 1862453e9..ab4e17977 100644
  	---help---
  	  This is new version of kexec system call. This system call is
  	  file based and takes file descriptors as system call argument
-@@ -2070,6 +2084,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
+@@ -2070,6 +2083,7 @@ config KEXEC_BZIMAGE_VERIFY_SIG
  config CRASH_DUMP
  	bool "kernel crash dumps"
  	depends on X86_64 || (X86_32 && HIGHMEM)
@@ -571,7 +562,7 @@ index 1862453e9..ab4e17977 100644
  	---help---
  	  Generate crash dump after being started by kexec.
  	  This should be normally only set in special crash dump kernels
-@@ -2131,6 +2146,7 @@ config PHYSICAL_START
+@@ -2131,6 +2145,7 @@ config PHYSICAL_START
  
  config RELOCATABLE
  	bool "Build a relocatable kernel"
@@ -579,7 +570,7 @@ index 1862453e9..ab4e17977 100644
  	default y
  	---help---
  	  This builds a kernel image that retains relocation information
-@@ -2254,7 +2270,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
+@@ -2254,7 +2269,7 @@ config RANDOMIZE_MEMORY_PHYSICAL_PADDING
  
  config HOTPLUG_CPU
  	def_bool y
@@ -588,7 +579,7 @@ index 1862453e9..ab4e17977 100644
  
  config BOOTPARAM_HOTPLUG_CPU0
  	bool "Set default setting of cpu0_hotpluggable"
-@@ -2328,7 +2344,7 @@ config COMPAT_VDSO
+@@ -2328,7 +2343,7 @@ config COMPAT_VDSO
  choice
  	prompt "vsyscall table for legacy applications"
  	depends on X86_64
@@ -597,7 +588,7 @@ index 1862453e9..ab4e17977 100644
  	help
  	  Legacy user code that does not know how to find the vDSO expects
  	  to be able to issue three syscalls by calling fixed addresses in
-@@ -2342,10 +2358,11 @@ choice
+@@ -2342,10 +2357,11 @@ choice
  	  static binaries, you can say None without a performance penalty
  	  to improve security.
  
@@ -610,7 +601,7 @@ index 1862453e9..ab4e17977 100644
  		help
  		  The kernel traps and emulates calls into the fixed
  		  vsyscall address mapping. This makes the mapping
-@@ -2410,6 +2427,7 @@ config CMDLINE_OVERRIDE
+@@ -2410,6 +2426,7 @@ config CMDLINE_OVERRIDE
  
  config MODIFY_LDT_SYSCALL
  	bool "Enable the LDT (local descriptor table)" if EXPERT
@@ -618,7 +609,7 @@ index 1862453e9..ab4e17977 100644
  	default y
  	---help---
  	  Linux can allow user programs to install a per-process x86
-@@ -2434,7 +2452,7 @@ config ARCH_HAS_ADD_PAGES
+@@ -2434,7 +2451,7 @@ config ARCH_HAS_ADD_PAGES
  
  config ARCH_ENABLE_MEMORY_HOTPLUG
  	def_bool y
@@ -627,7 +618,7 @@ index 1862453e9..ab4e17977 100644
  
  config ARCH_ENABLE_MEMORY_HOTREMOVE
  	def_bool y
-@@ -2450,7 +2468,7 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+@@ -2450,7 +2467,7 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
  
  config GDS_FORCE_MITIGATION
  	bool "Force GDS Mitigation"
@@ -636,7 +627,7 @@ index 1862453e9..ab4e17977 100644
  	default n
  	help
  	  Gather Data Sampling (GDS) is a hardware vulnerability which allows
-@@ -2918,6 +2936,7 @@ endmenu
+@@ -2918,6 +2935,7 @@ endmenu
  
  
  menu "Binary Emulations"
@@ -1378,17 +1369,6 @@ index 504d25271..3f8b0bc3a 100644
  	help
  	  Generic Pulse-Width Modulation (PWM) support.
  
-diff --git a/drivers/ras/Kconfig b/drivers/ras/Kconfig
-index 4c3c67d13..3673ba89a 100644
---- a/drivers/ras/Kconfig
-+++ b/drivers/ras/Kconfig
-@@ -1,5 +1,6 @@
- menuconfig RAS
- 	bool "Reliability, Availability and Serviceability (RAS) features"
-+	depends on !IPIPE
- 	help
- 	  Reliability, availability and serviceability (RAS) is a computer
- 	  hardware engineering term. Computers designed with higher levels
 diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
 index 329cdd33e..e8af9cb70 100644
 --- a/drivers/regulator/Kconfig
@@ -1741,10 +1721,10 @@ index 1e3823fa7..85450d4d6 100644
  config GCOV_KERNEL
  	bool "Enable gcov-based kernel profiling"
 diff --git a/kernel/ipipe/Kconfig b/kernel/ipipe/Kconfig
-index d17edb89f..d0da39b3a 100644
+index d17edb89f..1b3526384 100644
 --- a/kernel/ipipe/Kconfig
 +++ b/kernel/ipipe/Kconfig
-@@ -1,12 +1,37 @@
+@@ -1,12 +1,40 @@
  
 -config HAVE_IPIPE_SUPPORT
 -       depends on GENERIC_CLOCKEVENTS
@@ -1761,6 +1741,7 @@ index d17edb89f..d0da39b3a 100644
 +	select BUG
 +	select COREDUMP
 +	select DEBUG_BUGVERBOSE
++	select DEBUG_MEMORY_INIT
 +	select DOUBLEFAULT
 +	select ELF_CORE
 +	select EMBEDDED
@@ -1783,12 +1764,14 @@ index d17edb89f..d0da39b3a 100644
 +	select TTY
 +	select VGA_CONSOLE
 +	select VT
++	select X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK
++	select X86_CHECK_BIOS_CORRUPTION
 +	select X86_PM_TIMER
 +	select X86_SYSFB
  	---help---
  	  Activate this option if you want the interrupt pipeline to be
  	  compiled in.
-@@ -37,11 +62,3 @@ config IPIPE_TARGET_APIREV
+@@ -37,11 +65,3 @@ config IPIPE_TARGET_APIREV
  
  config IPIPE_HAVE_HOSTRT
         bool
@@ -2245,5 +2228,5 @@ index 1cf11cf51..3e16909d7 100644
  	select AC97_BUS if SND_SOC_AC97_BUS
  	select SND_JACK
 -- 
-2.53.0
+2.47.3
 

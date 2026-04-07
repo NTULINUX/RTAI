@@ -1,4 +1,4 @@
-From 61f6869b9a9b65d8892a336d91c94966680decfd Mon Sep 17 00:00:00 2001
+From 3c168594a6cb23e465c0657922897bcc0f36be9f Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 14:21:28 -0500
 Subject: Fix build with GCC 15
@@ -35,5 +35,5 @@ index 1b4c29c61..ff9123ff2 100644
  cflags-$(CONFIG_X86_32) := -march=i386
  cflags-$(CONFIG_X86_64) := -mcmodel=small
 -- 
-2.53.0
+2.47.3
 
