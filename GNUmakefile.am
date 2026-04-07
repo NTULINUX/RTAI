@@ -34,11 +34,6 @@ clean-if-reconfigured:
 	   $(MAKE) clean ; \
 	fi
 
-menuconfig:
-	$(MAKE) srctree=$(PWD) \
-	-C scripts/kconfig -f Makefile.kconfig $@
-	$(MAKE) --no-print-directory config-status
-
 config-status: .rtai_config
 	@test -r config.status && recf=yes || recf=no ; \
 	eval `grep ^CONFIG_RTAI_INSTALLDIR $<`; \
@@ -66,8 +61,6 @@ clean-local:
 	rm -rf modules .cfchanged
 
 distclean-local:
-	$(MAKE) srctree=$(srcdir) -C scripts/kconfig \
-	--no-print-directory -f Makefile.kconfig distclean
 	find . -name GNUmakefile.in | xargs rm -rf
 	rm -rf rtai_config* .rtai_config* autom4te.cache aclocal.m4 m4/l*
 
@@ -79,10 +72,6 @@ install-data-local: .rtai_config
 	fi
 
 install-exec-local: devices
-
-dist-hook:
-	$(MAKE) -C --no-print-directory scripts/kconfig \
-	-f Makefile.kconfig distclean srctree=$(srcdir)
 
 dev devices:
 	@if test -r $(DESTDIR)/etc/udev/udev.rules ; then \
@@ -117,4 +106,4 @@ dev devices:
 	    done ; \
 	fi
 
-.PHONY: menuconfig clean-if-reconfigured dev devices
+.PHONY: clean-if-reconfigured dev devices

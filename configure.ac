@@ -1,5 +1,5 @@
 # Copyright (C) 2005-2017 The RTAI project
-# Copyright (C) 2019-2024 Alec Ari <neotheuser@ymail.com>
+# Copyright (C) 2019-2026 Alec Ari <neotheuser@ymail.com>
 # This [file] is free software; the RTAI project
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -44,21 +44,14 @@ else
 fi
 
 dnl Make it more difficult to do something stupid
-RTAI_DEFCONFIG=$srcdir/defconfig
 RTAI_USER_CONFIG=$srcdir/.rtai_config
-AC_MSG_CHECKING([for RTAI Kconfig file])
-if test \! -r $RTAI_DEFCONFIG; then
-	AC_MSG_ERROR([Kconfig-file $RTAI_DEFCONFIG not found])
-elif test -r $RTAI_USER_CONFIG; then
-	KCONFIG_RESULT=$RTAI_USER_CONFIG
+if test -r $RTAI_USER_CONFIG; then
+	CONFIG_RESULT=$RTAI_USER_CONFIG
 	sed -i '/TRUE/d' $RTAI_USER_CONFIG
 	sed -i '/FALSE/d' $RTAI_USER_CONFIG
 	source $RTAI_USER_CONFIG
-else
-	KCONFIG_RESULT=$RTAI_DEFCONFIG
-	source $RTAI_DEFCONFIG
 fi
-AC_MSG_RESULT([$KCONFIG_RESULT])
+AC_MSG_RESULT([$CONFIG_RESULT])
 
 dnl Make it more difficult to do something stupid here too
 RTAI_MODULE_DIR='${prefix}/modules'
@@ -605,7 +598,7 @@ if test x$CONFIG_RTAI_MBX = xy ; then
 	fi
 fi
 
-dnl Build a Kconfig file corresponding to the current configuration
+dnl Build a config file corresponding to the current configuration
 set | grep -e '^CONFIG_RTAI' -e '^CONFIG_MODULES' &> $RTAI_USER_CONFIG
 sed -i '/MODULES_/d' $RTAI_USER_CONFIG
 
