@@ -29,7 +29,7 @@
 static RT_TASK *task;
 
 static volatile int end;
-void endme() { end = 1; }
+void endme(int) { end = 1; }
 
 int main(void)
 {

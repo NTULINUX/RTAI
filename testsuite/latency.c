@@ -51,7 +51,7 @@ static double dot(double *a, double *b, int n)
 }
 
 static volatile int end;
-void endme() { end = 1; }
+void endme(int) { end = 1; }
 
 int main(void)
 {
