@@ -1,4 +1,4 @@
-From ffedb4ac46265e33f6a0ef7e1379daacf0ee4ec2 Mon Sep 17 00:00:00 2001
+From ac8e38e5cffff0b7dca2f48fba41ad3a80c274e7 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
 Date: Tue, 31 Mar 2026 13:09:04 -0500
 Subject: Convert to RTAI
@@ -262,7 +262,7 @@ index 5354cddb6..56df773b0 100644
 +EXPORT_SYMBOL(ipipe_timer_start);
 +EXPORT_SYMBOL(ipipe_timer_stop);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 74055425a..ada4b8dad 100644
+index 85857d889..c8177fa9f 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -2802,55 +2802,65 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)

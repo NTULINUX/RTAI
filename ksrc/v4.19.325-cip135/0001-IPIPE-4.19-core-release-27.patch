@@ -1,6 +1,6 @@
-From 99b498408605a1dcc3a48a57229d8d534e19a113 Mon Sep 17 00:00:00 2001
+From b5b2b3a6143d0d93b20d1c29054ad80cb16f1ef1 Mon Sep 17 00:00:00 2001
 From: Alec Ari <neotheuser@ymail.com>
-Date: Tue, 31 Mar 2026 13:08:01 -0500
+Date: Fri, 21 Aug 2026 23:20:32 -0500
 Subject: IPIPE 4.19 core release 27
 
 Based off of ipipe-core-4.19.288-cip101-x86-27.patch
@@ -94,7 +94,6 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  include/linux/sched/coredump.h                |    1 +
  include/linux/spinlock.h                      |   90 +-
  include/linux/spinlock_api_smp.h              |    6 +-
- include/linux/spinlock_up.h                   |   17 +-
  include/linux/stop_machine.h                  |    4 +
  include/linux/tracepoint.h                    |    6 +-
  init/Kconfig                                  |   12 +
@@ -153,7 +152,7 @@ Signed-off-by: Alec Ari <neotheuser@ymail.com>
  mm/mmu_context.c                              |    4 +
  mm/mprotect.c                                 |   11 +-
  mm/vmalloc.c                                  |    2 +
- 146 files changed, 10434 insertions(+), 412 deletions(-)
+ 145 files changed, 10427 insertions(+), 402 deletions(-)
  create mode 100644 Documentation/ipipe.rst
  create mode 100644 arch/x86/include/asm/ipipe.h
  create mode 100644 arch/x86/include/asm/ipipe_base.h
@@ -2606,7 +2605,7 @@ index da0b6bc09..fe2a3501a 100644
  obj-$(CONFIG_APM)		+= apm.o
  obj-$(CONFIG_SMP)		+= smp.o
 diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index e316f5a2a..48b4a9441 100644
+index 931427b96..bc66aed85 100644
 --- a/arch/x86/kernel/apic/apic.c
 +++ b/arch/x86/kernel/apic/apic.c
 @@ -34,6 +34,7 @@
@@ -2711,7 +2710,7 @@ index e316f5a2a..48b4a9441 100644
  		return true;
  	}
  
-@@ -2132,7 +2157,7 @@ __visible void __irq_entry smp_spurious_interrupt(struct pt_regs *regs)
+@@ -2133,7 +2158,7 @@ __visible void __irq_entry smp_spurious_interrupt(struct pt_regs *regs)
  	if (v & (1 << (vector & 0x1f))) {
  		pr_info("Spurious interrupt (vector 0x%02x) on CPU#%d. Acked\n",
  			vector, smp_processor_id());
@@ -2720,7 +2719,7 @@ index e316f5a2a..48b4a9441 100644
  	} else {
  		pr_info("Spurious interrupt (vector 0x%02x) on CPU#%d. Not pending!\n",
  			vector, smp_processor_id());
-@@ -2593,12 +2618,12 @@ static int lapic_suspend(void)
+@@ -2594,12 +2619,12 @@ static int lapic_suspend(void)
  		apic_pm_state.apic_cmci = apic_read(APIC_LVTCMCI);
  #endif
  
@@ -2735,7 +2734,7 @@ index e316f5a2a..48b4a9441 100644
  	return 0;
  }
  
-@@ -2611,7 +2636,7 @@ static void lapic_resume(void)
+@@ -2612,7 +2637,7 @@ static void lapic_resume(void)
  	if (!apic_pm_state.active)
  		return;
  
@@ -2744,7 +2743,7 @@ index e316f5a2a..48b4a9441 100644
  
  	/*
  	 * IO-APIC and PIC have their own resume routines.
-@@ -2669,7 +2694,7 @@ static void lapic_resume(void)
+@@ -2675,7 +2700,7 @@ static void lapic_resume(void)
  
  	irq_remapping_reenable(x2apic_mode);
  
@@ -7771,7 +7770,7 @@ index 86ebb4bf9..c1ed96fa0 100644
  static inline void __raw_read_lock(rwlock_t *lock)
  {
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index fd4899236..c8b58eeb7 100644
+index 4b86cc029..805862afc 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -83,7 +83,9 @@ struct task_group;
@@ -8033,41 +8032,6 @@ index 42dfab89e..ebdc2a911 100644
  	LOCK_CONTENDED(lock, do_raw_spin_trylock, do_raw_spin_lock);
  #else
  	do_raw_spin_lock_flags(lock, &flags);
-diff --git a/include/linux/spinlock_up.h b/include/linux/spinlock_up.h
-index 0ac9112c1..b8c6c6d47 100644
---- a/include/linux/spinlock_up.h
-+++ b/include/linux/spinlock_up.h
-@@ -48,16 +48,6 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
- 	lock->slock = 1;
- }
- 
--/*
-- * Read-write spinlocks. No debug version.
-- */
--#define arch_read_lock(lock)		do { barrier(); (void)(lock); } while (0)
--#define arch_write_lock(lock)		do { barrier(); (void)(lock); } while (0)
--#define arch_read_trylock(lock)	({ barrier(); (void)(lock); 1; })
--#define arch_write_trylock(lock)	({ barrier(); (void)(lock); 1; })
--#define arch_read_unlock(lock)		do { barrier(); (void)(lock); } while (0)
--#define arch_write_unlock(lock)	do { barrier(); (void)(lock); } while (0)
--
- #else /* DEBUG_SPINLOCK */
- #define arch_spin_is_locked(lock)	((void)(lock), 0)
- /* for sched/core.c and kernel_lock.c: */
-@@ -67,6 +57,13 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
- # define arch_spin_trylock(lock)	({ barrier(); (void)(lock); 1; })
- #endif /* DEBUG_SPINLOCK */
- 
-+#define arch_read_lock(lock)		do { barrier(); (void)(lock); } while (0)
-+#define arch_write_lock(lock)		do { barrier(); (void)(lock); } while (0)
-+#define arch_read_trylock(lock)	({ barrier(); (void)(lock); 1; })
-+#define arch_write_trylock(lock)	({ barrier(); (void)(lock); 1; })
-+#define arch_read_unlock(lock)		do { barrier(); (void)(lock); } while (0)
-+#define arch_write_unlock(lock)	do { barrier(); (void)(lock); } while (0)
-+
- #define arch_spin_is_contended(lock)	(((void)(lock), 0))
- 
- #endif /* __LINUX_SPINLOCK_UP_H */
 diff --git a/include/linux/stop_machine.h b/include/linux/stop_machine.h
 index ccdaa8fd5..63f3bfab9 100644
 --- a/include/linux/stop_machine.h
@@ -8301,7 +8265,7 @@ index 8c76141c9..7fa4bc501 100644
  
  static struct console kgdbcons = {
 diff --git a/kernel/exit.c b/kernel/exit.c
-index f7e720223..6f6c30ccb 100644
+index 5d565733a..b366d583e 100644
 --- a/kernel/exit.c
 +++ b/kernel/exit.c
 @@ -56,6 +56,7 @@
@@ -8312,7 +8276,7 @@ index f7e720223..6f6c30ccb 100644
  #include <linux/writeback.h>
  #include <linux/shm.h>
  #include <linux/kcov.h>
-@@ -873,6 +874,7 @@ void __noreturn do_exit(long code)
+@@ -874,6 +875,7 @@ void __noreturn do_exit(long code)
  	}
  
  	exit_signals(tsk);  /* sets PF_EXITING */
@@ -8321,7 +8285,7 @@ index f7e720223..6f6c30ccb 100644
  	/* sync mm's RSS info before statistics gathering */
  	if (tsk->mm)
 diff --git a/kernel/fork.c b/kernel/fork.c
-index b65871600..de637625a 100644
+index 35dacbda8..91d593623 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -54,6 +54,7 @@
@@ -13923,10 +13887,10 @@ index 61c04c61e..10ae1d1fc 100644
  	if (res)
  		return res;
 diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index bf8360e86..21b3a9468 100644
+index d89a81264..c9d50c93b 100644
 --- a/kernel/ptrace.c
 +++ b/kernel/ptrace.c
-@@ -856,6 +856,8 @@ static int ptrace_resume(struct task_struct *child, long request,
+@@ -866,6 +866,8 @@ static int ptrace_resume(struct task_struct *child, long request,
  		user_disable_single_step(child);
  	}
  
@@ -13949,7 +13913,7 @@ index 0ec7d1d33..2034d02e8 100644
  config TORTURE_TEST
  	tristate
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index ea9e75fe3..74055425a 100644
+index 4d808a56b..85857d889 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -1101,8 +1101,12 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
@@ -14140,7 +14104,7 @@ index ea9e75fe3..74055425a 100644
  /*
   * Default task group.
 diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
-index 4e3d149d6..0e0d070a8 100644
+index b5d2be580..fb0dffe21 100644
 --- a/kernel/sched/idle.c
 +++ b/kernel/sched/idle.c
 @@ -77,24 +77,31 @@ void __weak arch_cpu_idle_dead(void) { }
@@ -14182,7 +14146,7 @@ index 4e3d149d6..0e0d070a8 100644
  	}
  }
  
-@@ -203,6 +210,15 @@ static void cpuidle_idle_call(void)
+@@ -212,6 +219,15 @@ static void cpuidle_idle_call(void)
  exit_idle:
  	__current_set_polling();
  
@@ -14198,7 +14162,7 @@ index 4e3d149d6..0e0d070a8 100644
  	/*
  	 * It is up to the idle functions to reenable local interrupts
  	 */
-@@ -255,6 +271,9 @@ static void do_idle(void)
+@@ -264,6 +280,9 @@ static void do_idle(void)
  			cpu_idle_poll();
  		} else {
  			cpuidle_idle_call();
@@ -14209,7 +14173,7 @@ index 4e3d149d6..0e0d070a8 100644
  		arch_cpu_idle_exit();
  	}
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index 55e695080..3d496d247 100644
+index 359c1e095..b76afe4ee 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -64,6 +64,7 @@
@@ -14234,7 +14198,7 @@ index a44a57fb9..7a5797e86 100644
  		return nr_exclusive;
  
 diff --git a/kernel/signal.c b/kernel/signal.c
-index 356bdf5c4..049865d78 100644
+index 502b242dd..da4048b91 100644
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
 @@ -32,6 +32,7 @@
