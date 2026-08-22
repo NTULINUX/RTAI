@@ -11,11 +11,11 @@ $ git clone https://github.com/NTULINUX/RTAI.git
 2.) Patch kernel with IPIPE, in this case we use 4.19.325
 
 # cd /usr/src
-# wget https://git.kernel.org/pub/scm/linux/kernel/git/cip/linux-cip.git/snapshot/linux-cip-4.19.325-cip130.tar.gz
-# tar xf linux-cip-4.19.325-cip130.tar.gz
-# ln -sfv linux-cip-4.19.325-cip130 linux
+# wget https://git.kernel.org/pub/scm/linux/kernel/git/cip/linux-cip.git/snapshot/linux-cip-4.19.325-cip135.tar.gz
+# tar xf linux-cip-4.19.325-cip135.tar.gz
+# ln -sfv linux-cip-4.19.325-cip135 linux
 # cd linux
-# for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v4.19.325/"*.patch ; do patch -p1 < "${i}" ; done
+# for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v4.19.325-cip135/"*.patch ; do patch -p1 < "${i}" ; done
 # make olddefconfig
 # make menuconfig
 
@@ -136,10 +136,10 @@ You should now have a directory named "boot" where you decompressed the tarball.
 6.) Prepare the 4.19.325 Linux kernel source:
 
 $ cd ~/
-$ wget https://git.kernel.org/pub/scm/linux/kernel/git/cip/linux-cip.git/snapshot/linux-cip-4.19.325-cip130.tar.gz
-$ tar xf linux-cip-4.19.325-cip130.tar.gz
-$ cd linux-cip-4.19.325-cip130
-$ for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v4.19.325"/*.patch ; do patch -p1 < "${i}" ; done
+$ wget https://git.kernel.org/pub/scm/linux/kernel/git/cip/linux-cip.git/snapshot/linux-cip-4.19.325-cip135.tar.gz
+$ tar xf linux-cip-4.19.325-cip135.tar.gz
+$ cd linux-cip-4.19.325-cip135
+$ for i in "/path/to/this/RTAI-git-tree/ksrc/patches/v4.19.325-cip135"/*.patch ; do patch -p1 < "${i}" ; done
 
 Load it accordingly:
 
@@ -185,8 +185,8 @@ $ fakeroot make -j`nproc` bindeb-pkg
 
 8.) Install the Debian kernel packages:
 
-# dpkg -i /path/to/linux-headers-4.19.325-cip130-st14-rtai-amd64_4.19.325-cip130-st14-rtai-amd64-1_amd64.deb
-# dpkg -i /path/to/linux-image-4.19.325-cip130-st14-rtai-amd64_4.19.325-cip130-st14-rtai-amd64-1_amd64.deb
+# dpkg -i /path/to/linux-headers-4.19.325-cip135-st19-rtai-amd64_4.19.325-cip135-st19-rtai-amd64-1_amd64.deb
+# dpkg -i /path/to/linux-image-4.19.325-cip135-st19-rtai-amd64_4.19.325-cip135-st19-rtai-amd64-1_amd64.deb
 
 If you've previously built kernel packages, you may need to modify your dpkg commands (i.e. replace -1 with -2 etc.)
 
@@ -202,7 +202,7 @@ $ uname -r
 
 Should return:
 
-4.19.325-cip130-st14-rtai-amd64
+4.19.325-cip135-st19-rtai-amd64
 
 
 11.) Generate the rtai-modules Debian package:
@@ -217,7 +217,7 @@ Configure the RTAI tree:
 
 $ ./autogen.sh
 
-$ ./debian/configure 4.19.325-cip130-st14 rtai amd64
+$ ./debian/configure 4.19.325-cip135-st19 rtai amd64
 
 Now you are ready to build the actual package:
 
@@ -226,7 +226,7 @@ $ dpkg-buildpackage -uc -us
 
 12.) Install the rtai-modules package:
 
-# dpkg -i /path/to/rtai-modules-4.19.325-cip130-st14_5.3.4-linuxcnc_amd64.deb
+# dpkg -i /path/to/rtai-modules-4.19.325-cip135-st19_5.3.4-linuxcnc_amd64.deb
 
 
 Currently, LinuxCNC does not support building Debian packages against RTAI. You are advised to use LinuxCNC's `master` branch and use a run-in-place environment for now.
